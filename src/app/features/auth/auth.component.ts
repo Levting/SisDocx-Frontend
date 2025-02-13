@@ -2,12 +2,13 @@ import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 @Component({
-  selector: 'app-root',
+  selector: 'app-auth',
   standalone: true,
   imports: [RouterOutlet],
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.css',
+  templateUrl: './auth.component.html',
+  styleUrl: './auth.component.css',
+
 })
-export class AppComponent {
-  title = 'sisdocx-frontend';
+export class AuthComponent {
+
 }

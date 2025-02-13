@@ -1,0 +1,20 @@
+<div class="flex h-screen w-screen">
+    <!-- Logo Superior Izquierdo -->
+    <div class="absolute left-3 top-3 flex items-center">
+      <img src="bg/sd-bg.png" alt="Logo SisDocx" class="h-16 w-16" />
+      <b class="text-md text-foreground font-bold">SisDocx</b>
+    </div>
+  
+    <!-- Sección Izquierda: Inicio Sesión -->
+    <div class="bg-background flex flex-1 flex-col items-center justify-center">
+      <div class="max-w-md overflow-y-auto px-4 sm:w-[500px]">
+        <!-- Route: Login Form -->
+        <router-outlet></router-outlet>
+      </div>
+    </div>
+  
+    <!-- Sección Derecha: Imagen -->
+    <div class="hidden h-full w-1/2 lg:flex">
+      <img src="bg/eeasa-bg.jpg" alt="dashboard widget" class="h-full w-full object-cover bg-orange-100" />
+    </div>
+  </div>

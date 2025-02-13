@@ -1,0 +1,18 @@
+<div class="flex h-screen w-full overflow-hidden">
+  <!-- Sidebar -->
+  <app-sidebar />
+  <div class="flex grow flex-col content-start overflow-hidden bg-card">
+    <!-- Navbar -->
+    <app-navbar />
+
+    <div
+      id="main-content"
+      class="scrollbar-thumb-rounded scrollbar-track-rounded grow overflow-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-muted"
+    >
+      <div class="mx-auto px-5 py-5 sm:px-8 lg:container">
+        <!-- <router-outlet></router-outlet> -->
+        Layout
+      </div>
+    </div>
+  </div>
+</div>
