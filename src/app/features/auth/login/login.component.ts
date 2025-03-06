@@ -18,6 +18,7 @@ import {LoginRequest} from '../../../models/auth/loginRequest';
 })
 export class LoginComponent {
 
+  public loginError: string = "";
   private formBuilder = inject(FormBuilder);
 
   constructor(private router: Router, private authService: AuthService) {
@@ -42,19 +43,19 @@ export class LoginComponent {
     if (this.loginForm.valid) {
 
       this.authService.login(this.loginForm.value as LoginRequest).subscribe({
-        next: token => {
-          console.log("Token: ", token);
+        next: data => {
+          console.log("Data: ", data);
         },
         error: error => {
           console.log(error);
+          this.loginError = error;
         },
         complete: () => {
           console.info("Login Completo")
+          this.router.navigate(['home']);
+          this.loginForm.reset();
         }
-
       })
-      this.router.navigate(['home']);
-      this.loginForm.reset();
     } else {
       this.loginForm.markAllAsTouched()
     }
