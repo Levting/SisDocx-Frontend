@@ -9,22 +9,25 @@
           class="bg-muted text-muted-foreground focus:ring-primary hover:bg-muted-foreground hover:text-muted inline-flex items-center justify-center rounded-md p-2 focus:outline-hidden focus:ring-2 focus:ring-inset"
           aria-expanded="false"
         >
-          <span class="sr-only">Open menu</span>          
+          <span class="sr-only">Open menu</span>
         </button>
       </div>
 
       <!-- Logo -->
-      <div
-        class="flex items-center justify-start sm:order-2 md:mr-10 lg:hidden"
-      >
-        <a
-          class="bg-primary flex items-center justify-center rounded-sm p-2 focus:outline-hidden focus:ring-1"
-        >
+      <div class="flex items-center justify-start sm:order-2 md:mr-10 lg:hidden">
+        <a class="bg-primary flex items-center justify-center rounded-sm p-2 focus:outline-hidden focus:ring-1">
+          <img ngSrc="/bg/sd-bg.png" alt="Logo SisDocx" fill>
         </a>
-        <b class="text-foreground hidden pl-3 text-sm font-bold sm:block"
-          >SisDocx</b
-        >
+        <b class="text-foreground hidden pl-3 text-sm font-bold sm:block">SisDocx</b>
       </div>
+
+
+      <a routerLink="/home">Home</a>
+      <a routerLink="/document">Document</a>
+
+      <p *ngIf="!userLoginOn">Iniciar Sesión</p>
+      <p *ngIf="userLoginOn">Cerrar Sesión</p>
+
     </div>
   </div>
 </div>

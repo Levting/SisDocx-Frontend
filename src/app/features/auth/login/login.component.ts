@@ -1,30 +1,62 @@
-import { Component } from '@angular/core';
-import { AuthService } from '../../../core/services/auth.service';
-import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms'; // Importa FormsModule
+import {Component, inject} from '@angular/core';
+import {Router} from '@angular/router';
+import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
+import {NgClass, NgIf} from '@angular/common';
+import {AuthService} from '../../../core/services/auth.service';
+import {LoginRequest} from '../../../models/auth/loginRequest';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule],
+  imports: [
+    ReactiveFormsModule,
+    NgClass,
+    NgIf
+  ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })
 export class LoginComponent {
-  email: string = '';
-  password: string = '';
 
-  constructor(private authService: AuthService, private router: Router) {}
+  private formBuilder = inject(FormBuilder);
 
-  // Accion del formulario
-  onSubmit() {
-    console.log('Correo: ', this.email);
-    console.log('Contraseña: ', this.password);
+  constructor(private router: Router, private authService: AuthService) {
+  }
 
-    if (this.authService.login(this.email, this.password)) {
-      this.router.navigate(['/']);
+  // Crear objeto formulario
+  loginForm = this.formBuilder.group({
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required]],
+  })
+
+  // Getters para los campos
+  get email() {
+    return this.loginForm.controls.email
+  }
+
+  get password() {
+    return this.loginForm.controls.password
+  }
+
+  login() {
+    if (this.loginForm.valid) {
+
+      this.authService.login(this.loginForm.value as LoginRequest).subscribe({
+        next: token => {
+          console.log("Token: ", token);
+        },
+        error: error => {
+          console.log(error);
+        },
+        complete: () => {
+          console.info("Login Completo")
+        }
+
+      })
+      this.router.navigate(['home']);
+      this.loginForm.reset();
     } else {
-      alert('Credenciales Incorrectas');
+      this.loginForm.markAllAsTouched()
     }
   }
 }

@@ -1,37 +1,32 @@
-import { Injectable } from '@angular/core';
+import {Injectable} from '@angular/core';
+import {LoginRequest} from '../../models/auth/loginRequest';
+import {HttpClient} from '@angular/common/http';
+import {Observable} from 'rxjs';
+import {LoginResponse} from '../../models/auth/loginResponse';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  isAuthenticated: boolean = false;
+  private apiUrl = 'http://localhost:8080';
 
-  constructor() {
-    if (typeof localStorage !== 'undefined') {
-      this.isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-    }
+  constructor(private http: HttpClient) {
   }
 
-  login(email: string, password: string): boolean {
-    // Verificar las credenciales
-    if (email === 'sebas@sisdocx.com' && password === 'sebas1105') {
-      this.isAuthenticated = true;
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem('isAuthenticated', 'true');
-      }
-      return true;
-    }
-    return false;
+  login(credentials: LoginRequest): Observable<LoginResponse> {
+    console.log("Credenciales: ", credentials);
+    return this.http.post<LoginResponse>(`${this.apiUrl}/authlogin`, {})
   }
 
   logout() {
-    this.isAuthenticated = false;
-    if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem('isAuthenticated');
-    }
+    localStorage.removeItem('authToken');
   }
 
-  getIsAutenticated(): boolean {
-    return this.isAuthenticated;
+  getToken(): string | null {
+    return localStorage.getItem('authToken');
+  }
+
+  isAuthenticated(): boolean {
+    return this.getToken() !== null;
   }
 }
