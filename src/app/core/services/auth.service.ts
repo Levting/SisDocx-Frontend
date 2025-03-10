@@ -14,8 +14,7 @@ export class AuthService {
   public currentUserData: BehaviorSubject<User> = new BehaviorSubject<User>({
     lastName: '',
     name: '',
-    password: '',
-    role: 0,
+    role: {id: 0, name: ''},
     id: 0, email: ''
   });
 
