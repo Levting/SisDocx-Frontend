@@ -16,7 +16,7 @@ export class UserService {
       .pipe(catchError(this.handleError));
   }
 
-  // Manejador de errores
+  // Handle Error
   private handleError(error: HttpErrorResponse): Observable<never> {
     const errorMessage: string =
       error.status === 0

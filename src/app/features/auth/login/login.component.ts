@@ -24,7 +24,6 @@ export class LoginComponent {
   constructor(private router: Router, private authService: AuthService) {
   }
 
-  // Crear objeto formulario
   loginForm = this.formBuilder.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required]],

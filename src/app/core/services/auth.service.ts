@@ -1,16 +1,17 @@
-import { Injectable } from '@angular/core';
-import { LoginRequest } from '../../models/auth/loginRequest';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { BehaviorSubject, catchError, Observable, tap, throwError } from 'rxjs';
-import { LoginResponse } from '../../models/auth/loginResponse';
-import { environment } from '../../../environments/environment';
+import {Injectable} from '@angular/core';
+import {LoginRequest} from '../../models/auth/loginRequest';
+import {HttpClient, HttpErrorResponse} from '@angular/common/http';
+import {BehaviorSubject, catchError, Observable, tap, throwError} from 'rxjs';
+import {LoginResponse} from '../../models/auth/loginResponse';
+import {environment} from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  public currentUserLoginOn: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-  public currentTokenData: BehaviorSubject<String> = new BehaviorSubject<String>('');
+
+  private currentUserLoginOn: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  private currentTokenData: BehaviorSubject<String> = new BehaviorSubject<String>('');
 
   constructor(private http: HttpClient) {
     this.currentUserLoginOn = new BehaviorSubject<boolean>(this.getToken() !== null);
@@ -19,8 +20,8 @@ export class AuthService {
 
   private handleError(error: HttpErrorResponse): Observable<never> {
     const errorMessage: string = error.status === 0
-        ? `Se ha producido el error: ${error.message}`
-        : `El backend retornó el estado ${error.status}: ${error.error}`;
+      ? `Se ha producido el error: ${error.message}`
+      : `El backend retornó el estado ${error.status}: ${error.error}`;
     console.error(errorMessage);
     return throwError(
       (): Error => new Error('Algo falló, intentelo nuevamente.')

@@ -1,7 +1,8 @@
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
-import { NgIf } from '@angular/common';
-import { AuthService } from '../../core/services/auth.service';
-import { HomeDashboardComponent } from './home-dashboard/home-dashboard.component';
+import {Component, inject, OnDestroy, OnInit} from '@angular/core';
+import {NgIf} from '@angular/common';
+import {AuthService} from '../../core/services/auth.service';
+import {HomeDashboardComponent} from './home-dashboard/home-dashboard.component';
+import {Subscription} from 'rxjs';
 
 @Component({
   selector: 'app-home',
@@ -11,11 +12,13 @@ import { HomeDashboardComponent } from './home-dashboard/home-dashboard.componen
   styleUrl: './home.component.css',
 })
 export class HomeComponent implements OnInit, OnDestroy {
+
   userLoginOn: boolean = false;
   private authService = inject(AuthService);
+  private subscription: Subscription | undefined;
 
   ngOnInit() {
-    this.authService.currentUserLoginOn.subscribe({
+    this.subscription = this.authService.userLoginOn.subscribe({
       next: (userLoginOn) => {
         this.userLoginOn = userLoginOn;
       },
@@ -23,7 +26,9 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.authService.currentTokenData.unsubscribe();
-    this.authService.currentUserLoginOn.unsubscribe();
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
   }
+
 }

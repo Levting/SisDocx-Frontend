@@ -1,6 +1,8 @@
-import {Component} from '@angular/core';
+import {Component, inject} from '@angular/core';
 import {User} from '../../../models/user/user';
 import {UserService} from '../../../core/services/user.service';
+import {FormBuilder, Validators} from '@angular/forms';
+import {AuthService} from '../../../core/services/auth.service';
 import {environment} from '../../../../environments/environment';
 
 @Component({
@@ -16,16 +18,15 @@ export class HomeDashboardComponent {
 
   constructor(private userService: UserService) {
     this.userService.getUser(environment.userID).subscribe({
-      next: userData => {
+      next: (userData: User) => {
         this.user = userData;
       },
-      error: error => {
+      error: (error: any) => {
         this.errorMessage = error;
       },
-      complete: () => {
+      complete: (): void => {
         console.info("User Data OK")
       }
     })
   }
-
 }
