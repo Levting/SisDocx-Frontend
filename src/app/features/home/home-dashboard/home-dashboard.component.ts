@@ -1,8 +1,6 @@
-import {Component, inject} from '@angular/core';
+import {Component} from '@angular/core';
 import {User} from '../../../models/user/user';
 import {UserService} from '../../../core/services/user.service';
-import {FormBuilder, Validators} from '@angular/forms';
-import {AuthService} from '../../../core/services/auth.service';
 import {environment} from '../../../../environments/environment';
 
 @Component({
