@@ -1,49 +1,47 @@
-import {Injectable} from '@angular/core';
-import {LoginRequest} from '../../models/auth/loginRequest';
-import {HttpClient, HttpErrorResponse} from '@angular/common/http';
-import {BehaviorSubject, catchError, Observable, tap, throwError} from 'rxjs';
-import {LoginResponse} from '../../models/auth/loginResponse';
-import {User} from '../../models/user/user';
+import { Injectable } from '@angular/core';
+import { LoginRequest } from '../../models/auth/loginRequest';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { BehaviorSubject, catchError, Observable, tap, throwError } from 'rxjs';
+import { LoginResponse } from '../../models/auth/loginResponse';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-
   public currentUserLoginOn: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-  public currentUserData: BehaviorSubject<User> = new BehaviorSubject<User>({
-    lastName: '',
-    name: '',
-    role: {id: 0, name: ''},
-    id: 0, email: ''
-  });
+  public currentTokenData: BehaviorSubject<String> = new BehaviorSubject<String>('');
 
   constructor(private http: HttpClient) {
+    this.currentUserLoginOn = new BehaviorSubject<boolean>(this.getToken() !== null);
+    this.currentTokenData = new BehaviorSubject<String>(this.getToken() || '');
   }
 
-  login(credentials: LoginRequest): Observable<User> {
-    console.log("Credenciales: ", credentials);
-    return this.http.get<User>("data.json").pipe(
-      tap((userData: User) => {
-        this.currentUserData.next(userData);
-        this.currentUserLoginOn.next(true);
-      }),
-      catchError(this.handleError)
-    )
+  private handleError(error: HttpErrorResponse): Observable<never> {
+    const errorMessage: string = error.status === 0
+        ? `Se ha producido el error: ${error.message}`
+        : `El backend retornó el estado ${error.status}: ${error.error}`;
+    console.error(errorMessage);
+    return throwError(
+      (): Error => new Error('Algo falló, intentelo nuevamente.')
+    );
   }
 
-  // Manejador de errores
-  private handleError(error: HttpErrorResponse) {
-    if (error.status === 0) {
-      console.error("Se a producido el error: " + error.message);
-    } else {
-      console.error("El backend retorno el estado " + error.status + error.error);
-    }
-    return throwError(() => new Error("Algo falló, intentelo nuevamente."));
+  login(credentials: LoginRequest): Observable<LoginResponse> {
+    return this.http
+      .post<LoginResponse>(environment.urlAPI + '/auth/login', credentials)
+      .pipe(
+        tap((tokenData: LoginResponse): void => {
+          sessionStorage.setItem('token', tokenData.token);
+          this.currentTokenData.next(tokenData.token);
+          this.currentUserLoginOn.next(true);
+        }),
+        catchError(this.handleError)
+      );
   }
 
-  get userData(): Observable<User> {
-    return this.currentUserData.asObservable();
+  get userData(): Observable<String> {
+    return this.currentTokenData.asObservable();
   }
 
   get userLoginOn(): Observable<boolean> {
@@ -51,16 +49,17 @@ export class AuthService {
   }
 
   logout() {
-    // localStorage.removeItem('authToken');
+    localStorage.removeItem('token');
   }
 
   getToken(): string | null {
-    // return localStorage.getItem('authToken');
+    if (typeof sessionStorage !== 'undefined') {
+      return sessionStorage.getItem('token');
+    }
     return null;
   }
 
   isAuthenticated(): boolean {
-    // return this.getToken() !== null;
     return true;
   }
 }
