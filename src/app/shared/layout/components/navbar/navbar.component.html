@@ -21,12 +21,13 @@
         <b class="text-foreground hidden pl-3 text-sm font-bold sm:block">SisDocx</b>
       </div>
 
+      <div class="flex gap-5">
+        <a routerLink="/home">Home</a>
+        <a routerLink="/document">Document</a>
 
-      <a routerLink="/home">Home</a>
-      <a routerLink="/document">Document</a>
-
-      <p *ngIf="!userLoginOn">Iniciar Sesión</p>
-      <p *ngIf="userLoginOn">Cerrar Sesión</p>
+        <button *ngIf="!userLoginOn" routerLink="/home">Iniciar Sesión</button>
+        <button *ngIf="userLoginOn" (click)="logout()">Cerrar Sesión</button>
+      </div>
 
     </div>
   </div>

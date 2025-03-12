@@ -1,3 +1,148 @@
-<p> Nombre: {{ user?.name }}</p>
-<p> Apellido: {{ user?.lastName }}</p>
-<p> Rol: {{ user?.role?.name }}</p>
+<p *ngIf="errorMessage.length != 0">{{ errorMessage }}</p>
+
+<div *ngIf="(userLoginOn && !editMode) || !userLoginOn">
+  <p> Correo: {{ user?.email }}</p>
+  <p> Nombre: {{ user?.firstname }}</p>
+  <p> Apellido: {{ user?.lastname }}</p>
+  <p> Rol: {{ user?.role?.name }}</p>
+
+  <button *ngIf="userLoginOn && !editMode" (click)="editMode=true"
+          class="flex justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+  >
+    Editar Datos
+  </button>
+</div>
+
+<form *ngIf="userLoginOn && editMode" [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+
+  <div class="flex flex-col gap-3">
+
+    <div>
+      <label for="firstname" class="block text-sm font-medium text-gray-900"> Nombre </label>
+      <div class="mt-2">
+        <input
+          type="text"
+          name="firstname"
+          id="firstname"
+          formControlName="firstname"
+          autocomplete="name"
+          required
+          class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+          [ngClass]="{'outline-red-500': firstname.invalid && (firstname.dirty || firstname.touched)}"
+        />
+        <div *ngIf="firstname.invalid && (firstname.dirty || firstname.touched)" class="mt-1 text-sm text-red-600">
+          <div *ngIf="firstname.hasError('required')">
+            El nombre es requerido.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <label for="lastname" class="block text-sm/6 font-medium text-gray-900"> Apellido </label>
+      <div class="mt-2">
+        <input
+          type="text"
+          name="lastname"
+          id="lastname"
+          formControlName="lastname"
+          autocomplete="lastname"
+          required
+          class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+          [ngClass]="{'outline-red-500': lastname.invalid && (lastname.dirty || lastname.touched)}"
+        />
+        <div *ngIf="lastname.invalid && (lastname.dirty || lastname.touched)" class="mt-1 text-sm text-red-600">
+          <div *ngIf="lastname.hasError('required')">
+            El apellido es requerido.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <label for="email" class="block text-sm/6 font-medium text-gray-900"> Correo </label>
+      <div class="mt-2">
+        <input
+          type="email"
+          name="email"
+          id="email"
+          formControlName="email"
+          autocomplete="email"
+          required
+          class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+          [ngClass]="{'outline-red-500': email.invalid && (email.dirty || email.touched)}"
+        />
+        <div *ngIf="email.invalid && (email.dirty || email.touched)" class="mt-1 text-sm text-red-600">
+          <div *ngIf="email.hasError('required')">
+            El correo es requerido.
+          </div>
+          <div *ngIf="email.hasError('email')">
+            Ingresa un correo válido.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <label for="password" class="block text-sm font-medium text-gray-900"> Contraseña </label>
+      <div class="text-sm text-gray-600">
+        Si dejas este campo vacío, la contraseña no se modificará.
+      </div>
+
+      <div class="mt-2">
+        <input
+          type="password"
+          name="password"
+          id="password"
+          formControlName="password"
+          autocomplete="password"
+          class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+          [ngClass]="{'outline-red-500': password.invalid && password.dirty}"
+        />
+        <div *ngIf="password.invalid && password.dirty" class="mt-1 text-sm text-red-600">
+          <div *ngIf="password.hasError('minlength')">
+            La contraseña debe tener al menos 8 caracteres.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <label for="role" class="block text-sm/6 font-medium text-gray-900"> Rol </label>
+      <div class="mt-2">
+        <select
+          name="role"
+          id="role"
+          formControlName="role"
+          class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+        >
+          <option *ngFor="let role of roles" [value]="role.id">{{ role.name }}</option>
+        </select>
+        <div *ngIf="role.invalid && (role.dirty || role.touched)" class="mt-1 text-sm text-red-600">
+          <div *ngIf="role.hasError('required')">
+            El rol es requerido.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="flex gap-2 mt-2">
+    <button
+      type="button"
+      (click)="editMode=false"
+      class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+    >
+      Cancelar
+    </button>
+
+    <button
+      type="submit"
+      [disabled]="registerForm.invalid"
+      class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+    >
+      Guardar
+    </button>
+  </div>
+</form>

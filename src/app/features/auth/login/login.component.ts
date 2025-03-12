@@ -1,6 +1,6 @@
 import {Component, inject} from '@angular/core';
 import {Router} from '@angular/router';
-import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
+import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {NgClass, NgIf} from '@angular/common';
 import {AuthService} from '../../../core/services/auth.service';
 import {LoginRequest} from '../../../models/auth/loginRequest';
@@ -19,7 +19,7 @@ import {LoginRequest} from '../../../models/auth/loginRequest';
 export class LoginComponent {
 
   public loginError: string = "";
-  private formBuilder = inject(FormBuilder);
+  private formBuilder: FormBuilder = inject(FormBuilder);
 
   constructor(private router: Router, private authService: AuthService) {
   }
