@@ -41,7 +41,7 @@ export class AuthService {
       );
   }
 
-  get userData(): Observable<String> {
+  get userToken(): Observable<String> {
     return this.currentTokenData.asObservable();
   }
 

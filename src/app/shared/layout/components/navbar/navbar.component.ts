@@ -17,7 +17,7 @@ import {Subscription} from 'rxjs';
 export class NavbarComponent implements OnInit, OnDestroy {
 
   userLoginOn: boolean = false;
-  private authService = inject(AuthService);
+  private authService: AuthService = inject(AuthService);
   private subscription: Subscription | undefined;
   private router: Router = inject(Router);
 
