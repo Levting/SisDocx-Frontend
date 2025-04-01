@@ -1,34 +1,77 @@
-<div class="bg-background relative bg-purple-100">
-  <div class="mx-auto px-5">
-    <div class="flex items-center justify-between py-3.5 md:justify-start">
-
-      <!-- Mobile Navigation Menu Button-->
-      <div class="sm:order-1 md:hidden">
-        <button
-          type="button"
-          class="bg-muted text-muted-foreground focus:ring-primary hover:bg-muted-foreground hover:text-muted inline-flex items-center justify-center rounded-md p-2 focus:outline-hidden focus:ring-2 focus:ring-inset"
-          aria-expanded="false"
-        >
-          <span class="sr-only">Open menu</span>
-        </button>
+<!-- OneDrive-like Navbar -->
+<div class="bg-white shadow-sm border-b border-gray-200">
+  <div class="mx-auto px-4">
+    <div class="flex items-center justify-between h-16">
+      <!-- Search Bar - OneDrive Style -->
+      <div class="flex-1 max-w-lg mx-4">
+        <div class="relative">
+          <div
+            class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+          >
+            <svg
+              class="w-4 h-4 text-gray-500"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </div>
+          <input
+            type="text"
+            placeholder="Buscar"
+            class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-gray-50 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 sm:text-sm"
+          />
+        </div>
       </div>
 
-      <!-- Logo -->
-      <div class="flex items-center justify-start sm:order-2 md:mr-10 lg:hidden">
-        <a class="bg-primary flex items-center justify-center rounded-sm p-2 focus:outline-hidden focus:ring-1">
-          <img ngSrc="/bg/sd-bg.png" alt="Logo SisDocx" fill>
-        </a>
-        <b class="text-foreground hidden pl-3 text-sm font-bold sm:block">SisDocx</b>
+      <!-- Right Navigation -->
+      <div class="flex items-center space-x-4">
+        <!-- Navigation Links -->
+        <div class="hidden md:flex space-x-8">
+          <a
+            routerLink="/home"
+            class="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium"
+            >Inicio</a
+          >
+          <a
+            routerLink="/document"
+            class="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium"
+            >Documentos</a
+          >
+        </div>
+
+        <!-- User Actions -->
+        <div class="flex items-center">
+          <button
+            *ngIf="!userLoginOn"
+            routerLink="/home"
+            class="text-gray-600 hover:text-blue-600 text-sm font-medium"
+          >
+            Iniciar Sesión
+          </button>
+          <button
+            *ngIf="userLoginOn"
+            (click)="logout()"
+            class="text-gray-600 hover:text-blue-600 text-sm font-medium"
+          >
+            Cerrar Sesión
+          </button>
+
+          <!-- User Avatar -->
+          <div *ngIf="userLoginOn" class="ml-4 relative flex-shrink-0">
+            <div
+              class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white"
+            >
+              <span class="text-xs font-medium">ZL</span>
+            </div>
+          </div>
+        </div>
       </div>
-
-      <div class="flex gap-5">
-        <a routerLink="/home">Home</a>
-        <a routerLink="/document">Document</a>
-
-        <button *ngIf="!userLoginOn" routerLink="/home">Iniciar Sesión</button>
-        <button *ngIf="userLoginOn" (click)="logout()">Cerrar Sesión</button>
-      </div>
-
     </div>
   </div>
 </div>

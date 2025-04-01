@@ -1,10 +1,10 @@
 <p *ngIf="errorMessage.length != 0">{{ errorMessage }}</p>
 
 <div *ngIf="(userLoginOn && !editMode) || !userLoginOn">
-  <p> Correo: {{ user?.email }}</p>
-  <p> Nombre: {{ user?.firstname }}</p>
-  <p> Apellido: {{ user?.lastname }}</p>
-  <p> Rol: {{ user?.role?.name }}</p>
+  <p> Correo: {{ usuario?.correo }}</p>
+  <p> Nombre: {{ usuario?.nombre }}</p>
+  <p> Apellido: {{ usuario?.apellido }}</p>
+  <p> Rol: {{ usuario?.rol?.nombre }}</p>
 
   <button *ngIf="userLoginOn && !editMode" (click)="editMode=true"
           class="flex justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
@@ -18,20 +18,20 @@
   <div class="flex flex-col gap-3">
 
     <div>
-      <label for="firstname" class="block text-sm font-medium text-gray-900"> Nombre </label>
+      <label for="nombre" class="block text-sm font-medium text-gray-900"> Nombre </label>
       <div class="mt-2">
         <input
           type="text"
-          name="firstname"
-          id="firstname"
-          formControlName="firstname"
+          name="nombre"
+          id="nombre"
+          formControlName="nombre"
           autocomplete="name"
           required
           class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-          [ngClass]="{'outline-red-500': firstname.invalid && (firstname.dirty || firstname.touched)}"
+          [ngClass]="{'outline-red-500': nombre.invalid && (nombre.dirty || nombre.touched)}"
         />
-        <div *ngIf="firstname.invalid && (firstname.dirty || firstname.touched)" class="mt-1 text-sm text-red-600">
-          <div *ngIf="firstname.hasError('required')">
+        <div *ngIf="nombre.invalid && (nombre.dirty || nombre.touched)" class="mt-1 text-sm text-red-600">
+          <div *ngIf="nombre.hasError('required')">
             El nombre es requerido.
           </div>
         </div>
@@ -39,20 +39,20 @@
     </div>
 
     <div>
-      <label for="lastname" class="block text-sm/6 font-medium text-gray-900"> Apellido </label>
+      <label for="apellido" class="block text-sm/6 font-medium text-gray-900"> Apellido </label>
       <div class="mt-2">
         <input
           type="text"
-          name="lastname"
-          id="lastname"
-          formControlName="lastname"
+          name="apellido"
+          id="apellido"
+          formControlName="apellido"
           autocomplete="lastname"
           required
           class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-          [ngClass]="{'outline-red-500': lastname.invalid && (lastname.dirty || lastname.touched)}"
+          [ngClass]="{'outline-red-500': apellido.invalid && (apellido.dirty || apellido.touched)}"
         />
-        <div *ngIf="lastname.invalid && (lastname.dirty || lastname.touched)" class="mt-1 text-sm text-red-600">
-          <div *ngIf="lastname.hasError('required')">
+        <div *ngIf="apellido.invalid && (apellido.dirty || apellido.touched)" class="mt-1 text-sm text-red-600">
+          <div *ngIf="apellido.hasError('required')">
             El apellido es requerido.
           </div>
         </div>
@@ -60,23 +60,23 @@
     </div>
 
     <div>
-      <label for="email" class="block text-sm/6 font-medium text-gray-900"> Correo </label>
+      <label for="correo" class="block text-sm/6 font-medium text-gray-900"> Correo </label>
       <div class="mt-2">
         <input
           type="email"
-          name="email"
-          id="email"
-          formControlName="email"
+          name="correo"
+          id="correo"
+          formControlName="correo"
           autocomplete="email"
           required
           class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-          [ngClass]="{'outline-red-500': email.invalid && (email.dirty || email.touched)}"
+          [ngClass]="{'outline-red-500': correo.invalid && (correo.dirty || correo.touched)}"
         />
-        <div *ngIf="email.invalid && (email.dirty || email.touched)" class="mt-1 text-sm text-red-600">
-          <div *ngIf="email.hasError('required')">
+        <div *ngIf="correo.invalid && (correo.dirty || correo.touched)" class="mt-1 text-sm text-red-600">
+          <div *ngIf="correo.hasError('required')">
             El correo es requerido.
           </div>
-          <div *ngIf="email.hasError('email')">
+          <div *ngIf="correo.hasError('correo')">
             Ingresa un correo válido.
           </div>
         </div>
@@ -84,7 +84,7 @@
     </div>
 
     <div>
-      <label for="password" class="block text-sm font-medium text-gray-900"> Contraseña </label>
+      <label for="contrasena" class="block text-sm font-medium text-gray-900"> Contraseña </label>
       <div class="text-sm text-gray-600">
         Si dejas este campo vacío, la contraseña no se modificará.
       </div>
@@ -92,15 +92,15 @@
       <div class="mt-2">
         <input
           type="password"
-          name="password"
-          id="password"
-          formControlName="password"
+          name="contrasena"
+          id="contrasena"
+          formControlName="contrasena"
           autocomplete="password"
           class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-          [ngClass]="{'outline-red-500': password.invalid && password.dirty}"
+          [ngClass]="{'outline-red-500': contrasena.invalid && contrasena.dirty}"
         />
-        <div *ngIf="password.invalid && password.dirty" class="mt-1 text-sm text-red-600">
-          <div *ngIf="password.hasError('minlength')">
+        <div *ngIf="contrasena.invalid && contrasena.dirty" class="mt-1 text-sm text-red-600">
+          <div *ngIf="contrasena.hasError('minlength')">
             La contraseña debe tener al menos 8 caracteres.
           </div>
         </div>
@@ -108,18 +108,18 @@
     </div>
 
     <div>
-      <label for="role" class="block text-sm/6 font-medium text-gray-900"> Rol </label>
+      <label for="rol" class="block text-sm/6 font-medium text-gray-900"> Rol </label>
       <div class="mt-2">
         <select
-          name="role"
-          id="role"
-          formControlName="role"
+          name="rol"
+          id="rol"
+          formControlName="rol"
           class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
         >
-          <option *ngFor="let role of roles" [value]="role.id">{{ role.name }}</option>
+          <option *ngFor="let rol of roles" [value]="rol.id">{{ rol.nombre }}</option>
         </select>
-        <div *ngIf="role.invalid && (role.dirty || role.touched)" class="mt-1 text-sm text-red-600">
-          <div *ngIf="role.hasError('required')">
+        <div *ngIf="rol.invalid && (rol.dirty || rol.touched)" class="mt-1 text-sm text-red-600">
+          <div *ngIf="rol.hasError('required')">
             El rol es requerido.
           </div>
         </div>

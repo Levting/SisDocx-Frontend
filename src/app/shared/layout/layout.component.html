@@ -1,15 +1,19 @@
-<div class="flex h-screen w-full overflow-hidden">
+<!-- OneDrive-like Layout -->
+<div class="flex h-screen w-full overflow-hidden bg-gray-50">
   <!-- Sidebar -->
-  <app-sidebar/>
-  <div class="flex grow flex-col content-start overflow-hidden bg-card">
-    <!-- Navbar -->
-    <app-navbar/>
+  <app-sidebar />
 
+  <!-- Main Content -->
+  <div class="flex grow flex-col content-start overflow-hidden bg-white">
+    <!-- Navbar -->
+    <app-navbar />
+
+    <!-- Main Content Area -->
     <div
       id="main-content"
-      class="scrollbar-thumb-rounded scrollbar-track-rounded grow overflow-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-muted"
+      class="scrollbar-thumb-rounded scrollbar-track-rounded grow overflow-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-300"
     >
-      <div class="mx-auto px-5 py-5 sm:px-8 lg:container">
+      <div class="mx-auto p-5 sm:px-8 lg:container">
         <router-outlet></router-outlet>
       </div>
     </div>
