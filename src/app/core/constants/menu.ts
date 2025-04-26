@@ -1,4 +1,4 @@
-import {MenuItem} from '../../models/menu/menu';
+import { MenuItem } from '../models/menu/menu';
 
 export class Menu {
   public static pages: MenuItem[] = [
@@ -7,36 +7,41 @@ export class Menu {
       separator: false,
       items: [
         {
-          icon: '',
+          icon: 'assets/icons/home.svg',
           label: 'Inicio',
-          route: '/home'
+          route: '/',
         },
         {
-          icon: '',
-          label: 'Documentos',
-          route: '/documents',
-          children: [
-            {label: 'Current Files', route: '/folders/current-files'},
-            {label: 'Downloads', route: '/folders/download'},
-            {label: 'Trash', route: '/folders/trash'},
-          ],
+          icon: 'assets/icons/document.svg',
+          label: 'Mis Archivos',
+          route: '/documentos',
+        },
+        {
+          icon: 'assets/icons/trash.svg',
+          label: 'Papelera',
+          route: '/papelera',
+        },
+        {
+          icon: 'assets/icons/star.svg',
+          label: 'Favoritos',
+          route: '/favoritos',
+        },
+        {
+          icon: 'assets/icons/settings.svg',
+          label: 'Ajustes',
+          route: '/ajustes',
         },
       ],
     },
     {
-      group: 'Ajustes',
+      group: 'Automatizaciones',
       separator: false,
       items: [
         {
-          icon: '',
-          label: 'Ajustes',
-          route: '/settings',
+          icon: 'assets/icons/settings.svg',
+          label: 'Fusión de Documentos',
+          route: '/automatizaciones/fusion-documentos',
         },
-        {
-          icon: '',
-          label: 'Perfiles',
-          route: '/profiles',
-        }
       ],
     },
   ];

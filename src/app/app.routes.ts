@@ -1,10 +1,11 @@
-import {Routes} from '@angular/router';
-import {LoginComponent} from './features/auth/login/login.component';
-import {LayoutComponent} from './shared/layout/layout.component';
-import {AuthComponent} from './features/auth/auth.component';
-import {AuthGuard} from './core/guards/auth-guard.guard';
-import {HomeComponent} from './features/home/home.component';
-import {DocumentComponent} from './features/document/document.component';
+import { Routes } from '@angular/router';
+import { AuthGuard } from './core/guards/auth-guard.guard';
+import { LayoutComponent } from './shared/layout/layout.component';
+import { InicioComponent } from './features/inicio/inicio.component';
+import { PapeleraComponent } from './features/papelera/papelera.component';
+import { FavoritosComponent } from './features/favoritos/favoritos.component';
+import { AjustesComponent } from './features/ajustes/ajustes.component';
+import { DocumentosComponent } from './features/documentos/documentos.component';
 
 export const routes: Routes = [
   {
@@ -13,34 +14,39 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     children: [
       {
-        path: 'home',
-        component: HomeComponent
+        path: '',
+        component: InicioComponent,
       },
       {
-        path: 'document',
-        component: DocumentComponent
+        path: 'documentos',
+        component: DocumentosComponent,
+      },
+      {
+        path: 'papelera',
+        component: PapeleraComponent,
+      },
+      {
+        path: 'favoritos',
+        component: FavoritosComponent,
+      },
+      {
+        path: 'ajustes',
+        component: AjustesComponent,
       },
       {
         path: '',
-        redirectTo: 'home',
-        pathMatch: 'full'
+        redirectTo: 'inicio',
+        pathMatch: 'full',
       },
     ],
   },
-
   {
     path: 'auth',
-    component: AuthComponent,
-    children: [
-      {
-        path: 'login',
-        component: LoginComponent,
-      },
-    ],
+    loadChildren: () =>
+      import('./features/auth/auth.routes').then((m) => m.AUTH_ROUTES),
   },
-
   {
     path: '**',
-    redirectTo: 'home'
+    redirectTo: 'inicio',
   },
 ];

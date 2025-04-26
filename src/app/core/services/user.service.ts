@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { catchError, Observable, throwError } from 'rxjs';
-import { Usuario } from '../../models/usuario/usuario';
+import { Usuario } from '../models/usuario/usuario';
 import { environment } from '../../../environments/environment';
-import { Rol } from '../../models/usuario/rol';
+import { Rol } from '../models/usuario/rol';
 
 @Injectable({
   providedIn: 'root',
@@ -11,21 +11,21 @@ import { Rol } from '../../models/usuario/rol';
 export class UserService {
   constructor(private http: HttpClient) {}
 
-  getUser(id: number): Observable<Usuario> {
+  obtenerUsuarioId(id: number): Observable<Usuario> {
     return this.http
-      .get<Usuario>(environment.urlAPI + '/usuarios/' + id)
+      .get<Usuario>(environment.URL_API + '/usuarios/' + id)
       .pipe(catchError(this.handleError));
   }
 
-  getRoles(): Observable<Rol[]> {
+  obtenerRoles(): Observable<Rol[]> {
     return this.http
-      .get<Rol[]>(environment.urlAPI + '/roles/')
+      .get<Rol[]>(environment.URL_API + '/roles/')
       .pipe(catchError(this.handleError));
   }
 
-  updateUser(user: Usuario): Observable<Usuario> {
+  actualizarUsuario(user: Usuario): Observable<Usuario> {
     return this.http
-      .put<Usuario>(environment.urlAPI + '/usuarios/', user)
+      .put<Usuario>(environment.URL_API + '/usuarios/', user)
       .pipe(catchError(this.handleError));
   }
 

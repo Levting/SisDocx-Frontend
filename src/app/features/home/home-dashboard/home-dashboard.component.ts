@@ -5,8 +5,8 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 import { NgClass, NgForOf, NgIf } from '@angular/common';
 import { Subscription } from 'rxjs';
-import { Rol } from '../../../models/usuario/rol';
-import { Usuario } from '../../../models/usuario/usuario';
+import { Rol } from '../../../core/models/usuario/rol';
+import { Usuario } from '../../../core/models/usuario/usuario';
 
 @Component({
   selector: 'app-home-dashboard',

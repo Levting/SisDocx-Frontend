@@ -31,46 +31,7 @@
 
       <!-- Right Navigation -->
       <div class="flex items-center space-x-4">
-        <!-- Navigation Links -->
-        <div class="hidden md:flex space-x-8">
-          <a
-            routerLink="/home"
-            class="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium"
-            >Inicio</a
-          >
-          <a
-            routerLink="/document"
-            class="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium"
-            >Documentos</a
-          >
-        </div>
-
-        <!-- User Actions -->
-        <div class="flex items-center">
-          <button
-            *ngIf="!userLoginOn"
-            routerLink="/home"
-            class="text-gray-600 hover:text-blue-600 text-sm font-medium"
-          >
-            Iniciar Sesión
-          </button>
-          <button
-            *ngIf="userLoginOn"
-            (click)="logout()"
-            class="text-gray-600 hover:text-blue-600 text-sm font-medium"
-          >
-            Cerrar Sesión
-          </button>
-
-          <!-- User Avatar -->
-          <div *ngIf="userLoginOn" class="ml-4 relative flex-shrink-0">
-            <div
-              class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white"
-            >
-              <span class="text-xs font-medium">ZL</span>
-            </div>
-          </div>
-        </div>
+        <app-dropdown-profile />
       </div>
     </div>
   </div>

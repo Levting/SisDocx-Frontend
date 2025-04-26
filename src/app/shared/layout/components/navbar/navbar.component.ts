@@ -1,44 +1,65 @@
-import {Component, inject, OnDestroy, OnInit} from '@angular/core';
-import {NgIf} from '@angular/common';
-import {Router, RouterLink} from '@angular/router';
-import {AuthService} from '../../../../core/services/auth.service';
-import {Subscription} from 'rxjs';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { AuthService } from '../../../../core/services/auth.service';
+import { Subject, takeUntil } from 'rxjs';
+import { Usuario } from '../../../../core/models/usuario/usuario';
+import { DropdownProfileComponent } from './components/dropdown-profile/dropdown-profile.component';
 
+/**
+ * Componente que representa la barra de navegación superior de la aplicación.
+ * Muestra información del usuario y opciones de navegación.
+ */
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [
-    NgIf,
-    RouterLink
-  ],
+  imports: [DropdownProfileComponent],
   templateUrl: './navbar.component.html',
-  styleUrl: './navbar.component.css'
 })
 export class NavbarComponent implements OnInit, OnDestroy {
-
+  /** Estado de autenticación del usuario */
   userLoginOn: boolean = false;
+  /** Usuario autenticado */
+  public usuario: Usuario | null = null;
+
+  /** Subject para limpiar suscripciones */
+  private destroy$ = new Subject<void>();
+
+  // Inyección de servicios
   private authService: AuthService = inject(AuthService);
-  private subscription: Subscription | undefined;
   private router: Router = inject(Router);
 
+  /**
+   * Inicializa el componente
+   */
   ngOnInit(): void {
-    this.subscription = this.authService.userLoginOn.subscribe({
-      next: userLoginOn => {
+    this.authService.userLoginOn.pipe(takeUntil(this.destroy$)).subscribe({
+      next: (userLoginOn) => {
         this.userLoginOn = userLoginOn;
-      }
+        this.obtenerUsuarioAutenticado();
+      },
     });
   }
 
+  /**
+   * Limpia las suscripciones al destruir el componente
+   */
   ngOnDestroy(): void {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-    }
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  logout() {
-    console.log("Logout");
-    this.authService.logout();
-    this.router.navigate(['auth/login']);
+  /**
+   * Cierra la sesión del usuario y redirige a la página de inicio de sesión
+   */
+  cerrarSesion() {
+    this.authService.cerrarSesion();
+    this.router.navigate(['auth/iniciar-sesion']);
   }
 
+  /**
+   * Obtiene el usuario autenticado
+   */
+  obtenerUsuarioAutenticado() {
+    this.usuario = this.authService.obtenerUsuarioAutenticado();
+  }
 }

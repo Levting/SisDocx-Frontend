@@ -1,0 +1,96 @@
+<main class="flex-1">
+  <!-- Sección de Navegación -->
+  <nav
+    class="pt-0"
+    *ngFor="let menu of menuService.pagesMenu"
+    aria-label="Navegación principal"
+  >
+    <!-- Título del grupo (visible solo cuando el sidebar está expandido) -->
+    <div
+      class="mt-4 mb-2 truncate text-xs font-normal uppercase tracking-widest text-gray-500"
+      *ngIf="menuService.showSideBar"
+    >
+      <small class="text-muted-foreground/50 text-xs font-semibold">
+        {{ menu.group }}
+      </small>
+    </div>
+
+    <ul class="flex flex-col space-y-1">
+      <!-- Items del menú -->
+      <li *ngFor="let item of menu.items">
+        <div
+          class="flex items-center rounded-lg py-1 text-sm text-gray-700 hover:bg-gray-100 relative group"
+          [routerLink]="item.route"
+          routerLinkActive="bg-blue-100 text-blue-700"
+          [routerLinkActiveOptions]="{ exact: true }"
+        >
+          <!-- Icono -->
+          <div
+            [ngClass]="
+              item.active && !menuService.showSideBar
+                ? 'text-primary'
+                : 'text-muted-foreground/50'
+            "
+            class="pointer-events-none absolute m-2"
+          >
+            <svg-icon
+              *ngIf="item.icon"
+              [src]="item.icon"
+              [svgClass]="'h-5 w-5'"
+            />
+          </div>
+
+          <ng-container
+            [ngTemplateOutlet]="item.children ? childMenu : parentMenu"
+            [ngTemplateOutletContext]="{ item: item }"
+          />
+
+          <!-- Workaround:: Enable routerLink -->
+          <ng-template #parentMenu let-item="item">
+            <div
+              class="text-muted-foreground hover:bg-card hover:text-foreground flex h-9 cursor-pointer items-center justify-start rounded-sm"
+            >
+              <span
+                class="ml-10 truncate text-xs font-semibold tracking-wide focus:outline-hidden"
+              >
+                <!-- Ocultar cuando el sidebar este colapsado -->
+                <div *ngIf="menuService.showSideBar">
+                  {{ item.label }}
+                </div>
+              </span>
+            </div>
+          </ng-template>
+
+          <!-- Workaround:: Disable routerLink -->
+          <ng-template #childMenu let-item="item">
+            <div
+              class="hover:bg-card flex h-9 cursor-pointer items-center justify-start rounded-sm"
+            >
+              <span
+                class="text-muted-foreground group-hover:text-foreground ml-10 truncate text-xs font-semibold tracking-wide focus:outline-hidden"
+              >
+                <!-- Ocultar cuando el sidebar este colapsado -->
+                <div *ngIf="menuService.showSideBar">
+                  {{ item.label }}
+                </div>
+              </span>
+            </div>
+          </ng-template>
+
+          <!-- Tooltip -->
+          <div class="fixed w-full" *ngIf="!menuService.showSideBar">
+            <span
+              class="z-10 bg-foreground text-background absolute left-12 -top-[19px] w-auto min-w-max origin-left scale-0 rounded-md p-2 text-xs font-bold shadow-md transition-all duration-200 group-hover:scale-100"
+            >
+              {{ item.label }}
+            </span>
+          </div>
+        </div>
+      </li>
+    </ul>
+
+    <div class="pt-3" *ngIf="menu.separator">
+      <hr class="border-border border-dashed" />
+    </div>
+  </nav>
+</main>

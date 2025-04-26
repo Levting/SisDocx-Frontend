@@ -1,0 +1,32 @@
+<div class="relative inline-block text-left">
+  <!-- Botón -->
+  <button
+    (click)="toggleDropdown()"
+    class="inline-flex items-center p-2 text-sm font-medium text-center text-gray-900 bg-white rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none dark:text-white focus:ring-gray-50"
+    type="button"
+  >
+    <svg-icon [src]="'assets/icons/trash.svg'" class="w-5 h-5" />
+  </button>
+
+  <!-- Menú -->
+  <div
+    *ngIf="isOpen"
+    class="z-10 bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700 dark:divide-gray-600 absolute mt-2"
+  >
+    <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
+      <li *ngFor="let item of items">
+        <button
+          (click)="item.accion()"
+          class="flex items-center w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+        >
+          <svg-icon
+            *ngIf="item.icono"
+            [src]="item.icono"
+            class="w-5 h-5 mr-2"
+          ></svg-icon>
+          {{ item.texto }}
+        </button>
+      </li>
+    </ul>
+  </div>
+</div>

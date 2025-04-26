@@ -1,20 +1,15 @@
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import {
-  FormBuilder,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgClass, NgIf } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
-import { LoginRequest } from '../../../models/auth/loginRequest';
+import { LoginRequest } from '../../../core/models/auth/loginRequest';
 
 @Component({
   selector: 'app-login',
   standalone: true,
   imports: [ReactiveFormsModule, NgClass, NgIf],
   templateUrl: './login.component.html',
-  styleUrl: './login.component.css',
 })
 export class LoginComponent {
   public loginError: string = '';
@@ -37,19 +32,19 @@ export class LoginComponent {
     return this.loginForm.controls.contrasena;
   }
 
-  login() {
+  iniciarSesion() {
     // Limpiamos cualquier error previo
     this.loginError = '';
 
     if (this.loginForm.valid) {
       this.isLoading = true;
 
-      this.authService.login(this.loginForm.value as LoginRequest).subscribe({
+      this.authService.iniciarSesion(this.loginForm.value as LoginRequest).subscribe({
         next: (data) => {
-          console.log('Login exitoso:', data);
+          this.router.navigate(['/']);
         },
         error: (error) => {
-          console.error('Error de login:', error);
+          this.contrasena.setValue('');
 
           // Extraemos el mensaje de error exacto de la API
           if (error instanceof Error) {
@@ -61,9 +56,9 @@ export class LoginComponent {
           this.isLoading = false;
         },
         complete: () => {
-          console.info('Login Completo');
+          console.info('Inicio de sesión completado');
           this.isLoading = false;
-          this.router.navigate(['home']);
+          this.router.navigate(['/']);
           this.loginForm.reset();
         },
       });

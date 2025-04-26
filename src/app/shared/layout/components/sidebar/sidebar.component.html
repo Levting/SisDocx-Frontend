@@ -1,155 +1,46 @@
-<!-- OneDrive-like Sidebar -->
+<!-- Sidebar Principal -->
 <nav
-  [ngClass]="menuService.showSideBar ? 'w-56 xl:w-64' : 'w-16'"
-  class="h-full bg-white border-r border-gray-200 flex flex-col transition-all duration-300 overflow-hidden"
+  [ngClass]="menuService.showSideBar ? 'w-60 xl:w-64' : 'w-[70px]'"
+  class="scrollbar-thumb--sm scrollbar-track-rounded bg-background scrollbar-thin scrollbar-track-transparent scrollbar-thumb-card hidden h-full flex-col justify-between overflow-auto pt-3 transition-all duration-300 lg:flex select-none"
+  role="navigation"
+  aria-label="Navegación principal"
 >
-  <!-- Header Section with Logo -->
-  <div class="p-4 border-b border-gray-200">
-    <div class="flex items-center h-8">
-      <!-- Logo -->
-      <div class="flex items-center">
-        <img src="/bg/sd-bg.png" alt="SisDocx" class="h-8 w-auto" />
-        <span
-          class="ml-2 font-semibold text-blue-700 transition-opacity duration-200"
-          [ngClass]="menuService.showSideBar ? 'opacity-100' : 'opacity-0 w-0'"
-        >
-          SisDocx
-        </span>
-      </div>
+  <div class="flex flex-col px-4 gap-5">
+    <!-- Encabezado del Sidebar -->
+    <app-sidebar-header
+      [showSideBar]="menuService.showSideBar"
+      (toggleSidebar)="toggleSidebar()"
+    />
 
-      <!-- Toggle Button -->
-      <button
-        *ngIf="menuService.showSideBar"
-        (click)="toggleSidebar()"
-        class="ml-auto text-gray-500 hover:text-gray-700"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-5 w-5"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-            clip-rule="evenodd"
-          />
-        </svg>
-      </button>
-    </div>
+    <!-- Menú de Acción -->
+    <app-dropdown-menu
+      [showSideBar]="menuService.showSideBar"
+      [dropdownOpen]="dropdownOpen"
+      (toggleDropdown)="toggleDropdown()"
+      (abrirModalCrearCarpeta)="abrirModalDesdeDropdown($event)"
+    />
+
+    <!-- Contenido Principal (Items del sidebar) -->
+    <app-sidebar-nav
+      [showSideBar]="menuService.showSideBar"
+      [dropdownOpen]="dropdownOpen"
+      (toggleDropdown)="toggleDropdown()"
+    />
   </div>
 
-  <!-- Main Navigation -->
-  <div class="flex-1 overflow-y-auto py-4 px-3">
-    <!-- Create New Button -->
-    <div class="mb-4">
-      <button
-        class="flex items-center justify-center w-full rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-5 w-5"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-            clip-rule="evenodd"
-          />
-        </svg>
-        <span
-          class="ml-2 transition-opacity duration-200"
-          [ngClass]="menuService.showSideBar ? 'opacity-100' : 'opacity-0 w-0'"
-        >
-          Crear nuevo
-        </span>
-      </button>
-    </div>
-
-    <!-- Navigation Links -->
-    <ul class="space-y-2">
-      <!-- Home -->
-      <li>
-        <a
-          routerLink="/home"
-          routerLinkActive="bg-blue-100 text-blue-700"
-          class="flex items-center p-2 text-gray-700 rounded-md hover:bg-gray-100"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"
-            />
-          </svg>
-          <span
-            class="ml-3 transition-opacity duration-200"
-            [ngClass]="
-              menuService.showSideBar ? 'opacity-100' : 'opacity-0 w-0'
-            "
-          >
-            Inicio
-          </span>
-        </a>
-      </li>
-
-      <!-- My Files -->
-      <li>
-        <a
-          routerLink="/document"
-          routerLinkActive="bg-blue-100 text-blue-700"
-          class="flex items-center p-2 text-gray-700 rounded-md hover:bg-gray-100"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
-              clip-rule="evenodd"
-            />
-          </svg>
-          <span
-            class="ml-3 transition-opacity duration-200"
-            [ngClass]="
-              menuService.showSideBar ? 'opacity-100' : 'opacity-0 w-0'
-            "
-          >
-            Mis Documentos
-          </span>
-        </a>
-      </li>
-    </ul>
-  </div>
-
-  <!-- Bottom Section / Expand Button -->
-  <div
-    class="p-4 border-t border-gray-200 flex items-center"
-    *ngIf="!menuService.showSideBar"
-  >
-    <button
-      (click)="toggleSidebar()"
-      class="flex items-center justify-center w-full text-gray-500 hover:text-gray-700"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        class="h-5 w-5"
-        viewBox="0 0 20 20"
-        fill="currentColor"
-      >
-        <path
-          fill-rule="evenodd"
-          d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-          clip-rule="evenodd"
-        />
-      </svg>
-    </button>
+  <!-- Pie del Sidebar -->
+  <div class="m-4 space-x-1">
+    <app-sidebar-footer
+      *ngIf="!menuService.showSideBar"
+      (toggleSidebar)="toggleSidebar()"
+    />
   </div>
 </nav>
+
+
+<!-- Modal para crear carpeta -->
+<app-crear-carpeta-modal
+  [isOpen]="isOpenCrearCarpetaModal"
+  [carpetaPadreId]="carpetaPadreIdParaCrear"
+  (close)="cerrarModalDesdeDropdown()"
+/>

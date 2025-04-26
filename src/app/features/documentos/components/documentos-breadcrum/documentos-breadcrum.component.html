@@ -1,0 +1,19 @@
+<nav class="my-4 select-none" aria-label="Breadcrumb">
+  <div class="inline-flex items-center gap-2 flex-wrap bg-white rounded-lg p-2">
+    <a
+      class="text-sm text-gray-700 hover:text-blue-600 font-medium cursor-pointer"
+      (click)="irARaiz()"
+      >Inicio</a
+    >
+
+    <ng-container *ngFor="let carpeta of ruta; let i = index">
+      <span class="mx-1 text-gray-400">/</span>
+      <a
+        class="text-sm text-gray-700 hover:text-blue-600 font-medium cursor-pointer"
+        (click)="navegarA(i)"
+      >
+        {{ carpeta.nombre }}
+      </a>
+    </ng-container>
+  </div>
+</nav>

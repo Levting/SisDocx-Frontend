@@ -1,0 +1,61 @@
+<div class="flex items-center h-12">
+  <div
+    class="h-full w-full rounded-lg mb-6 flex items-center justify-between transition-all duration-300 ease-in-out transform p-2"
+    [ngClass]="
+      elementosSeleccionados.length > 0
+        ? 'shadow-md border border-gray-200'
+        : ''
+    "
+  >
+    <!-- Mostrar cuando no hay elementos seleccionados -->
+    <ng-container *ngIf="elementosSeleccionados.length === 0">
+      <!-- Espacio vacío para mantener la altura -->
+    </ng-container>
+
+    <!-- Mostrar cuando se selecciona un solo elemento -->
+    <ng-container *ngIf="elementosSeleccionados.length === 1">
+      <div>
+        <button
+          class="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg text-center transition-colors duration-200 flex items-center"
+        >
+          <svg-icon src="assets/icons/trash.svg" [svgClass]="'h-5 w-5 mr-1'" />
+          Abrir
+        </button>
+
+        <button
+          class="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg text-center transition-colors duration-200 flex items-center"
+        >
+          <svg-icon src="assets/icons/trash.svg" [svgClass]="'h-5 w-5 mr-1'" />
+          Quitar de Favoritos
+        </button>
+      </div>
+    </ng-container>
+
+    <!-- Mostrar cuando se seleccionan múltiples elementos -->
+    <ng-container *ngIf="elementosSeleccionados.length > 1">
+      <button
+        class="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg text-center transition-colors duration-200 flex items-center"
+        aria-label="Quitar de Favoritos"
+      >
+        <svg-icon src="assets/icons/trash.svg" [svgClass]="'h-5 w-5 mr-1'" />
+        Quitar de Favoritos
+      </button>
+    </ng-container>
+  </div>
+</div>
+
+<div class="mt-5">
+  <app-table
+    [cabeceras]="cabeceras"
+    [columnas]="columnas"
+    [elementosTabla]="elementosTablaFavorito"
+    [mostrarDropdown]="true"
+    [dropdownTemplate]="dropdownFavoritosTemplate"
+    [habilitarNavegacion]="true"
+  />
+</div>
+
+<!-- Plantilla para el dropdown -->
+<ng-template #dropdownFavoritosTemplate let-elemento="elemento">
+  <app-favoritos-dropdown />
+</ng-template>

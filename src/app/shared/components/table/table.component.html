@@ -1,0 +1,91 @@
+<div class="relative h-full overflow-hidden select-none">
+  <!-- Contenedor con scroll -->
+  <div class="relative h-full overflow-y-auto shadow-md rounded-lg transition-all duration-300 ease-in-out">
+    <table
+      class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
+    >
+      <thead class="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0 z-10">
+        <tr>
+          <th
+            *ngFor="let cabecera of cabeceras"
+            class="px-6 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200"
+          >
+            {{ cabecera }}
+          </th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr
+          *ngFor="let elementoTabla of elementosTabla"
+          class="group border-b cursor-pointer transition-all duration-200"
+          [ngClass]="{
+            'bg-gray-100': estaSeleccionado(elementoTabla),
+            'hover:bg-gray-50': !estaSeleccionado(elementoTabla)
+          }"
+          (click)="toggleSeleccion(elementoTabla)"
+          (dblclick)="habilitarNavegacion ? abrirCarpeta(elementoTabla) : null"
+        >
+          <td class="px-6 py-4">
+            <div class="flex items-center gap-4">
+              <!-- Circulo de Estado -->
+              <div
+                class="w-4 h-4 transition-all duration-200 relative flex items-center justify-center"
+                [ngClass]="{
+                  'opacity-100 scale-110': estaSeleccionado(elementoTabla),
+                  'opacity-0 group-hover:opacity-100 group-hover:scale-110':
+                    !estaSeleccionado(elementoTabla)
+                }"
+              >
+                <div
+                  class="w-3.5 h-3.5 rounded-full border border-gray-400 transition-all duration-200"
+                  [ngClass]="{
+                    'bg-gray-500 border-none': estaSeleccionado(elementoTabla),
+                    'group-hover:border-gray-500':
+                      !estaSeleccionado(elementoTabla)
+                  }"
+                ></div>
+              </div>
+
+              <!-- Icono y Nombre -->
+              <div class="flex items-center">
+                <div class="w-5 mr-3">
+                  <svg-icon src="assets/icons/folder.svg" class="'h-5 w-5'" />
+                </div>
+                <div>
+                  <div
+                    class="text-base font-semibold text-gray-900 dark:text-white transition-colors duration-200"
+                  >
+                    {{ elementoTabla.columnas["nombre"] }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Dropdown -->
+              <div
+                class="flex transition-all duration-200 relative justify-end"
+                *ngIf="mostrarDropdown"
+                [ngClass]="{
+                  'opacity-100': estaSeleccionado(elementoTabla),
+                  'opacity-0 group-hover:opacity-100':
+                    !estaSeleccionado(elementoTabla)
+                }"
+              >
+                <ng-container
+                  *ngIf="dropdownTemplate"
+                  [ngTemplateOutlet]="dropdownTemplate"
+                  [ngTemplateOutletContext]="{ elemento: elementoTabla }"
+                ></ng-container>
+              </div>
+            </div>
+          </td>
+
+          <!-- Renderizar columnas dinámicamente -->
+          <td *ngFor="let col of getColumnasFiltradas()" class="px-6 py-4">
+            {{ elementoTabla.columnas[col] }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
