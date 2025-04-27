@@ -1,15 +1,14 @@
 import { FechaUtilsService } from './../../../../core/utils/fecha-utils.service';
-import { ElementoTabla } from './../../../../core/models/documentos/elementoTabla';
-import { catchError, Observable, of } from 'rxjs';
+import { ElementoTabla } from '../../../../core/models/table/elementoTabla';
 import { Component, inject } from '@angular/core';
-import { Elemento } from '../../../../core/models/documentos/elemento';
 import { NgClass, NgIf } from '@angular/common';
 import { SvgIconComponent } from 'angular-svg-icon';
 import { TableComponent } from '../../../../shared/components/table/table.component';
 import { FavoritosDropdownComponent } from '../favoritos-dropdown/favoritos-dropdown.component';
 import { ElementoService } from '../../../../core/services/elemento.service';
 import { ElementoFavorito } from '../../../../core/models/documentos/elementoFavoritoReponse';
-import { ElementoPapelera } from '../../../../core/models/documentos/elementoPapeleraResponse';
+import { of } from 'rxjs';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-favoritos-table',
@@ -74,7 +73,7 @@ export class FavoritosTableComponent {
           next: (filas: ElementoTabla[]) => {
             this.elementosTablaFavorito = filas; // Asignar filas a la tabla
           },
-          error: (error) => {
+          error: () => {
             this.isLoading = false; // Finalizar carga
             this.isError = true; // Indicar error
             this.errorMessage = 'Error al cargar los elementos favoritos'; // Mensaje de error

@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgClass, NgIf } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
-import { LoginRequest } from '../../../core/models/auth/loginRequest';
+import { InicioSesionRequest } from '../../../core/models/auth/inicioSesionRequest';
 
 @Component({
   selector: 'app-login',
@@ -39,29 +39,31 @@ export class LoginComponent {
     if (this.loginForm.valid) {
       this.isLoading = true;
 
-      this.authService.iniciarSesion(this.loginForm.value as LoginRequest).subscribe({
-        next: (data) => {
-          this.router.navigate(['/']);
-        },
-        error: (error) => {
-          this.contrasena.setValue('');
+      this.authService
+        .iniciarSesion(this.loginForm.value as InicioSesionRequest)
+        .subscribe({
+          next: (data) => {
+            this.router.navigate(['/']);
+          },
+          error: (error) => {
+            this.contrasena.setValue('');
 
-          // Extraemos el mensaje de error exacto de la API
-          if (error instanceof Error) {
-            this.loginError = error.message;
-          } else {
-            this.loginError = 'Error desconocido durante el inicio de sesión';
-          }
+            // Extraemos el mensaje de error exacto de la API
+            if (error instanceof Error) {
+              this.loginError = error.message;
+            } else {
+              this.loginError = 'Error desconocido durante el inicio de sesión';
+            }
 
-          this.isLoading = false;
-        },
-        complete: () => {
-          console.info('Inicio de sesión completado');
-          this.isLoading = false;
-          this.router.navigate(['/']);
-          this.loginForm.reset();
-        },
-      });
+            this.isLoading = false;
+          },
+          complete: () => {
+            console.info('Inicio de sesión completado');
+            this.isLoading = false;
+            this.router.navigate(['/']);
+            this.loginForm.reset();
+          },
+        });
     } else {
       // Si el formulario no es válido, mostramos mensaje genérico
       this.loginError = 'Por favor complete todos los campos correctamente';

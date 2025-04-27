@@ -5,7 +5,7 @@ import { CarpetaService } from '../../../../core/services/carpeta.service';
 import { catchError, forkJoin, map, Observable, of } from 'rxjs';
 import { TableComponent } from '../../../../shared/components/table/table.component';
 import { ElementoPapelera } from '../../../../core/models/documentos/elementoPapeleraResponse';
-import { ElementoTabla } from '../../../../core/models/documentos/elementoTabla';
+import { ElementoTabla } from '../../../../core/models/table/elementoTabla';
 import { UserService } from '../../../../core/services/user.service';
 import { FechaUtilsService } from '../../../../core/utils/fecha-utils.service';
 import { ElementoService } from '../../../../core/services/elemento.service';
@@ -183,7 +183,7 @@ export class PapeleraTableComponent implements OnInit, OnDestroy {
     if (!ids || ids.length === 0) return of('Ubicación desconocida');
 
     const observables = ids.map((id) =>
-      this.carpetaService.obtenerCarpetaPorId(id).pipe(
+      this.elementoService.obtenerDetallesElemento(id, 'CARPETA').pipe(
         map((carpeta) => carpeta?.nombre || 'Desconocido'),
         catchError(() => of('Desconocido'))
       )

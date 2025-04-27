@@ -7,7 +7,7 @@ import {
   TemplateRef,
 } from '@angular/core';
 import { SvgIconComponent } from 'angular-svg-icon';
-import { ElementoTabla } from '../../../core/models/documentos/elementoTabla';
+import { ElementoTabla } from '../../../core/models/table/elementoTabla';
 
 @Component({
   selector: 'app-table',

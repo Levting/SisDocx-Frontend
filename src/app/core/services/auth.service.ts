@@ -1,5 +1,4 @@
 import { Inject, inject, Injectable, PLATFORM_ID } from '@angular/core';
-import { LoginRequest } from '../models/auth/loginRequest';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import {
   BehaviorSubject,
@@ -10,13 +9,14 @@ import {
   throwError,
   map,
 } from 'rxjs';
-import { LoginResponse } from '../models/auth/loginResponse';
 import { environment } from '../../../environments/environment';
 import { ApiError } from '../models/errors/apiError';
 import { TokenService } from './token.service';
 import { isPlatformBrowser } from '@angular/common';
 import { Usuario } from '../models/usuario/usuario';
 import { Router } from '@angular/router';
+import { InicioSesionRequest } from '../models/auth/inicioSesionRequest';
+import { InicioSesionResponse } from '../models/auth/inicioSesionResponse';
 
 @Injectable({
   providedIn: 'root',
@@ -109,11 +109,11 @@ export class AuthService {
    * @param credentials Credenciales de inicio de sesión
    * @returns Observable<LoginResponse>
    */
-  iniciarSesion(credentials: LoginRequest): Observable<LoginResponse> {
+  iniciarSesion(credentials: InicioSesionRequest): Observable<InicioSesionResponse> {
     return this.http
-      .post<LoginResponse>(`${this.API_URL_AUTH}/iniciar-sesion`, credentials)
+      .post<InicioSesionResponse>(`${this.API_URL_AUTH}/iniciar-sesion`, credentials)
       .pipe(
-        tap((response: LoginResponse) => {
+        tap((response: InicioSesionResponse) => {
           this.tokenService.setToken(response.token);
           this.userLoginOnSubject.next(true);
           // Cargar el usuario después de iniciar sesión

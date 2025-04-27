@@ -15,6 +15,9 @@ import { finalize } from 'rxjs/operators';
 import { Carpeta } from '../../../core/models/documentos/carpeta';
 import { CarpetaService } from '../../../core/services/carpeta.service';
 import { CarpetaActualService } from '../../../core/services/carpeta-actual.service';
+import { ApiError } from '../../../core/models/errors/apiError';
+import { ElementoService } from '../../../core/services/elemento.service';
+import { CrearCarpetaRequest } from '../../../core/models/documentos/crearCarpetaRequest';
 
 /**
  * Componente que representa el modal para crear una nueva carpeta.
@@ -55,6 +58,7 @@ export class CrearCarpetaModalComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   // Inyección de servicios
+  private elementoService = inject(ElementoService);
   private carpetaService = inject(CarpetaService);
   private carpetaActualService = inject(CarpetaActualService);
   private router = inject(Router);
@@ -153,8 +157,13 @@ export class CrearCarpetaModalComponent implements OnInit, OnDestroy {
       ? this.carpetaPadreId
       : (this.carpetaActualService.obtenerCarpetaActual()?.elementoId || 1);
 
-    this.carpetaService
-      .crearCarpeta(carpetaPadreId, this.nombreCarpeta.trim())
+    const crearCarpetaRequest: CrearCarpetaRequest = {
+      nombre: this.nombreCarpeta,
+      carpetaPadreId: carpetaPadreId,
+    };
+
+    this.elementoService
+      .crearCarpeta(crearCarpetaRequest)
       .pipe(
         finalize(() => {
           this.isLoading = false;
@@ -162,7 +171,7 @@ export class CrearCarpetaModalComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$)
       )
       .subscribe({
-        next: (carpetaCreada) => {
+        next: (carpetaCreada: Carpeta) => {
           this.carpetaCreada.emit(carpetaCreada);
 
           // Emitir un evento para recargar el contenido de la carpeta actual
@@ -173,7 +182,7 @@ export class CrearCarpetaModalComponent implements OnInit, OnDestroy {
 
           this.onClose();
         },
-        error: (error) => {
+        error: (error : ApiError) => {
           console.error('Error al crear la carpeta:', error);
           this.errorMessage = this.obtenerMensajeError(error);
         },

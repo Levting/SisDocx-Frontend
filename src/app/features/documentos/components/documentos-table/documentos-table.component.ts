@@ -5,7 +5,7 @@ import { SvgIconComponent } from 'angular-svg-icon';
 import { ElementoService } from '../../../../core/services/elemento.service';
 import { Elemento } from '../../../../core/models/documentos/elemento';
 import { TableComponent } from '../../../../shared/components/table/table.component';
-import { ElementoTabla } from '../../../../core/models/documentos/elementoTabla';
+import { ElementoTabla } from '../../../../core/models/table/elementoTabla';
 import { DocumentosBreadcrumComponent } from '../documentos-breadcrum/documentos-breadcrum.component';
 import { catchError, forkJoin, map, Observable, of } from 'rxjs';
 import { UserService } from '../../../../core/services/user.service';
@@ -51,7 +51,7 @@ export class DocumentosTableComponent {
   public elementosSeleccionados: ElementoTabla[] = [];
 
   // Navegacion
-  public ruta: { nombre: string; elementoId: number }[] = [];
+  public ruta: { nombre: string; elementoId: number; elemento: 'CARPETA' }[] = [];
 
   // Indicadores de estado
   public isLoading: boolean = false;
@@ -106,7 +106,7 @@ export class DocumentosTableComponent {
     this.elementoService.obtenerContenidoCarpeta(carpetaId).subscribe({
       next: (elementos: Elemento[]) => {
         if (nombre) {
-          this.ruta.push({ nombre, elementoId: carpetaId });
+          this.ruta.push({ nombre, elementoId: carpetaId, elemento: 'CARPETA' });
         } else if (carpetaId === 1) {
           this.ruta = [];
         }
@@ -136,20 +136,23 @@ export class DocumentosTableComponent {
   }
 
   navegarA(index: number): void {
-    const carpeta = this.ruta[index];
+    const carpeta  = this.ruta[index];
     this.ruta = this.ruta.slice(0, index + 1); // Truncar ruta
 
     // Limpiar selección al navegar usando el breadcrumb
     this.limpiarSeleccion();
 
-    this.cargarContenido(carpeta.elementoId); // Cargar contenido de esa carpeta
+    // Cargar contenido de esa carpeta
+    this.cargarContenido(carpeta.elementoId, carpeta.nombre); 
 
     // Actualizar la carpeta actual en el servicio cuando se navega por el breadcrumb
-    this.carpetaService
-      .obtenerCarpetaPorId(carpeta.elementoId)
-      .subscribe((carpetaCompleta) => {
-        if (carpetaCompleta) {
-          this.carpetaActualService.actualizarCarpetaActual(carpetaCompleta);
+    this.elementoService
+      .obtenerDetallesElemento(carpeta.elementoId, carpeta.elemento)
+      .subscribe((elemento) => {
+        if (elemento) {
+          // Cast elemento to Carpeta since we know it's a folder in this context
+          const carpeta = elemento as Carpeta;
+          this.carpetaActualService.actualizarCarpetaActual(carpeta);
         }
       });
   }
@@ -214,7 +217,7 @@ export class DocumentosTableComponent {
     if (!ids || ids.length === 0) return of('Ubicación desconocida');
 
     const observables = ids.map((id) =>
-      this.carpetaService.obtenerCarpetaPorId(id).pipe(
+      this.elementoService.obtenerDetallesElemento(id, 'CARPETA').pipe(
         map((carpeta) => carpeta?.nombre || 'Desconocido'),
         catchError(() => of('Desconocido'))
       )
@@ -275,9 +278,9 @@ export class DocumentosTableComponent {
     this.cargarContenido(1);
 
     // Obtener la carpeta raíz y actualizar la carpeta actual
-    this.carpetaService.obtenerCarpetaPorId(1).subscribe((carpetaRaiz) => {
-      if (carpetaRaiz) {
-        this.carpetaActualService.actualizarCarpetaActual(carpetaRaiz);
+    this.elementoService.obtenerDetallesElemento(1, 'CARPETA').subscribe((elemento) => {
+      if (elemento) {
+        this.carpetaActualService.actualizarCarpetaActual(elemento as Carpeta);
       }
     });
   }
