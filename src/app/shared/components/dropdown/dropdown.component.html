@@ -1,17 +1,18 @@
-<div class="relative inline-block text-left">
+<div class="relative inline-block text-left" (clickOutside)="closeDropdown()">
   <!-- Botón -->
   <button
     (click)="toggleDropdown()"
-    class="inline-flex items-center p-2 text-sm font-medium text-center text-gray-900 bg-white rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none dark:text-white focus:ring-gray-50"
+    class="inline-flex items-center justify-center active:enabled:translate-y-px focus:outline-none focus-visible:ring-[1.8px] focus-visible:ring-offset-2 ring-offset-background transition-colors duration-200 p-1 size-10 rounded hover:text-primary focus-visible:ring-primary-lighter"
     type="button"
+    title="Opciones"
   >
-    <svg-icon [src]="'assets/icons/trash.svg'" class="w-5 h-5" />
+    <svg-icon [src]="'assets/icons/options.svg'" />
   </button>
 
   <!-- Menú -->
   <div
     *ngIf="isOpen"
-    class="z-10 bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700 dark:divide-gray-600 absolute mt-2"
+    class="z-10 bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-56 dark:bg-gray-700 dark:divide-gray-600 absolute mt-2 right-0"
   >
     <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
       <li *ngFor="let item of items">
@@ -24,7 +25,7 @@
             [src]="item.icono"
             class="w-5 h-5 mr-2"
           ></svg-icon>
-          {{ item.texto }}
+          <span class="truncate">{{ item.texto }}</span>
         </button>
       </li>
     </ul>

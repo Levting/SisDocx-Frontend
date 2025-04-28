@@ -12,23 +12,23 @@ export class FavoritosDropdownComponent implements OnInit {
   public items = [
     {
       texto: 'Abrir',
-      icono: 'assets/icons/open.svg',
+      icono: 'assets/icons/trash.svg',
       accion: () => this.abrir(),
     },
     {
       texto: 'Abrir Ubicación',
-      icono: 'assets/icons/location.svg',
+      icono: 'assets/icons/trash.svg',
       accion: () => this.abrirUbicacion(),
     },
     {
       texto: 'Quitar de Favoritos',
-      icono: 'assets/icons/remove.svg',
+      icono: 'assets/icons/trash.svg',
       accion: () => this.quitarDeFavoritos(),
     },
   ];
 
   ngOnInit(): void {
-    console.log('Items del dropdown:', this.items);
+    /* console.log('Items del dropdown:', this.items); */
   }
 
   abrir(): void {

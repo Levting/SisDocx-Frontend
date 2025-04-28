@@ -1,52 +1,57 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { DropdownComponent } from '../../../../shared/components/dropdown/dropdown.component';
 
 @Component({
   selector: 'app-documentos-dropdown',
   standalone: true,
-  imports: [],
+  imports: [DropdownComponent],
   templateUrl: './documentos-dropdown.component.html',
 })
-export class DocumentosDropdownComponent {
-  @Input() carpetaId!: number; // ID de la carpeta
-  @Output() confirmarPapelera = new EventEmitter<number>();
-  @Output() favorito = new EventEmitter<number>();
-  @Output() descargar = new EventEmitter<number>();
-  @Output() cambiarNombre = new EventEmitter<number>();
-  @Output() mover = new EventEmitter<number>();
+export class DocumentosDropdownComponent implements OnInit {
+  public items = [
+    {
+      texto: 'Mover a Papelera',
+      icono: 'assets/icons/trash.svg',
+      accion: () => this.onPapelera(),
+    },
+    {
+      texto: 'Favorito',
+      icono: 'assets/icons/trash.svg',
+      accion: () => this.onFavorito(),
+    },
+    {
+      texto: 'Descargar',
+      icono: 'assets/icons/trash.svg',
+      accion: () => this.onDescargar(),
+    },
+    {
+      texto: 'Cambiar Nombre',
+      icono: 'assets/icons/trash.svg',
+      accion: () => this.onCambiarNombre(),
+    },
+  ];
 
-  public isOpen: boolean = false;
-
-  toggleDropdown(event: Event): void {
-    event.stopPropagation();
-    this.isOpen = !this.isOpen;
-  }
-
-  closeDropdown(): void {
-    this.isOpen = false;
+  ngOnInit(): void {
+    /* console.log('Items del dropdown:', this.items); */
   }
 
   onPapelera(): void {
-    this.confirmarPapelera.emit(this.carpetaId);
-    this.closeDropdown();
+    console.log('Mover a Papelera');
+    // Implementar lógica para abrir el elemento
   }
 
   onFavorito(): void {
-    this.favorito.emit(this.carpetaId);
-    this.closeDropdown();
+    console.log('Favorito');
+    // Implementar lógica para abrir la ubicación
   }
 
   onDescargar(): void {
-    this.descargar.emit(this.carpetaId);
-    this.closeDropdown();
+    console.log('Descargar');
+    // Implementar lógica para quitar el elemento de favoritos
   }
 
   onCambiarNombre(): void {
-    this.cambiarNombre.emit(this.carpetaId);
-    this.closeDropdown();
-  }
-
-  onMover(): void {
-    this.mover.emit(this.carpetaId);
-    this.closeDropdown();
+    console.log('Cambiar Nombre');
+    // Implementar lógica para cambiar el nombre
   }
 }

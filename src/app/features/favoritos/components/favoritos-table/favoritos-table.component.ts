@@ -58,6 +58,9 @@ export class FavoritosTableComponent {
   // Limpiar la selección
   limpiarSeleccion(): void {
     this.elementosSeleccionados = [];
+    this.elementosTablaFavorito.forEach((elemento) => {
+      elemento.seleccionado = false; // Limpiar la selección de cada elemento
+    });
   }
 
   cargarElementosFavoritos(): void {
