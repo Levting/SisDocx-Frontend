@@ -14,6 +14,7 @@ import { InicioSesionRequest } from '../../../core/models/auth/inicioSesionReque
 export class LoginComponent {
   public loginError: string = '';
   public isLoading: boolean = false;
+  public showPassword: boolean = false;
   private formBuilder: FormBuilder = inject(FormBuilder);
 
   constructor(private router: Router, private authService: AuthService) {}
@@ -30,6 +31,10 @@ export class LoginComponent {
 
   get contrasena() {
     return this.loginForm.controls.contrasena;
+  }
+
+  togglePasswordVisibility() {
+    this.showPassword = !this.showPassword;
   }
 
   iniciarSesion() {
