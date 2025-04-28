@@ -23,6 +23,9 @@ export class TableComponent {
   @Input() mostrarDropdown: boolean = false; // Indica si se muestra un dropdown (acciones)
   @Input() dropdownTemplate: TemplateRef<any> | null = null; // Template del dropdown
   @Input() habilitarNavegacion: boolean = false; // Indica si se muestra la navegación de carpetas
+  @Input() isLoading: boolean = false; // Indica si la tabla está cargando
+  @Input() isError: boolean = false; // Indica si hay un error
+  @Input() error: string | null = null; // Mensaje de error
 
   @Output() cambioSeleccion = new EventEmitter<ElementoTabla[]>();
   @Output() dobleClickElemento = new EventEmitter<ElementoTabla>();
