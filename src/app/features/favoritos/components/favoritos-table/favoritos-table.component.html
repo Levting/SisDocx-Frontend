@@ -88,10 +88,13 @@
     <app-table
       [cabeceras]="cabeceras"
       [columnas]="columnas"
-      [elementosTabla]="elementosTablaFavorito"
+      [elementosTabla]="elementosTabla"
       [mostrarDropdown]="true"
       [dropdownTemplate]="dropdownFavoritosTemplate"
       [habilitarNavegacion]="true"
+      [isLoading]="isLoading"
+      [isError]="isError"
+      [error]="error"
       (cambioSeleccion)="onSeleccionCambiada($event)"
     />
   </div>

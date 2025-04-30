@@ -1,5 +1,3 @@
-import { FechaUtilsService } from './../../../../core/utils/fecha-utils.service';
-import { ElementoTabla } from '../../../../core/models/table/elementoTabla';
 import { Component, inject } from '@angular/core';
 import { NgClass, NgIf } from '@angular/common';
 import { SvgIconComponent } from 'angular-svg-icon';
@@ -7,8 +5,8 @@ import { TableComponent } from '../../../../shared/components/table/table.compon
 import { FavoritosDropdownComponent } from '../favoritos-dropdown/favoritos-dropdown.component';
 import { ElementoService } from '../../../../core/services/elemento.service';
 import { ElementoFavorito } from '../../../../core/models/documentos/elementoFavoritoReponse';
-import { of } from 'rxjs';
-import { Observable } from 'rxjs';
+import { TransformacionService } from '../../../../core/services/transformacion.service';
+import { ElementoTabla } from '../../../../core/models/table/elementoTabla';
 
 @Component({
   selector: 'app-favoritos-table',
@@ -23,25 +21,28 @@ import { Observable } from 'rxjs';
   templateUrl: './favoritos-table.component.html',
 })
 export class FavoritosTableComponent {
-  public elementosTablaFavorito: ElementoTabla[] = [];
-  public elementosFavoritosOriginal: ElementoFavorito[] = [];
-  public cabeceras: string[] = ['Nombre', 'Añadido el', 'Modificada'];
-  public columnas: string[] = ['nombre', 'creadoEl', 'modificadoEl'];
+  public elementosTabla: ElementoTabla[] = [];
+  public elementosOriginales: ElementoFavorito[] = [];
+  public cabeceras: string[] = ['Nombre', 'Tipo', 'Fecha de favorito'];
+  public columnas: string[] = ['nombre', 'elemento', 'fechaFavorito'];
 
-  // Inyección de Servicios
-  public elementoService: ElementoService = inject(ElementoService);
-  public fechaUtilsService: FechaUtilsService = inject(FechaUtilsService);
+  // Inyección de servicios
+  private elementoService: ElementoService = inject(ElementoService);
+  private transformacionService: TransformacionService = inject(
+    TransformacionService
+  );
 
-  // Estado de carga
-  public isLoading: boolean = false; // Indicador de carga
-  public isError: boolean = false; // Indicador de error
-  public errorMessage: string | null = null; // Mensaje de error
+  // Propiedades para la selección de elementos
+  public elementosSeleccionados: ElementoTabla[] = [];
 
-  // Variables de componente
-  public elementosSeleccionados: ElementoTabla[] = []; // Elementos seleccionados
+  // Indicadores de estado
+  public isLoading: boolean = false;
+  public isError: boolean = false;
+  public error: string | null = null;
 
+  /* Inicializador del Componente */
   ngOnInit(): void {
-    this.cargarElementosFavoritos(); // Cargar elementos de favoritos al iniciar
+    this.cargarFavoritos();
   }
 
   ngOnDestroy(): void {}
@@ -58,62 +59,39 @@ export class FavoritosTableComponent {
   // Limpiar la selección
   limpiarSeleccion(): void {
     this.elementosSeleccionados = [];
-    this.elementosTablaFavorito.forEach((elemento) => {
-      elemento.seleccionado = false; // Limpiar la selección de cada elemento
+    this.elementosTabla.forEach((elemento) => {
+      elemento.seleccionado = false;
     });
   }
 
-  cargarElementosFavoritos(): void {
+  cargarFavoritos(): void {
     this.isLoading = true;
     this.isError = false;
-    this.errorMessage = null;
+    this.elementosTabla = [];
 
     this.elementoService.obtenerFavoritos().subscribe({
-      next: (elementosFavorito: ElementoFavorito[]) => {
-        this.elementosFavoritosOriginal = elementosFavorito;
+      next: (elementos: ElementoFavorito[]) => {
+        this.elementosOriginales = elementos;
 
-        this.transformarFavoritosEnTablaFilas(elementosFavorito).subscribe({
-          next: (filas: ElementoTabla[]) => {
-            this.elementosTablaFavorito = filas; // Asignar filas a la tabla
-          },
-          error: () => {
-            this.isLoading = false; // Finalizar carga
-            this.isError = true; // Indicar error
-            this.errorMessage = 'Error al cargar los elementos favoritos'; // Mensaje de error
-          },
-        });
-        this.isLoading = false; // Finalizar carga
+        if (elementos.length === 0) {
+          this.isLoading = false;
+          return;
+        }
+
+        this.elementosTabla =
+          this.transformacionService.transformarFavoritosATabla(elementos);
+        this.isLoading = false;
       },
-      error: (error) => {
-        this.isLoading = false; // Finalizar carga
-        this.isError = true; // Indicar error
-        this.errorMessage = 'Error al cargar los elementos favoritos'; // Mensaje de error
+      error: (err) => {
+        this.isLoading = false;
+        this.isError = true;
+        this.error =
+          'Ocurrió un problema al cargar los favoritos. Intenta de nuevo más tarde.';
       },
     });
   }
 
   eliminarElementosFavoritos(): void {
     console.log('Eliminar:', this.elementosSeleccionados);
-  }
-
-  private transformarFavoritosEnTablaFilas(
-    elementos: ElementoFavorito[]
-  ): Observable<ElementoTabla[]> {
-    const filas: ElementoTabla[] = elementos.map((elemento) => {
-      return {
-        columnas: {
-          elementoId: elemento.elementoId,
-          elemento: elemento.elemento,
-          nombre: elemento.nombre,
-          fechaFavorito: this.fechaUtilsService.formatear(
-            elemento.fechaFavorito
-          ),
-        },
-        seleccionado: false,
-      };
-    });
-
-    // Retornamos un Observable con los resultados de las filas.
-    return of(filas);
   }
 }

@@ -1,6 +1,5 @@
-export interface ElementoFavorito {
-  elementoId: number; // ID del elemento
-  elemento: string; // Tipo de elemento (CARPETA, DOCUMENTO, etc.)
-  nombre: string; // Nombre del elemento
+import { Elemento } from "./elemento";
+
+export interface ElementoFavorito extends Elemento {
   fechaFavorito: string; // Fecha en formato ISO
 }

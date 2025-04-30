@@ -136,7 +136,61 @@
                 <!-- Icono y Nombre -->
                 <div class="flex gap-2">
                   <div class="w-5 mr-3">
-                    <svg-icon src="assets/icons/folder.svg" class="'h-5 w-5'" />
+                    <ng-container
+                      *ngIf="elementoTabla.columnas['elemento'] === 'CARPETA'"
+                    >
+                      <svg-icon src="assets/icons/folder.svg" class="h-5 w-5" />
+                    </ng-container>
+                    <ng-container
+                      *ngIf="elementoTabla.columnas['elemento'] === 'ARCHIVO'"
+                    >
+                      <ng-container
+                        [ngSwitch]="
+                          elementoTabla.columnas['extension']?.toLowerCase()
+                        "
+                      >
+                        <svg-icon
+                          *ngSwitchCase="'pdf'"
+                          src="assets/icons/filePDF.svg"
+                          class="h-5 w-5"
+                        />
+                        <svg-icon
+                          *ngSwitchCase="'docx'"
+                          src="assets/icons/fileDOCX.svg"
+                          class="h-5 w-5"
+                        />
+                        <svg-icon
+                          *ngSwitchCase="'xls'"
+                          src="assets/icons/fileEXCEL.svg"
+                          class="h-5 w-5"
+                        />
+                        <svg-icon
+                          *ngSwitchCase="'xlsx'"
+                          src="assets/icons/fileEXCEL.svg"
+                          class="h-5 w-5"
+                        />
+                        <svg-icon
+                          *ngSwitchCase="'jpg'"
+                          src="assets/icons/fileIMAGE.svg"
+                          class="h-5 w-5"
+                        />
+                        <svg-icon
+                          *ngSwitchCase="'jpeg'"
+                          src="assets/icons/fileIMAGE.svg"
+                          class="h-5 w-5"
+                        />
+                        <svg-icon
+                          *ngSwitchCase="'png'"
+                          src="assets/icons/fileIMAGE.svg"
+                          class="h-5 w-5"
+                        />
+                        <svg-icon
+                          *ngSwitchDefault
+                          src="assets/icons/folder.svg"
+                          class="h-5 w-5"
+                        />
+                      </ng-container>
+                    </ng-container>
                   </div>
                   <div>
                     <div

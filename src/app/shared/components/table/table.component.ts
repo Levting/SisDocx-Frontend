@@ -1,4 +1,12 @@
-import { NgClass, NgFor, NgIf, NgTemplateOutlet } from '@angular/common';
+import {
+  NgClass,
+  NgFor,
+  NgIf,
+  NgTemplateOutlet,
+  NgSwitch,
+  NgSwitchCase,
+  NgSwitchDefault,
+} from '@angular/common';
 import {
   Component,
   Input,
@@ -12,7 +20,16 @@ import { ElementoTabla } from '../../../core/models/table/elementoTabla';
 @Component({
   selector: 'app-table',
   standalone: true,
-  imports: [NgFor, NgClass, NgIf, SvgIconComponent, NgTemplateOutlet],
+  imports: [
+    NgFor,
+    NgClass,
+    NgIf,
+    SvgIconComponent,
+    NgTemplateOutlet,
+    NgSwitch,
+    NgSwitchCase,
+    NgSwitchDefault,
+  ],
   templateUrl: './table.component.html',
 })
 export class TableComponent {

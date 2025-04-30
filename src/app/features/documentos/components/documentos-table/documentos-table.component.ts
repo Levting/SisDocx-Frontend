@@ -13,6 +13,7 @@ import { FechaUtilsService } from '../../../../core/utils/fecha-utils.service';
 import { CarpetaService } from '../../../../core/services/carpeta.service';
 import { CarpetaActualService } from '../../../../core/services/carpeta-actual.service';
 import { Carpeta } from '../../../../core/models/documentos/carpeta';
+import { TransformacionService } from '../../../../core/services/transformacion.service';
 
 @Component({
   selector: 'app-documentos-table',
@@ -46,12 +47,16 @@ export class DocumentosTableComponent {
   private fechaUtils: FechaUtilsService = inject(FechaUtilsService);
   private carpetaActualService: CarpetaActualService =
     inject(CarpetaActualService);
+  private transformacionService: TransformacionService = inject(
+    TransformacionService
+  );
 
   // Propiedades para la selección de elementos
   public elementosSeleccionados: ElementoTabla[] = [];
 
   // Navegacion
-  public ruta: { nombre: string; elementoId: number; elemento: 'CARPETA' }[] = [];
+  public ruta: { nombre: string; elementoId: number; elemento: 'CARPETA' }[] =
+    [];
 
   // Indicadores de estado
   public isLoading: boolean = false;
@@ -106,7 +111,11 @@ export class DocumentosTableComponent {
     this.elementoService.obtenerContenidoCarpeta(carpetaId).subscribe({
       next: (elementos: Elemento[]) => {
         if (nombre) {
-          this.ruta.push({ nombre, elementoId: carpetaId, elemento: 'CARPETA' });
+          this.ruta.push({
+            nombre,
+            elementoId: carpetaId,
+            elemento: 'CARPETA',
+          });
         } else if (carpetaId === 1) {
           this.ruta = [];
         }
@@ -119,12 +128,12 @@ export class DocumentosTableComponent {
           return;
         }
 
-        this.transformarElementoEnTablaElemento(elementos).subscribe(
-          (filas) => {
+        this.transformacionService
+          .transformarDocumentosATabla(elementos)
+          .subscribe((filas) => {
             this.elementosTabla = filas;
             this.isLoading = false;
-          }
-        );
+          });
       },
       error: (err) => {
         this.isLoading = false;
@@ -136,14 +145,14 @@ export class DocumentosTableComponent {
   }
 
   navegarA(index: number): void {
-    const carpeta  = this.ruta[index];
+    const carpeta = this.ruta[index];
     this.ruta = this.ruta.slice(0, index + 1); // Truncar ruta
 
     // Limpiar selección al navegar usando el breadcrumb
     this.limpiarSeleccion();
 
     // Cargar contenido de esa carpeta
-    this.cargarContenido(carpeta.elementoId, carpeta.nombre); 
+    this.cargarContenido(carpeta.elementoId, carpeta.nombre);
 
     // Actualizar la carpeta actual en el servicio cuando se navega por el breadcrumb
     this.elementoService
@@ -278,10 +287,14 @@ export class DocumentosTableComponent {
     this.cargarContenido(1);
 
     // Obtener la carpeta raíz y actualizar la carpeta actual
-    this.elementoService.obtenerDetallesElemento(1, 'CARPETA').subscribe((elemento) => {
-      if (elemento) {
-        this.carpetaActualService.actualizarCarpetaActual(elemento as Carpeta);
-      }
-    });
+    this.elementoService
+      .obtenerDetallesElemento(1, 'CARPETA')
+      .subscribe((elemento) => {
+        if (elemento) {
+          this.carpetaActualService.actualizarCarpetaActual(
+            elemento as Carpeta
+          );
+        }
+      });
   }
 }

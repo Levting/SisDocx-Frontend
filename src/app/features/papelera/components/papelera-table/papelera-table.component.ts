@@ -9,6 +9,7 @@ import { ElementoTabla } from '../../../../core/models/table/elementoTabla';
 import { UserService } from '../../../../core/services/user.service';
 import { FechaUtilsService } from '../../../../core/utils/fecha-utils.service';
 import { ElementoService } from '../../../../core/services/elemento.service';
+import { TransformacionService } from '../../../../core/services/transformacion.service';
 
 @Component({
   selector: 'app-papelera-table',
@@ -18,35 +19,28 @@ import { ElementoService } from '../../../../core/services/elemento.service';
 })
 export class PapeleraTableComponent implements OnInit, OnDestroy {
   public elementosTablaPapelera: ElementoTabla[] = [];
-  private elementosPapeleraOriginales: ElementoPapelera[] = [];
+  public elementosPapeleraOriginales: ElementoPapelera[] = [];
 
-  public cabeceras: string[] = [
-    'Nombre',
-    'Eliminado el',
-    'Eliminado por',
-    'Creado por',
-    'Ubicacion Original',
-  ];
+  public cabeceras: string[] = ['Nombre', 'Tipo', 'Fecha de eliminación'];
 
-  public columnas: string[] = [
-    'nombre',
-    'fechaPapelera',
-    'eliminadoPor',
-    'creadoPor',
-    'ruta',
-  ];
+  public columnas: string[] = ['nombre', 'elemento', 'fechaEliminacion'];
 
   // Inyección de servicios
   public elementoService: ElementoService = inject(ElementoService); // Servicio de elemento
   public carpetaService: CarpetaService = inject(CarpetaService); // Servicio de carpeta
   public usuarioService: UserService = inject(UserService); // Servicio de usuario
   public fechaUtils: FechaUtilsService = inject(FechaUtilsService);
+  private transformacionService: TransformacionService = inject(
+    TransformacionService
+  );
 
   public elementosSeleccionados: ElementoTabla[] = []; // Elementos seleccionados
   public isLoading: boolean = false; // Indicador de carga
+  public isError: boolean = false;
+  public error: string | null = null;
 
   ngOnInit(): void {
-    this.cargarElementosPapelera(); // Cargar elementos de la papelera al iniciar
+    this.cargarPapelera();
   }
 
   ngOnDestroy(): void {}
@@ -82,25 +76,41 @@ export class PapeleraTableComponent implements OnInit, OnDestroy {
    * Cargar elementos de la papelera desde el servicio
    */
 
-  cargarElementosPapelera(): void {
+  cargarPapelera(): void {
     this.isLoading = true;
+    this.isError = false;
+    this.elementosTablaPapelera = []; // Limpia la tabla al entrar
 
     this.elementoService.obtenerPapelera().subscribe({
-      next: (elementosPapalera: ElementoPapelera[]) => {
-        //1. Guarda los originales si los necesitas
-        this.elementosPapeleraOriginales = elementosPapalera;
+      next: (elementos: ElementoPapelera[]) => {
+        this.elementosPapeleraOriginales = elementos;
 
-        //2. Convierte al tipo que maneja la tabla
-        this.transformarPapeleraEnTablaFilas(elementosPapalera).subscribe(
-          (filas) => {
-            this.elementosTablaPapelera = filas;
-            this.isLoading = false;
-          }
-        );
-        this.isLoading = false;
+        // Si está vacío, terminar de una vez
+        if (elementos.length === 0) {
+          this.isLoading = false;
+          return;
+        }
+
+        this.transformacionService
+          .transformarPapelerasATabla(elementos)
+          .subscribe({
+            next: (elementosTransformados) => {
+              this.elementosTablaPapelera = elementosTransformados;
+              this.isLoading = false;
+            },
+            error: (err) => {
+              this.isLoading = false;
+              this.isError = true;
+              this.error =
+                'Ocurrió un problema al transformar los elementos. Intenta de nuevo más tarde.';
+            },
+          });
       },
-      error: (error) => {
+      error: (err) => {
         this.isLoading = false;
+        this.isError = true;
+        this.error =
+          'Ocurrió un problema al cargar la papelera. Intenta de nuevo más tarde.';
       },
     });
   }
@@ -124,7 +134,7 @@ export class PapeleraTableComponent implements OnInit, OnDestroy {
       next: () => {
         console.log('Todos los elementos eliminados');
         this.limpiarSeleccion(); // 🧼 Limpiar selección
-        this.cargarElementosPapelera(); // 🔄 Recargar lista
+        this.cargarPapelera(); // 🔄 Recargar lista
       },
       error: (error) => {
         console.error('Error al eliminar elementos:', error);
