@@ -1,0 +1,70 @@
+<button
+  id="dropdownAvatarNameButton"
+  (click)="toggleMenu()"
+  class="flex items-center text-sm pe-1 gap-2 font-medium text-gray-900 rounded-full hover:text-blue-600 md:me-0 focus:ring-gray-100 dark:focus:ring-gray-700 dark:text-white"
+  type="button"
+>
+  <span class="sr-only">Open user menu</span>
+  <!-- Crear un avatar con la inicial del nombre y el apellido -->
+  <div
+    class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white"
+  >
+    <span class="text-xs font-medium"
+      >{{ usuario?.nombre?.charAt(0) }}{{ usuario?.apellido?.charAt(0) }}</span
+    >
+  </div>
+  {{ usuario?.nombre }} {{ usuario?.apellido }}
+</button>
+
+<!-- Dropdown menu -->
+<div
+  *ngIf="mostrarMenu"
+  class="absolute right-0 mt-2 z-50 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600"
+>
+  <div class="px-4 py-3 text-sm text-gray-900 dark:text-white">
+    <div class="font-medium">{{ usuario?.nombre }}</div>
+    <div class="truncate">{{ usuario?.correo }}</div>
+  </div>
+  <ul
+    class="py-2 text-sm text-gray-700 dark:text-gray-200"
+    aria-labelledby="dropdownInformdropdownAvatarNameButtonationButton"
+  >
+    <li>
+      <a
+        href="#"
+        class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+        >Inicio</a
+      >
+    </li>
+    <li>
+      <a
+        href="#"
+        class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+        >Mis Archivos</a
+      >
+    </li>
+    <li>
+      <a
+        href="#"
+        class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+        >Ajustes</a
+      >
+    </li>
+  </ul>
+  <div class="py-2">
+    <button
+      *ngIf="!userLoginOn"
+      class="text-gray-600 hover:text-blue-600 text-sm font-medium"
+    >
+      Iniciar Sesión
+    </button>
+
+    <button
+      *ngIf="userLoginOn"
+      (click)="cerrarSesion()"
+      class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-200 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
+    >
+      Cerrar Sesión
+    </button>
+  </div>
+</div>

@@ -1,0 +1,33 @@
+<div class="relative inline-block text-left" (clickOutside)="closeDropdown()">
+  <!-- Botón -->
+  <button
+    (click)="toggleDropdown()"
+    class="inline-flex items-center justify-center active:enabled:translate-y-px focus:outline-none focus-visible:ring-[1.8px] focus-visible:ring-offset-2 ring-offset-background transition-colors duration-200 p-1 size-10 rounded hover:text-primary focus-visible:ring-primary-lighter"
+    type="button"
+    title="Opciones"
+  >
+    <svg-icon [src]="'assets/icons/options.svg'" />
+  </button>
+
+  <!-- Menú -->
+  <div
+    *ngIf="isOpen"
+    class="z-10 bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-56 dark:bg-gray-700 dark:divide-gray-600 absolute mt-2 right-0"
+  >
+    <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
+      <li *ngFor="let item of items">
+        <button
+          (click)="item.accion()"
+          class="flex items-center w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+        >
+          <svg-icon
+            *ngIf="item.icono"
+            [src]="item.icono"
+            class="w-5 h-5 mr-2"
+          ></svg-icon>
+          <span class="truncate">{{ item.texto }}</span>
+        </button>
+      </li>
+    </ul>
+  </div>
+</div>

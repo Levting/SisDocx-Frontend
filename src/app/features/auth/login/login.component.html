@@ -1,0 +1,208 @@
+<!-- Login form -->
+<div class="my-10 space-y-6">
+  <!-- Mensaje de error global -->
+  <div
+    *ngIf="loginError"
+    class="p-4 mb-4 text-sm rounded-lg bg-red-50 text-red-600 border border-red-200"
+  >
+    <div class="flex items-center">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-5 w-5 mr-2"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+          clip-rule="evenodd"
+        />
+      </svg>
+      <span>{{ loginError }}</span>
+    </div>
+  </div>
+
+  <!-- Bienvenida -->
+  <div
+    class="mb-7 px-6 pt-3 text-center md:pt-0 lg:px-0 lg:text-start xl:mb-8 2xl:mb-10"
+  >
+    <h2
+      class="font-bold mb-5 text-[26px] leading-snug md:text-3xl md:!leading-normal lg:mb-7 lg:pe-16 lg:text-[28px] xl:text-3xl 2xl:pe-8 2xl:text-3xl"
+    >
+      Bienvenido de Nuevo!
+    </h2>
+
+    <div
+      class="font-bold mb-5 text-[26px] leading-snug md:text-3xl md:!leading-normal lg:mb-7 lg:pe-16 lg:text-[28px] xl:text-3xl 2xl:pe-8 2xl:text-2xl"
+    >
+      <!-- -->
+
+      <span class="relative inline-block"
+        >Inicia Sesión
+
+        <svg
+          viewBox="0 0 147 10"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          class="absolute -bottom-2 start-0 h-2.5 w-24 text-blue md:w-28 xl:-bottom-1.5 xl:w-36 text-blue-600"
+        >
+          <path
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+            d="M62.4325 0.957703C55.5264 1.2859 48.7014 1.68945 42.0459 2.13063C32.6242 2.75474 23.2063 3.40038 13.8451 4.42263C10.8984 4.74545 7.90595 4.94989 4.97767 5.35341C3.13948 5.60628 0.702089 5.96671 0.382211 6.04203C0.214902 6.08507 0.141911 6.1497 0.118325 6.17122C-0.0475096 6.32187 -0.0172508 6.46707 0.0763539 6.58006C0.113943 6.62848 0.208995 6.74689 0.472857 6.76303C18.1192 7.86599 36.1635 5.71388 53.8312 5.48791C84.4702 5.10053 116.038 6.63929 146.433 9.99658C146.699 10.0235 146.957 9.88894 146.994 9.68987C147.038 9.49618 146.846 9.30786 146.581 9.28096C116.134 5.91829 84.5144 4.37415 53.8165 4.76691C37.3509 4.97674 20.5603 6.86525 4.07184 6.21962C4.45068 6.16582 4.82217 6.112 5.16122 6.06357C8.0777 5.66005 11.0576 5.461 13.9925 5.13818C23.3338 4.11593 32.7326 3.4703 42.1417 2.85157C53.8165 2.07681 65.9998 1.40965 78.279 1.0976C82.6718 1.14602 87.0498 1.19446 91.4278 1.25364C100.899 1.38277 110.414 1.75939 119.863 2.26514C122.708 2.42117 125.553 2.58256 128.398 2.72245C129.341 2.77087 131.774 2.91073 132.113 2.89997C132.533 2.88921 132.614 2.63098 132.621 2.58794C132.643 2.4911 132.629 2.35658 132.422 2.2436C132.4 2.22745 132.267 2.17362 131.973 2.14134C114.792 0.236721 96.4471 -0.0806646 78.2937 0.376658C59.1453 0.177588 39.9232 0.0914646 20.8234 0C20.55 0 20.3266 0.161432 20.3244 0.360502C20.323 0.559572 20.5433 0.721008 20.8168 0.726389C34.6467 0.790952 48.5466 0.855478 62.4325 0.957703Z"
+            fill="currentColor"
+          ></path></svg
+      ></span>
+      <!-- -->
+      para continuar.
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  <div
+    class="mb-7 px-6 pt-3 text-center md:pt-0 lg:px-0 lg:text-start xl:mb-8 2xl:mb-10"
+  >
+    <form class="space-y-6" [formGroup]="loginForm">
+      <!-- Campo de Correo -->
+      <div>
+        <label
+          for="correo"
+          class="block mb-2 text-sm font-medium text-gray-900"
+        >
+          Correo
+        </label>
+        <div class="relative">
+          <input
+            type="email"
+            name="correo"
+            id="correo"
+            placeholder="levting@sisdocx.com"
+            formControlName="correo"
+            autocomplete="email"
+            required
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+            [ngClass]="{
+              'bg-red-50 border-red-500 text-red-900 placeholder-red-700 focus:ring-red-500 focus:border-red-500':
+                correo.invalid && (correo.dirty || correo.touched)
+            }"
+          />
+        </div>
+        <!-- Mensajes de error -->
+        <div
+          *ngIf="correo.invalid && (correo.dirty || correo.touched)"
+          class="mt-2 text-sm text-red-600"
+        >
+          <div *ngIf="correo.hasError('required')">El correo es requerido.</div>
+          <div *ngIf="correo.hasError('email')">Ingresa un correo válido.</div>
+          <div *ngIf="correo.hasError('serverError')">
+            El formato del correo es incorrecto o no existe.
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between">
+          <label
+            for="contrasena"
+            class="block text-sm font-medium text-gray-900"
+          >
+            Contraseña
+          </label>
+        </div>
+        <div class="relative mt-2">
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            name="contrasena"
+            id="contrasena"
+            placeholder="Ingresa tu contraseña"
+            formControlName="contrasena"
+            autocomplete="current-password"
+            required
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-10"
+            [ngClass]="{
+              'bg-red-50 border-red-500 text-red-900 placeholder-red-700 focus:ring-red-500 focus:border-red-500':
+                contrasena.invalid && (contrasena.dirty || contrasena.touched)
+            }"
+          />
+          <button
+            type="button"
+            (click)="togglePasswordVisibility()"
+            class="absolute inset-y-0 end-0 flex items-center pe-3.5"
+          >
+            <svg
+              class="w-4 h-4 text-gray-500 hover:text-gray-700"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                *ngIf="!showPassword"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+              <path
+                *ngIf="!showPassword"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+              />
+              <path
+                *ngIf="showPassword"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+              />
+            </svg>
+          </button>
+        </div>
+        <!-- Mensajes de error -->
+        <div
+          *ngIf="contrasena.invalid && (contrasena.dirty || contrasena.touched)"
+          class="mt-2 text-sm text-red-600"
+        >
+          <div *ngIf="contrasena.hasError('required')">
+            La contraseña es requerida.
+          </div>
+          <div *ngIf="contrasena.hasError('serverError')">
+            La contraseña es incorrecta o no cumple con los requisitos de
+            seguridad.
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <button
+          type="submit"
+          (click)="iniciarSesion()"
+          [disabled]="isLoading"
+          class="text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center w-full inline-flex items-center justify-center disabled:bg-indigo-400"
+        >
+          <svg
+            *ngIf="isLoading"
+            aria-hidden="true"
+            role="status"
+            class="inline w-4 h-4 me-3 text-white animate-spin"
+            viewBox="0 0 100 101"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+              fill="#E5E7EB"
+            />
+            <path
+              d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+              fill="currentColor"
+            />
+          </svg>
+          {{ isLoading ? "Iniciando Sesión..." : "Iniciar Sesión" }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

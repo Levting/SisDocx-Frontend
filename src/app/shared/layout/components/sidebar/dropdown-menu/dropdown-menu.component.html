@@ -1,0 +1,42 @@
+<div class="flex justify-center relative w-full select-none">
+  <button
+    id="dropdownDividerButton"
+    (click)="toggleDropdown.emit()"
+    class="text-white w-full bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm py-2.5 inline-flex items-center justify-center"
+    type="button"
+  >
+    <div class="flex items-center" [ngClass]="showSideBar ? 'gap-2' : 'gap-0'">
+      <svg-icon src="assets/icons/plus.svg" [svgClass]="'h-5 w-5'" />
+      <span *ngIf="showSideBar" class="text-sm font-medium">Crear Nuevo</span>
+    </div>
+  </button>
+
+  <!-- Dropdown menu -->
+  <div
+    *ngIf="dropdownOpen"
+    id="dropdownDivider"
+    class="absolute top-full mt-1 right-0 w-full z-20 bg-white divide-y divide-gray-100 rounded-lg shadow-sm  dark:bg-gray-700 dark:divide-gray-600"
+  >
+    <div class="py-2">
+      <a
+        (click)="abrirModalCrearCarpetaHandler()"
+        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white cursor-pointer"
+        >Crear Carpeta</a
+      >
+    </div>
+    <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
+      <li>
+        <a
+          class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer"
+          >Subir Carpetas</a
+        >
+      </li>
+      <li>
+        <a
+          class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer"
+          >Subir Archivos</a
+        >
+      </li>
+    </ul>
+  </div>
+</div>

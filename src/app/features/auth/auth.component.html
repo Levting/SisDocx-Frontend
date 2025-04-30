@@ -1,0 +1,36 @@
+<div class="flex h-screen w-screen select-none">
+  <!-- Logo Superior Izquierdo -->
+  <div class="absolute left-3 top-3 flex items-center">
+    <div class="mb-6 inline-flex items-center" href="/">
+      <img
+        alt="SisDocx"
+        loading="lazy"
+        width="70"
+        height="70"
+        decoding="async"
+        data-nimg="1"
+        style="color: transparent"
+        src="assets/bg/sd-bg.png"
+      />
+
+      <div class="text-[19px] leading-snug font-bold">SisDocx</div>
+    </div>
+  </div>
+
+  <!-- Sección Izquierda: Inicio Sesión -->
+  <div class="bg-background flex flex-1 flex-col items-center justify-center">
+    <div class="max-w-md overflow-y-auto px-4 sm:w-[500px]">
+      <!-- Route: Login Form -->
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+
+  <!-- Sección Derecha: Imagen -->
+  <div class="hidden h-full w-1/2 lg:flex">
+    <img
+      src="assets/bg/eeasa-bg.jpg"
+      alt="EEASA"
+      class="h-full w-full object-cover bg-orange-100"
+    />
+  </div>
+</div>

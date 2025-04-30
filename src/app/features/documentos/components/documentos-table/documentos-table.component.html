@@ -1,0 +1,123 @@
+<div class="flex flex-col h-full">
+  <div
+    class="h-12 w-full rounded-lg flex items-center justify-between transition-all duration-300 ease-in-out transform p-2"
+    [ngClass]="
+      elementosSeleccionados.length > 0
+        ? 'shadow-md border border-gray-200'
+        : ''
+    "
+  >
+    <!-- Mostrar cuando no hay elementos seleccionados -->
+    <ng-container *ngIf="elementosSeleccionados.length === 0">
+      <header>
+        <h2
+          class="font-bold text-[22px] lg:text-2xl 4xl:text-[26px] select-none"
+        >
+          Mis Archivos
+        </h2>
+      </header>
+    </ng-container>
+
+    <!-- Mostrar cuando se han seleccionado mas de un elemento -->
+    <ng-container *ngIf="elementosSeleccionados.length >= 1">
+      <div class="flex w-full justify-between select-none">
+        <div class="flex flex-row">
+          <button
+            class="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg text-center transition-colors duration-200 flex items-center"
+            (click)="papeleraSeleccionados()"
+          >
+            <svg-icon
+              src="assets/icons/trash.svg"
+              [svgClass]="'h-5 w-5 mr-1'"
+            />
+            Eliminar
+          </button>
+
+          <button
+            class="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg text-center transition-colors duration-200 flex items-center"
+            (click)="favoritoSeleccionados()"
+          >
+            <svg-icon
+              src="assets/icons/trash.svg"
+              [svgClass]="'h-5 w-5 mr-1'"
+            />
+            Favorito
+          </button>
+
+          <button
+            class="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg text-center transition-colors duration-200 flex items-center"
+            (click)="descargarSeleccionados()"
+          >
+            <svg-icon
+              src="assets/icons/trash.svg"
+              [svgClass]="'h-5 w-5 mr-1'"
+            />
+            Descargar
+          </button>
+
+          <button
+            class="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg text-center transition-colors duration-200 flex items-center"
+            (click)="moverSeleccionados()"
+          >
+            <svg-icon
+              src="assets/icons/trash.svg"
+              [svgClass]="'h-5 w-5 mr-1'"
+            />
+            Mover
+          </button>
+
+          <button
+            class="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg text-center transition-colors duration-200 flex items-center"
+            (click)="copiarSeleccionados()"
+          >
+            <svg-icon
+              src="assets/icons/trash.svg"
+              [svgClass]="'h-5 w-5 mr-1'"
+            />
+            Copiar
+          </button>
+        </div>
+
+        <div class="flex flex-row">
+          <button
+            class="text-sm p-1.5 text-gray-50 hover:text-white border border-gray-300 hover:bg-gray-50 font-medium rounded-lg text-center items-center transition-colors duration-200 flex"
+            (click)="limpiarSeleccion()"
+            aria-label="Limpiar selección"
+          >
+            <span class="text-sm font-medium text-gray-700 mr-2">
+              <i class="bi bi-x-lg mr-2"></i>
+              {{ elementosSeleccionados.length }} seleccionado(s)
+            </span>
+          </button>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+
+  <app-documentos-breadcrum
+    [ruta]="ruta"
+    (navegar)="navegarA($event)"
+    (irRaiz)="cargarContenidoRaiz()"
+  />
+
+  <div class="flex-1 mt-4 min-h-0">
+    <app-table
+      [cabeceras]="cabeceras"
+      [columnas]="columnas"
+      [elementosTabla]="elementosTabla"
+      [mostrarDropdown]="true"
+      [dropdownTemplate]="dropdownFavoritosTemplate"
+      [habilitarNavegacion]="true"
+      [isLoading]="isLoading"
+      [isError]="isError"
+      [error]="error"
+      (cambioSeleccion)="onSeleccionCambiada($event)"
+      (dobleClickElemento)="onDobleClickElemento($event)"
+    />
+  </div>
+
+  <!-- Plantilla para el dropdown -->
+  <ng-template #dropdownFavoritosTemplate let-elemento="elemento">
+    <app-documentos-dropdown />
+  </ng-template>
+</div>
