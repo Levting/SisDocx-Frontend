@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit, TemplateRef } from '@angular/core';
 import { DocumentosDropdownComponent } from '../documentos-dropdown/documentos-dropdown.component';
 import { NgClass, NgIf } from '@angular/common';
 import { SvgIconComponent } from 'angular-svg-icon';
@@ -14,6 +14,13 @@ import { CarpetaService } from '../../../../core/services/carpeta.service';
 import { CarpetaActualService } from '../../../../core/services/carpeta-actual.service';
 import { Carpeta } from '../../../../core/models/documentos/carpeta';
 import { TransformacionService } from '../../../../core/services/transformacion.service';
+import { ModalComponent } from '../../../../shared/components/modal/modal.component';
+import {
+  MoverElementoPapeleraRequest,
+  MarcarElementoFavoritoRequest,
+  RenombrarElementoRequest,
+} from '../../../../core/models/request/elemento-request';
+import { ApiError } from '../../../../core/models/errors/apiError';
 
 @Component({
   selector: 'app-documentos-table',
@@ -25,10 +32,11 @@ import { TransformacionService } from '../../../../core/services/transformacion.
     SvgIconComponent,
     TableComponent,
     DocumentosBreadcrumComponent,
+    ModalComponent,
   ],
   templateUrl: './documentos-table.component.html',
 })
-export class DocumentosTableComponent {
+export class DocumentosTableComponent implements OnInit {
   // Propiedades del componente
   public elementosTabla: ElementoTabla[] = []; // Datos de la tabla
   public elementosOriginales: Elemento[] = []; // Elementos originales
@@ -62,6 +70,10 @@ export class DocumentosTableComponent {
   public isLoading: boolean = false;
   public isError: boolean = false;
   public error: string | null = null;
+
+  // Propiedades para el modal de renombrar
+  public isOpenRenombrarModal: boolean = false;
+  public elementoARenombrar: ElementoTabla | null = null;
 
   /* Inicializador del Componente */
   ngOnInit(): void {
@@ -237,45 +249,68 @@ export class DocumentosTableComponent {
 
   /* Operaciones con Elementos */
   papeleraSeleccionados(): void {
-    this.papeleraElementosSeleccionados();
+    const requests = this.elementosSeleccionados.map((elemento) => ({
+      elementoId: elemento.columnas['elementoId'],
+      elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
+    }));
+
+    // Ejecutar todas las peticiones en paralelo
+    forkJoin(
+      requests.map((request) =>
+        this.elementoService.moverElementoPapelera(request)
+      )
+    ).subscribe({
+      next: () => {
+        this.limpiarSeleccion();
+        this.cargarContenido(this.ruta[this.ruta.length - 1]?.elementoId || 1);
+      },
+      error: (error) => {
+        this.isError = true;
+        this.error = 'No se pudieron mover los elementos a la papelera';
+        console.error('Error al mover elementos a papelera:', error);
+      },
+    });
   }
 
   favoritoSeleccionados(): void {
-    this.favoritoElementosSeleccionados();
+    const requests = this.elementosSeleccionados.map((elemento) => ({
+      elementoId: elemento.columnas['elementoId'],
+      elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
+    }));
+
+    forkJoin(
+      requests.map((request) =>
+        this.elementoService.marcarElementoFavorito(request)
+      )
+    ).subscribe({
+      next: () => {
+        this.limpiarSeleccion();
+        this.cargarContenido(this.ruta[this.ruta.length - 1]?.elementoId || 1);
+      },
+      error: (error) => {
+        this.isError = true;
+        this.error = 'No se pudieron marcar los elementos como favoritos';
+        console.error('Error al marcar favoritos:', error);
+      },
+    });
   }
 
   descargarSeleccionados(): void {
-    this.descargarElementosSeleccionados();
+    // Implementar lógica de descarga múltiple
+    console.log(
+      'Descargar elementos seleccionados:',
+      this.elementosSeleccionados
+    );
   }
 
   moverSeleccionados(): void {
-    this.moverElementosSeleccionados();
+    // TODO: Implementar lógica de mover elementos
+    console.log('Mover elementos seleccionados:', this.elementosSeleccionados);
   }
 
   copiarSeleccionados(): void {
-    this.copiarElementosSeleccionados();
-  }
-
-  // Funciones de acciones de los elementos seleccionados
-
-  papeleraElementosSeleccionados(): void {
-    console.log('Papelera:', this.elementosSeleccionados);
-  }
-
-  favoritoElementosSeleccionados(): void {
-    console.log('Favorito:', this.elementosSeleccionados);
-  }
-
-  descargarElementosSeleccionados(): void {
-    console.log('Descargar:', this.elementosSeleccionados);
-  }
-
-  moverElementosSeleccionados(): void {
-    console.log('Mover:', this.elementosSeleccionados);
-  }
-
-  copiarElementosSeleccionados(): void {
-    console.log('Copiar:', this.elementosSeleccionados);
+    // TODO: Implementar lógica de copiar elementos
+    console.log('Copiar elementos seleccionados:', this.elementosSeleccionados);
   }
 
   // Manejar el evento de ir a la raíz
@@ -296,5 +331,105 @@ export class DocumentosTableComponent {
           );
         }
       });
+  }
+
+  // Métodos para acciones individuales desde el dropdown
+  onPapeleraIndividual(elemento: ElementoTabla): void {
+    console.log('Mover a Papelera Individual:', elemento);
+
+    const request: MoverElementoPapeleraRequest = {
+      elementoId: elemento.columnas['elementoId'],
+      elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
+    };
+
+    this.elementoService.moverElementoPapelera(request).subscribe({
+      next: () => {
+        this.cargarContenido(this.ruta[this.ruta.length - 1]?.elementoId || 1);
+      },
+      error: (error: ApiError) => {
+        this.isError = true;
+        this.error = error.message;
+        console.error('Error al mover a papelera:', error);
+        console.log('Error:', error.error);
+      },
+    });
+  }
+
+  onFavoritoIndividual(elemento: ElementoTabla): void {
+    const request: MarcarElementoFavoritoRequest = {
+      elementoId: elemento.columnas['elementoId'],
+      elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
+    };
+
+    this.elementoService.marcarElementoFavorito(request).subscribe({
+      next: () => {
+        this.cargarContenido(this.ruta[this.ruta.length - 1]?.elementoId || 1);
+      },
+      error: (error) => {
+        this.isError = true;
+        this.error = 'No se pudo marcar el elemento como favorito';
+        console.error('Error al marcar favorito:', error);
+      },
+    });
+  }
+
+  onDescargarIndividual(elemento: ElementoTabla): void {
+    // Implementar lógica de descarga
+    console.log('Descargar elemento:', elemento);
+  }
+
+  onCambiarNombreIndividual(elemento: ElementoTabla): void {
+    this.elementoARenombrar = elemento;
+    this.isOpenRenombrarModal = true;
+  }
+
+  onRenombrarSubmit(nuevoNombre: string): void {
+    if (!this.elementoARenombrar) return;
+
+    const request: RenombrarElementoRequest = {
+      elementoId: this.elementoARenombrar.columnas['elementoId'],
+      elemento: this.elementoARenombrar.columnas['elemento'] as
+        | 'CARPETA'
+        | 'ARCHIVO',
+      nuevoNombre: nuevoNombre,
+    };
+
+    this.elementoService.renombrarElemento(request).subscribe({
+      next: () => {
+        this.cargarContenido(this.ruta[this.ruta.length - 1]?.elementoId || 1);
+        this.isOpenRenombrarModal = false;
+        this.elementoARenombrar = null;
+      },
+      error: (error: ApiError) => {
+        this.isError = true;
+        this.error = error.message;
+        console.error('Error al cambiar nombre:', error);
+      },
+    });
+  }
+
+  onRenombrarClose(): void {
+    this.isOpenRenombrarModal = false;
+    this.elementoARenombrar = null;
+  }
+
+  onToggleFavorito(elemento: ElementoTabla): void {
+    const request: MarcarElementoFavoritoRequest = {
+      elementoId: elemento.columnas['elementoId'],
+      elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
+    };
+
+    this.elementoService.marcarElementoFavorito(request).subscribe({
+      next: () => {
+        // Actualizar el estado del elemento en la tabla
+        elemento.columnas['estado'] =
+          elemento.columnas['estado'] === 'FAVORITO'
+            ? 'DISPONIBLE'
+            : 'FAVORITO';
+      },
+      error: (error: ApiError) => {
+        console.error('Error al cambiar estado de favorito:', error.message);
+      },
+    });
   }
 }

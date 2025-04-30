@@ -37,10 +37,10 @@
   </div>
 </nav>
 
-
 <!-- Modal para crear carpeta -->
-<app-crear-carpeta-modal
+<app-sidebar-modal-crear-carpeta
   [isOpen]="isOpenCrearCarpetaModal"
   [carpetaPadreId]="carpetaPadreIdParaCrear"
   (close)="cerrarModalDesdeDropdown()"
+  (carpetaCreada)="onCarpetaCreada($event)"
 />

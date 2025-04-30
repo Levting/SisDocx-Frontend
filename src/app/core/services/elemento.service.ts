@@ -105,8 +105,8 @@ export class ElementoService {
   }
 
   moverElemento(request: MoverElementoRequest): Observable<Elemento> {
-    const url = `${this.API_URL}/elementos/${request.elementoId}/mover`;
-    return this.http.post<Elemento>(url, request).pipe(
+    const url = `${this.API_URL}/${request.elementoId}/mover?elemento=${request.elemento}`;
+    return this.http.put<Elemento>(url, request).pipe(
       catchError((error) => {
         return throwError(
           () => new Error('No se pudo mover el elemento', error)
@@ -116,10 +116,10 @@ export class ElementoService {
   }
 
   renombrarElemento(request: RenombrarElementoRequest): Observable<Elemento> {
-    const url = `${this.API_URL}/elementos/${request.elementoId}/renombrar`;
-    return this.http.post<Elemento>(url, request).pipe(
+    const url = `${this.API_URL}/${request.elementoId}/renombrar?elemento=${request.elemento}`;
+    return this.http.put<Elemento>(url, request).pipe(
       catchError((error) => {
-        return throwError(  
+        return throwError(
           () => new Error('No se pudo renombrar el elemento', error)
         );
       })
@@ -129,8 +129,8 @@ export class ElementoService {
   moverElementoPapelera(
     request: MoverElementoPapeleraRequest
   ): Observable<Elemento> {
-    const url = `${this.API_URL}/elementos/${request.elementoId}/papelera`;
-    return this.http.post<Elemento>(url, request).pipe(
+    const url = `${this.API_URL}/${request.elementoId}/papelera?elemento=${request.elemento}`;
+    return this.http.put<Elemento>(url, request).pipe(
       catchError((error) => {
         return throwError(
           () => new Error('No se pudo mover el elemento a la papelera', error)
@@ -140,28 +140,36 @@ export class ElementoService {
   }
 
   restaurarElemento(request: RestaurarElementoRequest): Observable<Elemento> {
-    const url = `${this.API_URL}/elementos/${request.elementoId}/restaurar`;
-    return this.http.post<Elemento>(url, request).pipe(
+    const url = `${this.API_URL}/${request.elementoId}/restaurar?elemento=${request.elemento}`;
+    return this.http.put<Elemento>(url, request).pipe(
       catchError((error) => {
-        return throwError(() => new Error('No se pudo restaurar el elemento', error));
-      })  
-    );
-  }
-
-  marcarElementoFavorito(request: MarcarElementoFavoritoRequest): Observable<ElementoFavorito> {
-    const url = `${this.API_URL}/${request.elementoId}/favorito/`;
-    return this.http.post<ElementoFavorito>(url, request).pipe(
-      catchError((error) => {
-        return throwError(() => new Error('No se pudo marcar el elemento como favorito', error));
+        return throwError(
+          () => new Error('No se pudo restaurar el elemento', error)
+        );
       })
     );
   }
 
-  eliminarElemento(request: EliminarElementoRequest): Observable<Elemento> { 
-    const url = `${this.API_URL}/${request.elementoId}/eliminar`;
-    return this.http.post<Elemento>(url, request).pipe(
+  marcarElementoFavorito(
+    request: MarcarElementoFavoritoRequest
+  ): Observable<ElementoFavorito> {
+    const url = `${this.API_URL}/${request.elementoId}/favorito?elemento=${request.elemento}`;
+    return this.http.put<ElementoFavorito>(url, request).pipe(
       catchError((error) => {
-        return throwError(() => new Error('No se pudo eliminar el elemento', error));
+        return throwError(
+          () => new Error('No se pudo marcar el elemento como favorito', error)
+        );
+      })
+    );
+  }
+
+  eliminarElemento(request: EliminarElementoRequest): Observable<Elemento> {
+    const url = `${this.API_URL}/${request.elementoId}/eliminar?elemento=${request.elemento}`;
+    return this.http.put<Elemento>(url, request).pipe(
+      catchError((error) => {
+        return throwError(
+          () => new Error('No se pudo eliminar el elemento', error)
+        );
       })
     );
   }

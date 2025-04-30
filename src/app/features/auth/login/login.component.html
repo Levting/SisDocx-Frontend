@@ -76,11 +76,11 @@
             type="email"
             name="correo"
             id="correo"
-            placeholder="levting@sisdocx.com"
+            placeholder="sebas@sisdocx.com"
             formControlName="correo"
             autocomplete="email"
             required
-            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 placeholder:text-gray-400"
             [ngClass]="{
               'bg-red-50 border-red-500 text-red-900 placeholder-red-700 focus:ring-red-500 focus:border-red-500':
                 correo.invalid && (correo.dirty || correo.touched)
@@ -118,7 +118,7 @@
             formControlName="contrasena"
             autocomplete="current-password"
             required
-            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-10"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-10 placeholder:text-gray-400"
             [ngClass]="{
               'bg-red-50 border-red-500 text-red-900 placeholder-red-700 focus:ring-red-500 focus:border-red-500':
                 contrasena.invalid && (contrasena.dirty || contrasena.touched)

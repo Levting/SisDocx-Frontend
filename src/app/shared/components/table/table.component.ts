@@ -46,9 +46,21 @@ export class TableComponent {
 
   @Output() cambioSeleccion = new EventEmitter<ElementoTabla[]>();
   @Output() dobleClickElemento = new EventEmitter<ElementoTabla>();
+  @Output() toggleFavorito = new EventEmitter<ElementoTabla>();
+
+  elementosSeleccionados: ElementoTabla[] = [];
 
   estaSeleccionado(elementoTabla: ElementoTabla): boolean {
     return !!elementoTabla.seleccionado;
+  }
+
+  esFavorito(elementoTabla: ElementoTabla): boolean {
+    return elementoTabla.columnas['estado'] === 'FAVORITO';
+  }
+
+  onToggleFavorito(elementoTabla: ElementoTabla, event: Event): void {
+    event.stopPropagation();
+    this.toggleFavorito.emit(elementoTabla);
   }
 
   toggleSeleccion(elementoTabla: ElementoTabla): void {

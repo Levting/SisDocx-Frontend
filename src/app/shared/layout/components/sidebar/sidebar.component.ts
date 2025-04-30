@@ -11,7 +11,7 @@ import { SidebarFooterComponent } from './sidebar-footer/sidebar-footer.componen
 import { Carpeta } from '../../../../core/models/documentos/carpeta';
 import { Subject, takeUntil } from 'rxjs';
 import { DropdownMenuComponent } from './dropdown-menu/dropdown-menu.component';
-import { CrearCarpetaModalComponent } from '../../../components/crear-carpeta-modal/crear-carpeta-modal.component';
+import { SidebarModalCrearCarpetaComponent } from './crear-carpeta/sidebar-modal-crear-carpeta.component';
 
 /**
  * Componente que representa la barra lateral de la aplicación.
@@ -29,7 +29,7 @@ import { CrearCarpetaModalComponent } from '../../../components/crear-carpeta-mo
     SidebarNavComponent,
     SidebarFooterComponent,
     DropdownMenuComponent,
-    CrearCarpetaModalComponent,
+    SidebarModalCrearCarpetaComponent,
   ],
   templateUrl: './sidebar.component.html',
 })
@@ -39,6 +39,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   private carpetaService: CarpetaService = inject(CarpetaService);
   private carpetaActualService: CarpetaActualService =
     inject(CarpetaActualService);
+  private router: Router = inject(Router);
 
   // Definición de variables
   public dropdownOpen: boolean = false;
@@ -92,6 +93,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   cerrarModalDesdeDropdown(): void {
     this.isOpenCrearCarpetaModal = false;
+  }
+
+  onCarpetaCreada(carpeta: Carpeta): void {
+    this.cerrarModalDesdeDropdown();
   }
 
   /**
