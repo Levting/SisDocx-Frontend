@@ -17,7 +17,9 @@
       [showSideBar]="menuService.showSideBar"
       [dropdownOpen]="dropdownOpen"
       (toggleDropdown)="toggleDropdown()"
-      (abrirModalCrearCarpeta)="abrirModalDesdeDropdown($event)"
+      (abrirModalCrearCarpeta)="abrirModalCrearCarpeta($event)"
+      (abrirModalCargaArchivos)="abrirModalCargaArchivos($event)"
+      (abrirModalCargaCarpetas)="abrirModalCargaCarpetas($event)"
     />
 
     <!-- Contenido Principal (Items del sidebar) -->
@@ -37,10 +39,27 @@
   </div>
 </nav>
 
-
 <!-- Modal para crear carpeta -->
-<app-crear-carpeta-modal
+<app-sidebar-modal-crear-carpeta
   [isOpen]="isOpenCrearCarpetaModal"
-  [carpetaPadreId]="carpetaPadreIdParaCrear"
-  (close)="cerrarModalDesdeDropdown()"
+  [carpetaPadreId]="carpetaPadreId"
+  (close)="cerrarModalCrearCarpeta()"
+  (carpetaCreada)="onCarpetaCreada()"
+/>
+
+<!-- Modal para subir archivo -->
+<app-subir-archivo-modal
+  [isOpen]="isOpenSubirArchivoModal"
+  [carpetaPadreId]="carpetaPadreId"
+  (close)="cerrarModalSubirArchivo()"
+  (onArchivosSubidos)="onArchivosSubidos()"
+  (onSubidaCompletada)="onSubidaCompletada()"
+/>
+
+<!-- Modal para subir carpeta -->
+<app-subir-carpeta-modal
+  [isOpen]="isOpenSubirCarpetaModal"
+  [carpetaPadreId]="carpetaPadreId"
+  (close)="cerrarModalSubirCarpeta()"
+  (carpetasSubidas)="onCarpetasSubidas()"
 />

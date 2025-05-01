@@ -134,13 +134,14 @@
                 </div>
 
                 <!-- Icono y Nombre -->
-                <div class="flex gap-2">
+                <div class="flex gap-1">
                   <div class="w-5 mr-3">
                     <ng-container
                       *ngIf="elementoTabla.columnas['elemento'] === 'CARPETA'"
                     >
                       <svg-icon src="assets/icons/folder.svg" class="h-5 w-5" />
                     </ng-container>
+
                     <ng-container
                       *ngIf="elementoTabla.columnas['elemento'] === 'ARCHIVO'"
                     >
@@ -151,37 +152,37 @@
                       >
                         <svg-icon
                           *ngSwitchCase="'pdf'"
-                          src="assets/icons/filePDF.svg"
+                          src="assets/icons/filePdf.svg"
                           class="h-5 w-5"
                         />
                         <svg-icon
                           *ngSwitchCase="'docx'"
-                          src="assets/icons/fileDOCX.svg"
+                          src="assets/icons/fileDocx.svg"
                           class="h-5 w-5"
                         />
                         <svg-icon
                           *ngSwitchCase="'xls'"
-                          src="assets/icons/fileEXCEL.svg"
+                          src="assets/icons/fileExcel.svg"
                           class="h-5 w-5"
                         />
                         <svg-icon
                           *ngSwitchCase="'xlsx'"
-                          src="assets/icons/fileEXCEL.svg"
+                          src="assets/icons/fileExcel.svg"
                           class="h-5 w-5"
                         />
                         <svg-icon
                           *ngSwitchCase="'jpg'"
-                          src="assets/icons/fileIMAGE.svg"
+                          src="assets/icons/fileImage.svg"
                           class="h-5 w-5"
                         />
                         <svg-icon
                           *ngSwitchCase="'jpeg'"
-                          src="assets/icons/fileIMAGE.svg"
+                          src="assets/icons/fileImage.svg"
                           class="h-5 w-5"
                         />
                         <svg-icon
                           *ngSwitchCase="'png'"
-                          src="assets/icons/fileIMAGE.svg"
+                          src="assets/icons/fileImage.svg"
                           class="h-5 w-5"
                         />
                         <svg-icon
@@ -201,21 +202,68 @@
                   </div>
                 </div>
               </div>
-              <!-- Dropdown -->
-              <div
-                class="flex transition-all duration-200 relative justify-end"
-                *ngIf="mostrarDropdown"
-                [ngClass]="{
-                  'opacity-100': estaSeleccionado(elementoTabla),
-                  'opacity-0 group-hover:opacity-100':
-                    !estaSeleccionado(elementoTabla)
-                }"
-              >
-                <ng-container
-                  *ngIf="dropdownTemplate"
-                  [ngTemplateOutlet]="dropdownTemplate"
-                  [ngTemplateOutletContext]="{ elemento: elementoTabla }"
-                ></ng-container>
+
+              <!-- Botones -->
+              <div class="flex gap-1 items-center" *ngIf="dropdownTemplate">
+                <!-- Cuando un elemento esta marcado como favorito, mostrar el botón con el icono de estrella seleccionado -->
+                <ng-container *ngIf="esFavorito(elementoTabla)" >
+                  <button
+                    class="items-center justify-center active:enabled:translate-y-px"
+                    type="button"
+                    title="Favorite"
+                    (click)="onToggleFavorito(elementoTabla, $event)"
+                  >
+                    <svg-icon
+                      [src]="
+                        esFavorito(elementoTabla)
+                          ? 'assets/icons/starSelected.svg'
+                          : 'assets/icons/star.svg'
+                      "
+                      [ngClass]="{
+                        'text-yellow-400': esFavorito(elementoTabla),
+                        'text-gray-400': !esFavorito(elementoTabla)
+                      }"
+                    ></svg-icon>
+                  </button>
+                </ng-container>
+
+                <!-- Dropdown -->
+                <div
+                  class="flex items-center justify-center gap-1"
+                  [ngClass]="{
+                    'opacity-100': estaSeleccionado(elementoTabla),
+                    'opacity-0 group-hover:opacity-100':
+                      !estaSeleccionado(elementoTabla)
+                  }"
+                >
+                  <!-- Cuando un elemento no esta marcado como favorito, mostrar el botón con el icono de estrella no seleccionado -->
+                  <ng-container *ngIf="!esFavorito(elementoTabla)" >
+                    <button
+                      class="items-center justify-center active:enabled:translate-y-px"
+                      type="button"
+                      title="Favorite"
+                      (click)="onToggleFavorito(elementoTabla, $event)"
+                    >
+                      <svg-icon
+                        [src]="
+                          esFavorito(elementoTabla)
+                            ? 'assets/icons/starSelected.svg'
+                            : 'assets/icons/star.svg'
+                        "
+                        [ngClass]="{
+                          'text-yellow-400': esFavorito(elementoTabla),
+                          'text-gray-400': !esFavorito(elementoTabla)
+                        }"
+                      ></svg-icon>
+                    </button>
+                  </ng-container>
+
+                  <ng-container
+                    *ngIf="dropdownTemplate"
+                    [ngTemplateOutlet]="dropdownTemplate"
+                    [ngTemplateOutletContext]="{ elemento: elementoTabla }"
+                  />
+                </div>
               </div>
             </div>
           </td>

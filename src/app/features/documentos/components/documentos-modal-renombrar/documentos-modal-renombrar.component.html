@@ -1,0 +1,22 @@
+<app-modal
+  [isOpen]="isOpen"
+  [title]="'Renombrar Documento'"
+  [placeholder]="'Ingrese el nuevo nombre'"
+  [buttonText]="isLoading ? 'Renombrando...' : 'Renombrar'"
+  [maxLength]="100"
+  [minLength]="1"
+  [pattern]="'^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\\s-]+$'"
+  [errorMessage]="errorMessage || 'El nombre no es válido'"
+  (close)="onClose()"
+  (submit)="onConfirm($event)"
+/>
+
+<!-- Información del documento actual -->
+@if (elemento) {
+<div class="mt-4 rounded-md bg-gray-50 p-4">
+  <p class="text-sm text-gray-700">
+    Elemento actual:
+    <span class="font-semibold">{{ elemento.nombre }}</span>
+  </p>
+</div>
+}

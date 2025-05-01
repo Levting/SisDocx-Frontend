@@ -1,4 +1,4 @@
 export interface SubirArchivoRequest {
-  carpetaId: number;
+  carpetaPadreId: number;
   archivo: File;
 }

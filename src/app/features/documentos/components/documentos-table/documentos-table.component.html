@@ -37,10 +37,7 @@
             class="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg text-center transition-colors duration-200 flex items-center"
             (click)="favoritoSeleccionados()"
           >
-            <svg-icon
-              src="assets/icons/trash.svg"
-              [svgClass]="'h-5 w-5 mr-1'"
-            />
+            <svg-icon src="assets/icons/star.svg" [svgClass]="'h-5 w-5 mr-1'" />
             Favorito
           </button>
 
@@ -113,11 +110,34 @@
       [error]="error"
       (cambioSeleccion)="onSeleccionCambiada($event)"
       (dobleClickElemento)="onDobleClickElemento($event)"
+      (toggleFavorito)="onToggleFavorito($event)"
     />
   </div>
 
+  <!-- Modal para renombrar elemento -->
+  <app-modal
+    [isOpen]="isOpenRenombrarModal"
+    [title]="'Renombrar ' + (elementoARenombrar?.columnas?.['elemento'] === 'CARPETA' ? 'Carpeta' : 'Archivo')"
+    [placeholder]="'Ingrese el nuevo nombre'"
+    [buttonText]="'Renombrar'"
+    [initialValue]="elementoARenombrar?.columnas?.['nombre'] || ''"
+    [maxLength]="50"
+    [minLength]="1"
+    [pattern]="'^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\\s-]+$'"
+    [errorMessage]="
+      'El nombre solo puede contener letras, números, espacios y guiones'
+    "
+    (close)="onRenombrarClose()"
+    (submit)="onRenombrarSubmit($event)"
+  />
+
   <!-- Plantilla para el dropdown -->
   <ng-template #dropdownFavoritosTemplate let-elemento="elemento">
-    <app-documentos-dropdown />
+    <app-documentos-dropdown
+      [elemento]="elemento"
+      (onPapelera)="onPapeleraIndividual($event)"
+      (onDescargar)="onDescargarIndividual($event)"
+      (onCambiarNombre)="onCambiarNombreIndividual($event)"
+    />
   </ng-template>
 </div>
