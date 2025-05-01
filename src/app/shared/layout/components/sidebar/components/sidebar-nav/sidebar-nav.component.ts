@@ -8,8 +8,8 @@ import {
 } from '@angular/core';
 import { NgClass, NgFor, NgIf, NgTemplateOutlet } from '@angular/common';
 import { AngularSvgIconModule } from 'angular-svg-icon';
-import { Carpeta } from '../../../../../core/models/documentos/carpeta';
-import { MenuService } from '../../../../../core/services/menu.service';
+import { Carpeta } from '../../../../../../core/models/documentos/carpeta';
+import { MenuService } from '../../../../../../core/services/menu.service';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({

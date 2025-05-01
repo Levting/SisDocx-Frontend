@@ -16,6 +16,7 @@ import { MoverElementoPapeleraRequest } from '../models/documentos/moverElemento
 import { RestaurarElementoRequest } from '../models/documentos/restaurarElementoRequest';
 import { MarcarElementoFavoritoRequest } from '../models/documentos/marcarElementoFavorito';
 import { EliminarElementoRequest } from '../models/documentos/eliminarElementoRequest';
+import { ApiError } from '../models/errors/apiError';
 
 /**
  * Servicio para gestionar las operaciones relacionadas con los elementos (carpetas y archivos).
@@ -92,14 +93,14 @@ export class ElementoService {
     const url = `${this.API_URL}/archivos/subir`;
 
     const formData = new FormData();
-    formData.append('carpetaId', request.carpetaId.toString());
+    formData.append('carpetaPadreId', request.carpetaPadreId.toString());
     formData.append('archivo', request.archivo);
 
     return this.http.post<Archivo>(url, formData).pipe(
-      catchError((error) => {
-        return throwError(
-          () => new Error('No se pudo subir el archivo', error)
-        );
+      catchError((error: ApiError) => {
+        console.error('Error al subir archivo:', error.error);
+        console.error('Error al subir archivo:', error.message);
+        return throwError(() => new Error('No se pudo subir el archivo'));
       })
     );
   }
@@ -131,9 +132,11 @@ export class ElementoService {
   ): Observable<Elemento> {
     const url = `${this.API_URL}/${request.elementoId}/papelera?elemento=${request.elemento}`;
     return this.http.put<Elemento>(url, request).pipe(
-      catchError((error) => {
+      catchError((error: ApiError) => {
+        console.error('Error:', error.error);
+        console.error('Error al mover elemento a papelera:', error.message);
         return throwError(
-          () => new Error('No se pudo mover el elemento a la papelera', error)
+          () => new Error('No se pudo mover el elemento a la papelera')
         );
       })
     );

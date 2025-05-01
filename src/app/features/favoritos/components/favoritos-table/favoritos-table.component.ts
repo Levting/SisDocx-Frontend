@@ -23,8 +23,8 @@ import { ElementoTabla } from '../../../../core/models/table/elementoTabla';
 export class FavoritosTableComponent {
   public elementosTabla: ElementoTabla[] = [];
   public elementosOriginales: ElementoFavorito[] = [];
-  public cabeceras: string[] = ['Nombre', 'Tipo', 'Fecha de favorito'];
-  public columnas: string[] = ['nombre', 'elemento', 'fechaFavorito'];
+  public cabeceras: string[] = ['Nombre', 'Fecha de favorito', 'Tipo'];
+  public columnas: string[] = ['nombre', 'fechaFavorito', 'elemento',];
 
   // Inyección de servicios
   private elementoService: ElementoService = inject(ElementoService);

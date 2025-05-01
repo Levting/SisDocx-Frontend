@@ -37,22 +37,26 @@ import { ApiError } from '../../../../core/models/errors/apiError';
   templateUrl: './documentos-table.component.html',
 })
 export class DocumentosTableComponent implements OnInit {
-  // Propiedades del componente
-  public elementosTabla: ElementoTabla[] = []; // Datos de la tabla
-  public elementosOriginales: Elemento[] = []; // Elementos originales
+  public elementosTabla: ElementoTabla[] = [];
+  public elementosOriginales: Elemento[] = [];
   public cabeceras: string[] = [
     'Nombre',
-    'Creado por',
-    'Creado el',
-    'Ubicación',
+    'Modificado por',
+    'Modificado el',
+    'Tamaño',
+    'Actividad',
   ];
-  public columnas: string[] = ['nombre', 'creadoPor', 'creadoEl', 'ruta'];
+  public columnas: string[] = [
+    'nombre',
+    'creadoPor',
+    'creadoEl',
+    'cantidadElementos',
+    'estado',
+  ];
 
   // Inyección de servicios
   private elementoService: ElementoService = inject(ElementoService);
   private carpetaService: CarpetaService = inject(CarpetaService);
-  private usuarioService: UserService = inject(UserService);
-  private fechaUtils: FechaUtilsService = inject(FechaUtilsService);
   private carpetaActualService: CarpetaActualService =
     inject(CarpetaActualService);
   private transformacionService: TransformacionService = inject(
@@ -201,63 +205,28 @@ export class DocumentosTableComponent implements OnInit {
     }
   }
 
-  private transformarElementoEnTablaElemento(
-    elementos: Elemento[]
-  ): Observable<ElementoTabla[]> {
-    const observables = elementos.map((elemento) => {
-      const obsCreadoPor = this.usuarioService
-        .obtenerUsuarioId(elemento.creadoPor)
-        .pipe(
-          map((u) => `${u.nombre} ${u.apellido}`),
-          catchError(() => of('Desconocido'))
-        );
-
-      const obsRuta = this.construirRutaDesdeIds(elemento.ruta.map(Number));
-
-      return forkJoin([obsCreadoPor, obsRuta]).pipe(
-        map(([creadoPor, ruta]) => ({
-          columnas: {
-            elementoId: elemento.elementoId,
-            elemento: elemento.elemento,
-            nombre: elemento.nombre,
-            carpetaPadreId: elemento.carpetaPadreId,
-            creadoPor,
-            creadoEl: this.fechaUtils.formatear(elemento.creadoEl),
-            estado: elemento.estado,
-            ruta,
-          },
-          seleccionado: false,
-        }))
-      );
-    });
-
-    return forkJoin(observables);
-  }
-
-  private construirRutaDesdeIds(ids: number[]) {
-    if (!ids || ids.length === 0) return of('Ubicación desconocida');
-
-    const observables = ids.map((id) =>
-      this.elementoService.obtenerDetallesElemento(id, 'CARPETA').pipe(
-        map((carpeta) => carpeta?.nombre || 'Desconocido'),
-        catchError(() => of('Desconocido'))
-      )
-    );
-
-    return forkJoin(observables).pipe(map((nombres) => nombres.join(' / ')));
-  }
-
   /* Operaciones con Elementos */
   papeleraSeleccionados(): void {
-    const requests = this.elementosSeleccionados.map((elemento) => ({
+    console.log('Mover a papelera:', this.elementosSeleccionados);
+    const request = this.elementosSeleccionados.map((elemento) => ({
       elementoId: elemento.columnas['elementoId'],
       elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
     }));
 
+    console.log('Request:', request);
+
     // Ejecutar todas las peticiones en paralelo
     forkJoin(
-      requests.map((request) =>
-        this.elementoService.moverElementoPapelera(request)
+      request.map((request) =>
+        this.elementoService.moverElementoPapelera(request).pipe(
+          catchError((error) => {
+            console.error(
+              `Error al mover elemento ${request.elementoId} a papelera:`,
+              error
+            );
+            return of(null);
+          })
+        )
       )
     ).subscribe({
       next: () => {

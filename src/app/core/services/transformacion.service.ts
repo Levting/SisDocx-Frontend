@@ -5,7 +5,7 @@ import { ElementoFavorito } from '../models/documentos/elementoFavoritoReponse';
 import { ElementoPapelera } from '../models/documentos/elementoPapeleraResponse';
 import { UserService } from './user.service';
 import { FechaUtilsService } from '../utils/fecha-utils.service';
-import { Observable, forkJoin, map } from 'rxjs';
+import { Observable, forkJoin, map, of } from 'rxjs';
 import { Archivo } from '../models/documentos/archivo';
 import { Carpeta } from '../models/documentos/carpeta';
 
@@ -94,16 +94,25 @@ export class TransformacionService {
   transformarPapeleraATabla(
     elemento: ElementoPapelera
   ): Observable<ElementoTabla> {
+    // Crear observables para los datos que pueden ser nulos
+    const obsEliminadoPor = elemento.eliminadoPor
+      ? this.userService.obtenerUsuarioId(elemento.eliminadoPor)
+      : of({ nombre: 'Desconocido', apellido: '' });
+
+    const obsCreadoPor = this.userService.obtenerUsuarioId(elemento.creadoPor);
+
     return forkJoin({
-      eliminadoPor: this.userService.obtenerUsuarioId(elemento.eliminadoPor),
-      creadoPor: this.userService.obtenerUsuarioId(elemento.creadoPor),
+      eliminadoPor: obsEliminadoPor,
+      creadoPor: obsCreadoPor,
     }).pipe(
       map(({ eliminadoPor, creadoPor }) => ({
         columnas: {
           elementoId: elemento.elementoId,
           elemento: elemento.elemento,
           nombre: elemento.nombre,
-          fechaPapelera: this.fechaUtils.formatear(elemento.fechaPapelera),
+          fechaPapelera: elemento.fechaPapelera
+            ? this.fechaUtils.formatear(elemento.fechaPapelera)
+            : 'No disponible',
           eliminadoPor: `${eliminadoPor.nombre} ${eliminadoPor.apellido}`,
           creadoPor: `${creadoPor.nombre} ${creadoPor.apellido}`,
           ...(elemento.elemento === 'CARPETA'

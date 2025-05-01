@@ -17,15 +17,16 @@ export class Menu {
           route: '/documentos',
         },
         {
-          icon: 'assets/icons/trash.svg',
-          label: 'Papelera',
-          route: '/papelera',
-        },
-        {
           icon: 'assets/icons/star.svg',
           label: 'Favoritos',
           route: '/favoritos',
         },
+        {
+          icon: 'assets/icons/trash.svg',
+          label: 'Papelera',
+          route: '/papelera',
+        },
+
         {
           icon: 'assets/icons/settings.svg',
           label: 'Ajustes',

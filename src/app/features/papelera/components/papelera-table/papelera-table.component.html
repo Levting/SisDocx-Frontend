@@ -12,7 +12,7 @@
     <ng-container *ngIf="elementosSeleccionados.length === 0">
       <button
         class="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg text-center transition-colors duration-200 flex items-center"
-        (click)="restaurarSeleccionados()"
+        (click)="vaciarPapelera()"
       >
         <svg-icon src="assets/icons/trash.svg" [svgClass]="'h-5 w-5 mr-1'" />
         Vaciar Papelera

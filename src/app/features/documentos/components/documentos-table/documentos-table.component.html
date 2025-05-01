@@ -37,10 +37,7 @@
             class="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg text-center transition-colors duration-200 flex items-center"
             (click)="favoritoSeleccionados()"
           >
-            <svg-icon
-              src="assets/icons/trash.svg"
-              [svgClass]="'h-5 w-5 mr-1'"
-            />
+            <svg-icon src="assets/icons/star.svg" [svgClass]="'h-5 w-5 mr-1'" />
             Favorito
           </button>
 
@@ -139,7 +136,6 @@
     <app-documentos-dropdown
       [elemento]="elemento"
       (onPapelera)="onPapeleraIndividual($event)"
-      (onFavorito)="onFavoritoIndividual($event)"
       (onDescargar)="onDescargarIndividual($event)"
       (onCambiarNombre)="onCambiarNombreIndividual($event)"
     />

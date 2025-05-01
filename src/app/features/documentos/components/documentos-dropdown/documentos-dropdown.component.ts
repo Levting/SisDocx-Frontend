@@ -11,7 +11,6 @@ import { ElementoTabla } from '../../../../core/models/table/elementoTabla';
 export class DocumentosDropdownComponent {
   @Input() elemento!: ElementoTabla;
   @Output() onPapelera = new EventEmitter<ElementoTabla>();
-  @Output() onFavorito = new EventEmitter<ElementoTabla>();
   @Output() onDescargar = new EventEmitter<ElementoTabla>();
   @Output() onCambiarNombre = new EventEmitter<ElementoTabla>();
 
@@ -20,11 +19,6 @@ export class DocumentosDropdownComponent {
       texto: 'Mover a Papelera',
       icono: 'assets/icons/trash.svg',
       accion: () => this.onPapelera.emit(this.elemento),
-    },
-    {
-      texto: 'Favorito',
-      icono: 'assets/icons/trash.svg',
-      accion: () => this.onFavorito.emit(this.elemento),
     },
     {
       texto: 'Descargar',
