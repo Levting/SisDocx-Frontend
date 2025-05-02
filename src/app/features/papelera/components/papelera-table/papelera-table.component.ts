@@ -43,13 +43,13 @@ export class PapeleraTableComponent implements OnInit, OnDestroy {
   private transformacionService: TransformacionService = inject(
     TransformacionService
   );
+  private confirmModalService: ConfirmModalService =
+    inject(ConfirmModalService);
 
   public elementosSeleccionados: ElementoTabla[] = []; // Elementos seleccionados
   public isLoading: boolean = false; // Indicador de carga
   public isError: boolean = false;
   public error: string | null = null;
-
-  constructor(private confirmModalService: ConfirmModalService) {}
 
   ngOnInit(): void {
     this.cargarPapelera();
