@@ -47,7 +47,7 @@ export class CarpetaActualService {
   }
 
   /**
-   * Reinicia la carpeta actual a null
+   * Reinicia la carpeta actual a null (raíz)
    * Útil cuando se navega fuera de la vista de documentos
    */
   reiniciarCarpetaActual(): void {

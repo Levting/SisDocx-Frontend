@@ -6,29 +6,32 @@ import {
   OnInit,
   inject,
   OnDestroy,
+  HostListener,
+  ElementRef,
+  ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { finalize } from 'rxjs/operators';
-import { ApiError } from '../../../../core/models/errors/apiError';
-import { ModalComponent } from '../../../../shared/components/modal/modal.component';
-import { Elemento } from '../../../../core/models/documentos/elemento';
+import { ElementoTabla } from '../../../../core/models/table/elementoTabla';
 import { ElementoService } from '../../../../core/services/elemento.service';
+import { ApiError } from '../../../../core/models/errors/apiError';
 import { RenombrarElementoRequest } from '../../../../core/models/documentos/renombrarElementoRequiest';
 
 @Component({
   selector: 'app-documentos-modal-renombrar',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './documentos-modal-renombrar.component.html',
 })
 export class DocumentosModalRenombrarComponent implements OnInit, OnDestroy {
   @Input() isOpen: boolean = false;
-  @Input() elemento: Elemento | null = null;
+  @Input() elemento!: ElementoTabla;
+  @Input() isFile: boolean = false;
 
   @Output() close = new EventEmitter<void>();
-  @Output() elementoRenombrado = new EventEmitter<Elemento>();
+  @Output() elementoRenombrado = new EventEmitter<ElementoTabla>();
 
   public nuevoNombre: string = '';
   public isLoading: boolean = false;
@@ -40,9 +43,16 @@ export class DocumentosModalRenombrarComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private elementoService = inject(ElementoService);
 
+  @ViewChild('modalContent') modalContent!: ElementRef;
+
   ngOnInit(): void {
     if (this.elemento) {
-      this.nuevoNombre = this.elemento.nombre;
+      this.nuevoNombre = this.isFile
+        ? this.elemento.columnas['nombre'].substring(
+            0,
+            this.elemento.columnas['nombre'].lastIndexOf('.')
+          )
+        : this.elemento.columnas['nombre'];
     }
   }
 
@@ -59,7 +69,7 @@ export class DocumentosModalRenombrarComponent implements OnInit, OnDestroy {
   private resetState(): void {
     this.errorMessage = null;
     this.isLoading = false;
-    this.nuevoNombre = this.elemento?.nombre || '';
+    this.nuevoNombre = '';
   }
 
   private validarNombre(nombre: string): string | null {
@@ -85,10 +95,8 @@ export class DocumentosModalRenombrarComponent implements OnInit, OnDestroy {
     return null;
   }
 
-  onConfirm(nombre: string): void {
-    if (!this.elemento) return;
-
-    const errorValidacion = this.validarNombre(nombre);
+  onSubmit(): void {
+    const errorValidacion = this.validarNombre(this.nuevoNombre);
     if (errorValidacion) {
       this.errorMessage = errorValidacion;
       return;
@@ -97,10 +105,17 @@ export class DocumentosModalRenombrarComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.errorMessage = null;
 
+    const nombreCompleto = this.isFile
+      ? this.nuevoNombre +
+        this.elemento.columnas['nombre'].substring(
+          this.elemento.columnas['nombre'].lastIndexOf('.')
+        )
+      : this.nuevoNombre;
+
     const request: RenombrarElementoRequest = {
-      elementoId: this.elemento.elementoId,
-      elemento: this.elemento.elemento as 'CARPETA' | 'ARCHIVO',
-      nuevoNombre: nombre,
+      elementoId: this.elemento.columnas['elementoId'],
+      elemento: this.elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
+      nuevoNombre: nombreCompleto,
     };
 
     this.elementoService
@@ -112,7 +127,7 @@ export class DocumentosModalRenombrarComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$)
       )
       .subscribe({
-        next: (elementoActualizado: Elemento) => {
+        next: (elementoActualizado: any) => {
           this.elementoRenombrado.emit(elementoActualizado);
           this.onClose();
         },
@@ -131,5 +146,49 @@ export class DocumentosModalRenombrarComponent implements OnInit, OnDestroy {
       return 'No tienes permisos para renombrar este elemento';
     }
     return 'Ocurrió un error al renombrar el elemento. Por favor, inténtelo de nuevo.';
+  }
+
+  @HostListener('click', ['$event'])
+  onModalClick(event: MouseEvent): void {
+    event.stopPropagation();
+    event.preventDefault();
+  }
+
+  @HostListener('dblclick', ['$event'])
+  onModalDoubleClick(event: MouseEvent): void {
+    event.stopPropagation();
+    event.preventDefault();
+  }
+
+  @HostListener('document:keydown.escape', ['$event'])
+  onKeydownHandler(event: KeyboardEvent): void {
+    if (this.isOpen) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.onClose();
+    }
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.isOpen) return;
+
+    const modal = document.getElementById('renombrar-modal');
+    if (modal && !modal.contains(event.target as Node)) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.onClose();
+    }
+  }
+
+  @HostListener('document:dblclick', ['$event'])
+  onDocumentDoubleClick(event: MouseEvent): void {
+    if (!this.isOpen) return;
+
+    const modal = document.getElementById('renombrar-modal');
+    if (modal && !modal.contains(event.target as Node)) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
   }
 }

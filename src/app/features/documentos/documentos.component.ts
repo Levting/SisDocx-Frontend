@@ -8,4 +8,26 @@ import { ConfirmModalComponent } from '../../shared/components/confirm-modal/con
   imports: [DocumentosTableComponent, ConfirmModalComponent],
   templateUrl: './documentos.component.html',
 })
-export class DocumentosComponent {}
+export class DocumentosComponent {
+  public isSubirArchivoModalOpen: boolean = false;
+  public isSubirCarpetaModalOpen: boolean = false;
+  public carpetaPadreId: number = 0;
+
+  openSubirArchivoModal(carpetaPadreId: number): void {
+    this.carpetaPadreId = carpetaPadreId;
+    this.isSubirArchivoModalOpen = true;
+  }
+
+  openSubirCarpetaModal(carpetaPadreId: number): void {
+    this.carpetaPadreId = carpetaPadreId;
+    this.isSubirCarpetaModalOpen = true;
+  }
+
+  onArchivosSubidos(): void {
+    this.isSubirArchivoModalOpen = false;
+  }
+
+  onCarpetasSubidas(): void {
+    this.isSubirCarpetaModalOpen = false;
+  }
+}

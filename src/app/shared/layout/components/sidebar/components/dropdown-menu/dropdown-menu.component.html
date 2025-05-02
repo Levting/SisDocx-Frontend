@@ -22,8 +22,8 @@
         class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white cursor-pointer"
         (click)="abrirModalCrearCarpetaHandler()"
       >
-        <svg-icon src="assets/icons/trash.svg" />
-        <div class="text-sm font-medium">Crear Carpeta</div>
+        <svg-icon src="assets/icons/plus.svg" class="w-5 h-5"></svg-icon>
+        <div class="text-sm font-medium">Crear carpeta</div>
       </div>
     </div>
     <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
@@ -32,8 +32,8 @@
           class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white cursor-pointer"
           (click)="abrirModalCargaArchivosHandler()"
         >
-          <svg-icon src="assets/icons/trash.svg" />
-          <div class="text-sm font-medium">Carga de Archivos</div>
+          <svg-icon src="assets/icons/upload.svg" class="w-5 h-5"></svg-icon>
+          <div class="text-sm font-medium">Subir archivos</div>
         </div>
       </li>
 
@@ -42,8 +42,11 @@
           class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white cursor-pointer"
           (click)="abrirModalCargaCarpetasHandler()"
         >
-          <svg-icon src="assets/icons/trash.svg" />
-          <div class="text-sm font-medium">Carga de Carpetas</div>
+          <svg-icon
+            src="assets/icons/upload.svg"
+            class="w-5 h-5"
+          ></svg-icon>
+          <div class="text-sm font-medium">Subir carpetas</div>
         </div>
       </li>
     </ul>

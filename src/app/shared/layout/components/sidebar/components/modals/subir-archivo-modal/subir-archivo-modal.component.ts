@@ -8,12 +8,12 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ElementoService } from '../../../../../../core/services/elemento.service';
-import { CarpetaActualService } from '../../../../../../core/services/carpeta-actual.service';
+import { ElementoService } from '../../../../../../../core/services/elemento.service';
+import { CarpetaActualService } from '../../../../../../../core/services/carpeta-actual.service';
 import { finalize, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
-import { Carpeta } from '../../../../../../core/models/documentos/carpeta';
-import { SubirArchivoRequest } from '../../../../../../core/models/documentos/subirArchivoRequest';
+import { Carpeta } from '../../../../../../../core/models/documentos/carpeta';
+import { SubirArchivoRequest } from '../../../../../../../core/models/documentos/subirArchivoRequest';
 
 @Component({
   selector: 'app-subir-archivo-modal',

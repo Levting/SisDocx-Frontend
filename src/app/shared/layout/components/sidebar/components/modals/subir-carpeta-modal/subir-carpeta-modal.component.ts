@@ -1,8 +1,8 @@
 import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ElementoService } from '../../../../../../core/services/elemento.service';
-import { Carpeta } from '../../../../../../core/models/documentos/carpeta';
-import { SubirCarpetaRequest } from '../../../../../../core/models/documentos/subirCarpetaRequest';
+import { ElementoService } from '../../../../../../../core/services/elemento.service';
+import { Carpeta } from '../../../../../../../core/models/documentos/carpeta';
+import { SubirCarpetaRequest } from '../../../../../../../core/models/documentos/subirCarpetaRequest';
 
 @Component({
   selector: 'app-subir-carpeta-modal',

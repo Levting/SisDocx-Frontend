@@ -1,22 +1,74 @@
-<app-modal
-  [isOpen]="isOpen"
-  [title]="'Renombrar Documento'"
-  [placeholder]="'Ingrese el nuevo nombre'"
-  [buttonText]="isLoading ? 'Renombrando...' : 'Renombrar'"
-  [maxLength]="100"
-  [minLength]="1"
-  [pattern]="'^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\\s-]+$'"
-  [errorMessage]="errorMessage || 'El nombre no es válido'"
-  (close)="onClose()"
-  (submit)="onConfirm($event)"
-/>
+<!-- Modal de renombrar -->
+<div
+  *ngIf="isOpen"
+  id="renombrar-modal"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 cursor-default"
+  (click)="onModalClick($event)"
+  (dblclick)="onModalClick($event)"
+>
+  <div
+    class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md cursor-default"
+    (click)="$event.stopPropagation()"
+    (dblclick)="$event.stopPropagation()"
+  >
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-semibold">
+        Renombrar {{ isFile ? "archivo" : "carpeta" }}
+      </h2>
+      <button
+        (click)="onClose()"
+        class="text-gray-500 hover:text-gray-700 cursor-pointer"
+      >
+        <svg
+          class="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+    </div>
 
-<!-- Información del documento actual -->
-@if (elemento) {
-<div class="mt-4 rounded-md bg-gray-50 p-4">
-  <p class="text-sm text-gray-700">
-    Elemento actual:
-    <span class="font-semibold">{{ elemento.nombre }}</span>
-  </p>
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        Nuevo nombre
+      </label>
+      <input
+        type="text"
+        [(ngModel)]="nuevoNombre"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-text"
+        [disabled]="isLoading"
+        (keydown.enter)="onSubmit()"
+        (keydown.escape)="onClose()"
+      />
+    </div>
+
+    <div *ngIf="errorMessage" class="mb-4 text-red-500 text-sm">
+      {{ errorMessage }}
+    </div>
+
+    <div class="flex justify-end space-x-3">
+      <button
+        (click)="onClose()"
+        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 cursor-pointer"
+        [disabled]="isLoading"
+      >
+        Cancelar
+      </button>
+      <button
+        (click)="onSubmit()"
+        class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer"
+        [disabled]="isLoading"
+      >
+        <span *ngIf="!isLoading">Renombrar</span>
+        <span *ngIf="isLoading">Procesando...</span>
+      </button>
+    </div>
+  </div>
 </div>
-}

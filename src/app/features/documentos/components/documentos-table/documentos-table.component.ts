@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, TemplateRef } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { DocumentosDropdownComponent } from '../documentos-dropdown/documentos-dropdown.component';
 import { NgClass, NgIf } from '@angular/common';
 import { SvgIconComponent } from 'angular-svg-icon';
@@ -8,17 +8,16 @@ import { TableComponent } from '../../../../shared/components/table/table.compon
 import { ElementoTabla } from '../../../../core/models/table/elementoTabla';
 import { DocumentosBreadcrumComponent } from '../documentos-breadcrum/documentos-breadcrum.component';
 import { catchError, forkJoin, of } from 'rxjs';
-import { CarpetaActualService } from '../../../../core/services/carpeta-actual.service';
-import { Carpeta } from '../../../../core/models/documentos/carpeta';
-import { TransformacionService } from '../../../../core/services/transformacion.service';
-import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import {
-  MoverElementoPapeleraRequest,
   MarcarElementoFavoritoRequest,
   RenombrarElementoRequest,
 } from '../../../../core/models/request/elemento-request';
 import { ApiError } from '../../../../core/models/errors/apiError';
 import { ConfirmModalService } from '../../../../shared/services/confirm-modal.service';
+import { DocumentosModalRenombrarComponent } from '../documentos-modal-renombrar/documentos-modal-renombrar.component';
+import { Carpeta } from '../../../../core/models/documentos/carpeta';
+import { TransformacionService } from '../../../../core/services/transformacion.service';
+import { CarpetaActualService } from '../../../../core/services/carpeta-actual.service';
 
 @Component({
   selector: 'app-documentos-table',
@@ -30,7 +29,7 @@ import { ConfirmModalService } from '../../../../shared/services/confirm-modal.s
     SvgIconComponent,
     TableComponent,
     DocumentosBreadcrumComponent,
-    ModalComponent,
+    DocumentosModalRenombrarComponent,
   ],
   templateUrl: './documentos-table.component.html',
 })
@@ -213,17 +212,24 @@ export class DocumentosTableComponent implements OnInit {
     // Limpiar selección al navegar usando el breadcrumb
     this.limpiarSeleccion();
 
-    // Cargar contenido de esa carpeta
-    this.cargarContenido(carpeta.elementoId, carpeta.nombre);
-
-    // Actualizar la carpeta actual en el servicio
+    // Obtener los detalles completos de la carpeta
     this.elementoService
-      .obtenerDetallesElemento(carpeta.elementoId, carpeta.elemento)
-      .subscribe((elemento) => {
-        if (elemento) {
-          const carpeta = elemento as Carpeta;
-          this.carpetaActualService.actualizarCarpetaActual(carpeta);
-        }
+      .obtenerDetallesElemento(carpeta.elementoId, 'CARPETA')
+      .subscribe({
+        next: (carpetaDetalles) => {
+          // Actualizar la carpeta actual con los detalles completos
+          this.carpetaActualService.actualizarCarpetaActual(
+            carpetaDetalles as Carpeta
+          );
+
+          // Cargar contenido de esa carpeta
+          this.cargarContenido(carpeta.elementoId, carpeta.nombre);
+        },
+        error: (error) => {
+          console.error('Error al obtener detalles de la carpeta:', error);
+          this.isError = true;
+          this.error = 'No se pudo cargar la carpeta';
+        },
       });
   }
 
@@ -234,19 +240,31 @@ export class DocumentosTableComponent implements OnInit {
       // Limpiar selección al cambiar de carpeta
       this.limpiarSeleccion();
 
-      this.cargarContenido(
-        elemento.columnas['elementoId'],
-        elemento.columnas['nombre']
-      );
+      // Obtener los detalles completos de la carpeta
+      this.elementoService
+        .obtenerDetallesElemento(elemento.columnas['elementoId'], 'CARPETA')
+        .subscribe({
+          next: (carpetaDetalles) => {
+            // Actualizar la carpeta actual con los detalles completos
+            this.carpetaActualService.actualizarCarpetaActual(
+              carpetaDetalles as Carpeta
+            );
 
-      // Actualizar la carpeta actual en el servicio
-      this.carpetaActualService.actualizarCarpetaActual(
-        elemento.columnas as Carpeta
-      );
+            // Cargar el contenido de la carpeta
+            this.cargarContenido(
+              elemento.columnas['elementoId'],
+              elemento.columnas['nombre']
+            );
+          },
+          error: (error) => {
+            console.error('Error al obtener detalles de la carpeta:', error);
+            this.isError = true;
+            this.error = 'No se pudo cargar la carpeta';
+          },
+        });
     } else {
       // Aquí se manejaría la previsualización del archivo
       console.log('Previsualizar archivo:', elemento);
-      // Aquí podrías disparar un modal, abrir un visor, etc.
     }
   }
 
@@ -415,26 +433,16 @@ export class DocumentosTableComponent implements OnInit {
   }
 
   onCambiarNombreIndividual(elemento: ElementoTabla): void {
-    this.elementoARenombrar = elemento;
-    this.isOpenRenombrarModal = true;
-  }
-
-  onRenombrarSubmit(nuevoNombre: string): void {
-    if (!this.elementoARenombrar) return;
-
+    const isFile = elemento.columnas['elemento'] === 'ARCHIVO';
     const request: RenombrarElementoRequest = {
-      elementoId: this.elementoARenombrar.columnas['elementoId'],
-      elemento: this.elementoARenombrar.columnas['elemento'] as
-        | 'CARPETA'
-        | 'ARCHIVO',
-      nuevoNombre: nuevoNombre,
+      elementoId: elemento.columnas['elementoId'],
+      elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
+      nuevoNombre: isFile ? 'Archivo' : 'Carpeta',
     };
 
     this.elementoService.renombrarElemento(request).subscribe({
       next: () => {
         this.cargarContenido(this.ruta[this.ruta.length - 1]?.elementoId || 1);
-        this.isOpenRenombrarModal = false;
-        this.elementoARenombrar = null;
       },
       error: (error: ApiError) => {
         this.isError = true;
@@ -467,5 +475,16 @@ export class DocumentosTableComponent implements OnInit {
         console.error('Error al cambiar estado de favorito:', error.message);
       },
     });
+  }
+
+  onElementoRenombrado(elemento: ElementoTabla): void {
+    // Obtener la carpeta actual
+    const carpetaActual = this.carpetaActualService.obtenerCarpetaActual();
+    if (carpetaActual) {
+      // Notificar al servicio para recargar el contenido
+      this.carpetaActualService.notificarRecargarContenido(
+        carpetaActual.elementoId
+      );
+    }
   }
 }

@@ -9,23 +9,21 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { finalize } from 'rxjs/operators';
-import { Carpeta } from '../../../../../../core/models/documentos/carpeta';
-import { CarpetaActualService } from '../../../../../../core/services/carpeta-actual.service';
-import { ApiError } from '../../../../../../core/models/errors/apiError';
-import { ElementoService } from '../../../../../../core/services/elemento.service';
-import { CrearCarpetaRequest } from '../../../../../../core/models/documentos/crearCarpetaRequest';
-import { ModalComponent } from '../../../../../components/modal/modal.component';
+import { Carpeta } from '../../../../../../../core/models/documentos/carpeta';
+import { CarpetaActualService } from '../../../../../../../core/services/carpeta-actual.service';
+import { ApiError } from '../../../../../../../core/models/errors/apiError';
+import { ElementoService } from '../../../../../../../core/services/elemento.service';
+import { CrearCarpetaRequest } from '../../../../../../../core/models/documentos/crearCarpetaRequest';
 
 @Component({
-  selector: 'app-sidebar-modal-crear-carpeta',
+  selector: 'app-crear-carpeta-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalComponent],
-  templateUrl: './sidebar-modal-crear-carpeta.component.html',
+  imports: [CommonModule, FormsModule],
+  templateUrl: './crear-carpeta-modal.component.html',
 })
-export class SidebarModalCrearCarpetaComponent implements OnInit, OnDestroy {
+export class CrearCarpetaModalComponent implements OnInit, OnDestroy {
   @Input() isOpen: boolean = false;
   @Input() carpetaPadreId: number = 0;
 
@@ -34,7 +32,6 @@ export class SidebarModalCrearCarpetaComponent implements OnInit, OnDestroy {
 
   public carpetaActual: Carpeta | null = null;
   public nombreCarpeta: string = '';
-
   public isLoading: boolean = false;
   public errorMessage: string | null = null;
 
@@ -97,8 +94,8 @@ export class SidebarModalCrearCarpetaComponent implements OnInit, OnDestroy {
     return null;
   }
 
-  onConfirm(nombre: string): void {
-    const errorValidacion = this.validarNombreCarpeta(nombre);
+  onSubmit(): void {
+    const errorValidacion = this.validarNombreCarpeta(this.nombreCarpeta);
     if (errorValidacion) {
       this.errorMessage = errorValidacion;
       return;
@@ -113,7 +110,7 @@ export class SidebarModalCrearCarpetaComponent implements OnInit, OnDestroy {
         : this.carpetaActualService.obtenerCarpetaActual()?.elementoId || 1;
 
     const crearCarpetaRequest: CrearCarpetaRequest = {
-      nombre: nombre,
+      nombre: this.nombreCarpeta,
       carpetaPadreId: carpetaPadreId,
     };
 

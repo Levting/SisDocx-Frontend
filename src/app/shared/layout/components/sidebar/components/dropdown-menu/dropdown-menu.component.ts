@@ -35,9 +35,12 @@ export class DropdownMenuComponent implements OnInit, OnDestroy {
   /** Evento que se emite cuando se alterna el estado del dropdown */
   @Output() toggleDropdown = new EventEmitter<void>();
 
-  @Output() abrirModalCrearCarpeta: EventEmitter<number> = new EventEmitter<number>();
-  @Output() abrirModalCargaArchivos: EventEmitter<number> = new EventEmitter<number>();
-  @Output() abrirModalCargaCarpetas: EventEmitter<number> = new EventEmitter<number>();
+  @Output() abrirModalCrearCarpeta: EventEmitter<number> =
+    new EventEmitter<number>();
+  @Output() abrirModalCargaArchivos: EventEmitter<number> =
+    new EventEmitter<number>();
+  @Output() abrirModalCargaCarpetas: EventEmitter<number> =
+    new EventEmitter<number>();
 
   /** Estado del modal de creación de carpeta */
   public isModalCrearCarpetaOpen: boolean = false;
@@ -104,42 +107,24 @@ export class DropdownMenuComponent implements OnInit, OnDestroy {
    * Si estamos en la página de inicio, establece la carpeta raíz antes de abrir el modal.
    */
   abrirModalCrearCarpetaHandler(): void {
-    // Si no estamos en la página de documentos, crear siempre en la raíz (ID 1)
-    if (!this.enPaginaDocumentos) {
-      console.log('📁 Crear carpeta en la raíz (no estamos en documentos)');
-      this.abrirModalCrearCarpeta.emit(1);
-    } else {
-      const carpetaActual = this.carpetaActualService.obtenerCarpetaActual();
-      const carpetaPadreId = carpetaActual?.elementoId || 1; // Si no hay carpeta actual, usar la raíz
-      console.log('📁 Crear carpeta en carpeta padre con ID:', carpetaPadreId);
-      this.abrirModalCrearCarpeta.emit(carpetaPadreId);
-    }
-
-    this.toggleDropdown.emit(); // 🔽 Cerramos el menú
+    const carpetaActual = this.carpetaActualService.obtenerCarpetaActual();
+    const carpetaPadreId = carpetaActual ? carpetaActual.elementoId : 1;
+    this.abrirModalCrearCarpeta.emit(carpetaPadreId);
+    this.toggleDropdown.emit();
   }
 
   abrirModalCargaArchivosHandler(): void {
-    if (!this.enPaginaDocumentos) {
-      console.log('📁 Cargar archivos en la raíz (no estamos en documentos)');
-      this.abrirModalCargaArchivos.emit(1);
-    } else {
-      const carpetaActual = this.carpetaActualService.obtenerCarpetaActual();
-      const carpetaPadreId = carpetaActual?.elementoId || 1;
-      console.log('📁 Cargar archivos en carpeta padre con ID:', carpetaPadreId);
-      this.abrirModalCargaArchivos.emit(carpetaPadreId);
-    }
+    const carpetaActual = this.carpetaActualService.obtenerCarpetaActual();
+    const carpetaPadreId = carpetaActual ? carpetaActual.elementoId : 1;
+    this.abrirModalCargaArchivos.emit(carpetaPadreId);
+    this.toggleDropdown.emit();
   }
 
   abrirModalCargaCarpetasHandler(): void {
-    if (!this.enPaginaDocumentos) {
-      console.log('📁 Cargar carpetas en la raíz (no estamos en documentos)');
-      this.abrirModalCargaCarpetas.emit(1);
-    } else {
-      const carpetaActual = this.carpetaActualService.obtenerCarpetaActual();
-      const carpetaPadreId = carpetaActual?.elementoId || 1;
-      console.log('📁 Cargar carpetas en carpeta padre con ID:', carpetaPadreId);
-      this.abrirModalCargaCarpetas.emit(carpetaPadreId);
-    }
+    const carpetaActual = this.carpetaActualService.obtenerCarpetaActual();
+    const carpetaPadreId = carpetaActual ? carpetaActual.elementoId : 1;
+    this.abrirModalCargaCarpetas.emit(carpetaPadreId);
+    this.toggleDropdown.emit();
   }
 
   /**
@@ -162,7 +147,7 @@ export class DropdownMenuComponent implements OnInit, OnDestroy {
   public onClickOutside(targetElement: HTMLElement): void {
     const clickedInside = this.elementRef.nativeElement.contains(targetElement);
     if (!clickedInside && this.dropdownOpen) {
-      this.toggleDropdown.emit(); // cerrar desde el padre
+      this.toggleDropdown.emit();
     }
   }
 }

@@ -115,29 +115,15 @@
   </div>
 
   <!-- Modal para renombrar elemento -->
-  <app-modal
-    [isOpen]="isOpenRenombrarModal"
-    [title]="'Renombrar ' + (elementoARenombrar?.columnas?.['elemento'] === 'CARPETA' ? 'Carpeta' : 'Archivo')"
-    [placeholder]="'Ingrese el nuevo nombre'"
-    [buttonText]="'Renombrar'"
-    [initialValue]="elementoARenombrar?.columnas?.['nombre'] || ''"
-    [maxLength]="50"
-    [minLength]="1"
-    [pattern]="'^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\\s-]+$'"
-    [errorMessage]="
-      'El nombre solo puede contener letras, números, espacios y guiones'
-    "
-    (close)="onRenombrarClose()"
-    (submit)="onRenombrarSubmit($event)"
-  />
+  <app-documentos-modal-renombrar />
 
   <!-- Plantilla para el dropdown -->
   <ng-template #dropdownFavoritosTemplate let-elemento="elemento">
     <app-documentos-dropdown
       [elemento]="elemento"
-      (onPapelera)="onPapeleraIndividual($event)"
-      (onDescargar)="onDescargarIndividual($event)"
-      (onCambiarNombre)="onCambiarNombreIndividual($event)"
+      (onPapelera)="onPapeleraIndividual(elemento)"
+      (onDescargar)="onDescargarIndividual(elemento)"
+      (onRenombrar)="onElementoRenombrado($event)"
     />
   </ng-template>
 </div>

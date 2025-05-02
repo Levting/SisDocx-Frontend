@@ -1,18 +1,21 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { DropdownComponent } from '../../../../shared/components/dropdown/dropdown.component';
 import { ElementoTabla } from '../../../../core/models/table/elementoTabla';
+import { DocumentosModalRenombrarComponent } from '../documentos-modal-renombrar/documentos-modal-renombrar.component';
 
 @Component({
   selector: 'app-documentos-dropdown',
   standalone: true,
-  imports: [DropdownComponent],
+  imports: [DropdownComponent, DocumentosModalRenombrarComponent],
   templateUrl: './documentos-dropdown.component.html',
 })
 export class DocumentosDropdownComponent {
   @Input() elemento!: ElementoTabla;
   @Output() onPapelera = new EventEmitter<ElementoTabla>();
   @Output() onDescargar = new EventEmitter<ElementoTabla>();
-  @Output() onCambiarNombre = new EventEmitter<ElementoTabla>();
+  @Output() onRenombrar = new EventEmitter<ElementoTabla>();
+
+  public isModalRenombrarOpen: boolean = false;
 
   public items = [
     {
@@ -22,17 +25,26 @@ export class DocumentosDropdownComponent {
     },
     {
       texto: 'Descargar',
-      icono: 'assets/icons/trash.svg',
+      icono: 'assets/icons/download.svg',
       accion: () => this.onDescargar.emit(this.elemento),
     },
     {
       texto: 'Cambiar Nombre',
-      icono: 'assets/icons/trash.svg',
-      accion: () => this.onCambiarNombre.emit(this.elemento),
+      icono: 'assets/icons/rename.svg',
+      accion: () => this.abrirModalRenombrar(),
     },
   ];
 
-  ngOnInit(): void {
-    /* console.log('Items del dropdown:', this.items); */
+  abrirModalRenombrar(): void {
+    this.isModalRenombrarOpen = true;
+  }
+
+  onModalRenombrarClose(): void {
+    this.isModalRenombrarOpen = false;
+  }
+
+  onElementoRenombrado(elemento: ElementoTabla): void {
+    this.isModalRenombrarOpen = false;
+    this.onRenombrar.emit(elemento);
   }
 }

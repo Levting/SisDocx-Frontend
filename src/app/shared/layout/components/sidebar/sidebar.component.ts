@@ -10,10 +10,9 @@ import { SidebarFooterComponent } from './components/sidebar-footer/sidebar-foot
 import { Carpeta } from '../../../../core/models/documentos/carpeta';
 import { Subject, takeUntil } from 'rxjs';
 import { DropdownMenuComponent } from './components/dropdown-menu/dropdown-menu.component';
-import { SidebarModalCrearCarpetaComponent } from './components/crear-carpeta/sidebar-modal-crear-carpeta.component';
-import { SubirArchivoModalComponent } from './components/subir-archivo-modal/subir-archivo-modal.component';
-import { SubirCarpetaModalComponent } from './components/subir-carpeta-modal/subir-carpeta-modal.component';
-
+import { CrearCarpetaModalComponent } from './components/modals/crear-carpeta-modal/crear-carpeta-modal.component';
+import { SubirArchivoModalComponent } from './components/modals/subir-archivo-modal/subir-archivo-modal.component';
+import { SubirCarpetaModalComponent } from './components/modals/subir-carpeta-modal/subir-carpeta-modal.component';
 /**
  * Componente que representa la barra lateral de la aplicación.
  * Gestiona la visualización de la navegación y el estado del sidebar.
@@ -30,7 +29,7 @@ import { SubirCarpetaModalComponent } from './components/subir-carpeta-modal/sub
     SidebarNavComponent,
     SidebarFooterComponent,
     DropdownMenuComponent,
-    SidebarModalCrearCarpetaComponent,
+    CrearCarpetaModalComponent,
     SubirArchivoModalComponent,
     SubirCarpetaModalComponent,
   ],
@@ -92,7 +91,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   abrirModalCrearCarpeta(carpetaPadreId: number): void {
     this.carpetaPadreId = carpetaPadreId; // Asignar el ID de la carpeta padre
     console.log('Crear carpeta en carpeta padre con ID:', carpetaPadreId);
-    this.isOpenCrearCarpetaModal = true; // Abrir el modal
+    this.isOpenCrearCarpetaModal = true;
   }
 
   // Modal de subida de archivo
