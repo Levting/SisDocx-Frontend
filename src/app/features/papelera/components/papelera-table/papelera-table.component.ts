@@ -1,7 +1,6 @@
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { NgClass, NgIf } from '@angular/common';
 import { SvgIconComponent } from 'angular-svg-icon';
-import { CarpetaService } from '../../../../core/services/carpeta.service';
 import { TableComponent } from '../../../../shared/components/table/table.component';
 import { ElementoPapelera } from '../../../../core/models/documentos/elementoPapeleraResponse';
 import { ElementoTabla } from '../../../../core/models/table/elementoTabla';
@@ -38,7 +37,6 @@ export class PapeleraTableComponent implements OnInit, OnDestroy {
 
   // Inyección de servicios
   public elementoService: ElementoService = inject(ElementoService); // Servicio de elemento
-  public carpetaService: CarpetaService = inject(CarpetaService); // Servicio de carpeta
   public usuarioService: UserService = inject(UserService); // Servicio de usuario
   public fechaUtils: FechaUtilsService = inject(FechaUtilsService);
   private transformacionService: TransformacionService = inject(

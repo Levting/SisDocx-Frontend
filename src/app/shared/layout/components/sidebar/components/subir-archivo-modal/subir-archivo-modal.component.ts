@@ -173,7 +173,7 @@ export class SubirArchivoModalComponent implements OnInit, OnDestroy {
         this.isLoading = false;
         this.onArchivosSubidos.emit();
         this.onSubidaCompletada.emit();
-        this.carpetaActualService.recargarContenidoActual();
+        this.carpetaActualService.notificarRecargarContenido();
         this.onClose();
         return;
       }

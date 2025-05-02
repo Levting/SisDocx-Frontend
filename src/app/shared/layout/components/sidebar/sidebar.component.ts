@@ -1,4 +1,3 @@
-import { CarpetaService } from './../../../../core/services/carpeta.service';
 import { CarpetaActualService } from './../../../../core/services/carpeta-actual.service';
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { NgClass, NgIf } from '@angular/common';
@@ -42,8 +41,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
   protected menuService: MenuService = inject(MenuService);
   private carpetaActualService: CarpetaActualService =
     inject(CarpetaActualService);
-  private carpetaService: CarpetaService = inject(CarpetaService);
-
   // Definición de variables
   public dropdownOpen: boolean = false;
   public carpetaPadreId: number = 0;
@@ -148,7 +145,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     // Recargar el contenido de la carpeta actual
     const carpetaActual = this.carpetaActualService.obtenerCarpetaActual();
     if (carpetaActual) {
-      this.carpetaService.notificarRecargarContenido(carpetaActual.elementoId);
+      this.carpetaActualService.notificarRecargarContenido();
     }
   }
 

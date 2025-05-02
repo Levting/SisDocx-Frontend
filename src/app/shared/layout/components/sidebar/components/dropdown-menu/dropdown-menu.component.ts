@@ -94,7 +94,7 @@ export class DropdownMenuComponent implements OnInit, OnDestroy {
   }
 
   onCarpetaCreada(): void {
-    this.carpetaActualService.recargarContenidoActual(); // Emitir evento para recargar contenido
+    this.carpetaActualService.notificarRecargarContenido(); // Emitir evento para recargar contenido
     this.isModalCrearCarpetaOpen = false;
     this.toggleDropdown.emit();
   }

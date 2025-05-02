@@ -13,7 +13,6 @@ import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { Carpeta } from '../../../../../../core/models/documentos/carpeta';
-import { CarpetaService } from '../../../../../../core/services/carpeta.service';
 import { CarpetaActualService } from '../../../../../../core/services/carpeta-actual.service';
 import { ApiError } from '../../../../../../core/models/errors/apiError';
 import { ElementoService } from '../../../../../../core/services/elemento.service';
@@ -45,9 +44,7 @@ export class SidebarModalCrearCarpetaComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   private elementoService = inject(ElementoService);
-  private carpetaService = inject(CarpetaService);
   private carpetaActualService = inject(CarpetaActualService);
-  private router = inject(Router);
 
   ngOnInit(): void {
     this.setupSubscriptions();
@@ -131,8 +128,7 @@ export class SidebarModalCrearCarpetaComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (carpetaCreada: Carpeta) => {
           this.carpetaCreada.emit(carpetaCreada);
-          this.carpetaActualService.recargarContenidoActual();
-          this.carpetaService.notificarRecargarContenido(carpetaPadreId);
+          this.carpetaActualService.notificarRecargarContenido(carpetaPadreId);
           this.onClose();
         },
         error: (error: ApiError) => {

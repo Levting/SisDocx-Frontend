@@ -7,10 +7,7 @@ import { Elemento } from '../../../../core/models/documentos/elemento';
 import { TableComponent } from '../../../../shared/components/table/table.component';
 import { ElementoTabla } from '../../../../core/models/table/elementoTabla';
 import { DocumentosBreadcrumComponent } from '../documentos-breadcrum/documentos-breadcrum.component';
-import { catchError, forkJoin, map, Observable, of } from 'rxjs';
-import { UserService } from '../../../../core/services/user.service';
-import { FechaUtilsService } from '../../../../core/utils/fecha-utils.service';
-import { CarpetaService } from '../../../../core/services/carpeta.service';
+import { catchError, forkJoin, of } from 'rxjs';
 import { CarpetaActualService } from '../../../../core/services/carpeta-actual.service';
 import { Carpeta } from '../../../../core/models/documentos/carpeta';
 import { TransformacionService } from '../../../../core/services/transformacion.service';
@@ -56,7 +53,6 @@ export class DocumentosTableComponent implements OnInit {
 
   // Inyección de servicios
   private elementoService: ElementoService = inject(ElementoService);
-  private carpetaService: CarpetaService = inject(CarpetaService);
   private carpetaActualService: CarpetaActualService =
     inject(CarpetaActualService);
   private transformacionService: TransformacionService = inject(
@@ -86,25 +82,42 @@ export class DocumentosTableComponent implements OnInit {
     }
 
     // Suscribirse a eventos de recarga de contenido
-    this.carpetaActualService.recargarContenido$.pipe().subscribe(() => {
-      const carpetaActual = this.carpetaActualService.obtenerCarpetaActual();
-      if (carpetaActual) {
-        this.cargarContenido(carpetaActual.elementoId);
-      }
-    });
-
-    // Suscribirse a eventos de recarga de contenido de una carpeta específica
-    this.carpetaService.recargarContenido$
+    this.carpetaActualService.recargarContenido$
       .pipe()
-      .subscribe((carpetaId: number) => {
-        // Si estamos viendo la carpeta que debemos recargar
-        if (
-          this.ruta.length > 0 &&
-          this.ruta[this.ruta.length - 1].elementoId === carpetaId
-        ) {
-          this.cargarContenido(carpetaId);
+      .subscribe((carpetaId) => {
+        // Si se especifica una carpeta específica y estamos en ella, recargar
+        if (carpetaId !== null) {
+          const carpetaActual =
+            this.carpetaActualService.obtenerCarpetaActual();
+          // Si estamos en la raíz (ruta vacía) y se recarga la raíz (ID 1)
+          if (this.ruta.length === 0 && carpetaId === 1) {
+            this.cargarContenido(1);
+          }
+          // Si estamos en una carpeta específica y coincide con la carpeta a recargar
+          else if (carpetaActual && carpetaActual.elementoId === carpetaId) {
+            this.cargarContenido(carpetaId);
+          }
+        } else {
+          // Si no se especifica carpeta, recargar la carpeta actual
+          const carpetaActual =
+            this.carpetaActualService.obtenerCarpetaActual();
+          if (carpetaActual) {
+            this.cargarContenido(carpetaActual.elementoId);
+          } else if (this.ruta.length === 0) {
+            // Si estamos en la raíz y no hay carpeta actual
+            this.cargarContenido(1);
+          }
         }
       });
+
+    this.carpetaActualService.carpetaActual$.pipe().subscribe((carpeta) => {
+      if (carpeta) {
+        this.cargarContenido(carpeta.elementoId);
+      } else if (this.ruta.length === 0) {
+        // Si estamos en la raíz y no hay carpeta actual
+        this.cargarContenido(1);
+      }
+    });
   }
 
   // Método para manejar el evento de selección de elementos
@@ -122,11 +135,17 @@ export class DocumentosTableComponent implements OnInit {
   cargarContenido(carpetaId: number, nombre?: string): void {
     this.isLoading = true;
     this.isError = false;
-    this.elementosTabla = []; // <<-- Limpia la tabla al entrar
+    this.error = null;
+    this.elementosTabla = []; // Limpia la tabla al entrar
 
     this.elementoService.obtenerContenidoCarpeta(carpetaId).subscribe({
       next: (elementos: Elemento[]) => {
-        if (nombre) {
+        // Solo actualizar la ruta si estamos navegando a una nueva carpeta
+        if (
+          nombre &&
+          (this.ruta.length === 0 ||
+            this.ruta[this.ruta.length - 1].elementoId !== carpetaId)
+        ) {
           this.ruta.push({
             nombre,
             elementoId: carpetaId,
@@ -146,9 +165,17 @@ export class DocumentosTableComponent implements OnInit {
 
         this.transformacionService
           .transformarDocumentosATabla(elementos)
-          .subscribe((filas) => {
-            this.elementosTabla = filas;
-            this.isLoading = false;
+          .subscribe({
+            next: (filas) => {
+              this.elementosTabla = filas;
+              this.isLoading = false;
+            },
+            error: (err) => {
+              this.isLoading = false;
+              this.isError = true;
+              this.error = 'Error al transformar los elementos para la tabla';
+              console.error('Error al transformar elementos:', err);
+            },
           });
       },
       error: (err) => {
@@ -156,13 +183,27 @@ export class DocumentosTableComponent implements OnInit {
         this.isError = true;
         this.error =
           'Ocurrió un problema al cargar los archivos. Intenta de nuevo más tarde.';
+        console.error('Error al cargar contenido:', err);
       },
     });
   }
 
   navegarA(index: number): void {
+    // Si el índice es mayor o igual que la longitud de la ruta, no hacer nada
+    if (index >= this.ruta.length) {
+      return;
+    }
+
+    // Obtener la carpeta a la que navegaremos
     const carpeta = this.ruta[index];
-    this.ruta = this.ruta.slice(0, index + 1); // Truncar ruta
+
+    // Si estamos intentando navegar a la carpeta actual, no hacer nada
+    if (index === this.ruta.length - 1) {
+      return;
+    }
+
+    // Truncar la ruta hasta el índice seleccionado
+    this.ruta = this.ruta.slice(0, index + 1);
 
     // Limpiar selección al navegar usando el breadcrumb
     this.limpiarSeleccion();
@@ -170,12 +211,11 @@ export class DocumentosTableComponent implements OnInit {
     // Cargar contenido de esa carpeta
     this.cargarContenido(carpeta.elementoId, carpeta.nombre);
 
-    // Actualizar la carpeta actual en el servicio cuando se navega por el breadcrumb
+    // Actualizar la carpeta actual en el servicio
     this.elementoService
       .obtenerDetallesElemento(carpeta.elementoId, carpeta.elemento)
       .subscribe((elemento) => {
         if (elemento) {
-          // Cast elemento to Carpeta since we know it's a folder in this context
           const carpeta = elemento as Carpeta;
           this.carpetaActualService.actualizarCarpetaActual(carpeta);
         }
@@ -313,13 +353,19 @@ export class DocumentosTableComponent implements OnInit {
 
     this.elementoService.moverElementoPapelera(request).subscribe({
       next: () => {
-        this.cargarContenido(this.ruta[this.ruta.length - 1]?.elementoId || 1);
+        // Notificar recarga específica de la carpeta actual
+        const carpetaActual = this.carpetaActualService.obtenerCarpetaActual();
+        if (carpetaActual) {
+          this.carpetaActualService.notificarRecargarContenido(
+            carpetaActual.elementoId
+          );
+        }
       },
       error: (error: ApiError) => {
         this.isError = true;
-        this.error = error.message;
+        this.error =
+          error.message || 'No se pudo mover el elemento a la papelera';
         console.error('Error al mover a papelera:', error);
-        console.log('Error:', error.error);
       },
     });
   }

@@ -11,6 +11,7 @@
       <a
         class="text-sm text-gray-700 hover:text-blue-600 font-medium cursor-pointer"
         (click)="navegarA(i)"
+        [class.font-bold]="i === ruta.length - 1"
       >
         {{ carpeta.nombre }}
       </a>
