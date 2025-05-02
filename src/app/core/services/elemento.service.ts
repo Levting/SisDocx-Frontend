@@ -105,6 +105,15 @@ export class ElementoService {
     );
   }
 
+  subirCarpetas(request: SubirCarpetaRequest): Observable<Elemento> {
+    const url = `${this.API_URL}/carpetas/subir`;
+    return this.http.post<Elemento>(url, request).pipe(
+      catchError((error) => {
+        return throwError(() => new Error('No se pudo subir la carpeta'));
+      })
+    );
+  }
+
   moverElemento(request: MoverElementoRequest): Observable<Elemento> {
     const url = `${this.API_URL}/${request.elementoId}/mover?elemento=${request.elemento}`;
     return this.http.put<Elemento>(url, request).pipe(
@@ -167,12 +176,12 @@ export class ElementoService {
   }
 
   eliminarElemento(request: EliminarElementoRequest): Observable<Elemento> {
-    const url = `${this.API_URL}/${request.elementoId}/eliminar?elemento=${request.elemento}`;
-    return this.http.put<Elemento>(url, request).pipe(
-      catchError((error) => {
-        return throwError(
-          () => new Error('No se pudo eliminar el elemento', error)
-        );
+    const url = `${this.API_URL}/${request.elementoId}?elemento=${request.elemento}`;
+    return this.http.delete<Elemento>(url).pipe(
+      catchError((error: ApiError) => {
+        console.error('Error:', error.error);
+        console.error('Error al eliminar elemento:', error.message);
+        return throwError(() => new Error('No se pudo eliminar el elemento'));
       })
     );
   }

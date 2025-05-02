@@ -8,7 +8,7 @@ import { UserService } from '../../../../core/services/user.service';
 import { FechaUtilsService } from '../../../../core/utils/fecha-utils.service';
 import { ElementoService } from '../../../../core/services/elemento.service';
 import { TransformacionService } from '../../../../core/services/transformacion.service';
-import { forkJoin } from 'rxjs';
+import { catchError, forkJoin, of } from 'rxjs';
 import { ApiError } from '../../../../core/models/errors/apiError';
 
 @Component({
@@ -125,17 +125,11 @@ export class PapeleraTableComponent implements OnInit, OnDestroy {
 
   vaciarElementosPapelera(): void {
     console.log('Vaciar:', this.elementosTablaPapelera);
-  }
-
-  eliminarElementosSeleccionados(): void {
-    /* if (this.elementosSeleccionados.length === 0) return;
 
     this.isLoading = true;
 
-    const eliminaciones = this.elementosSeleccionados.map((elementoPapelera) =>
-      this.carpetaService.eliminarCarpetaId(
-        elementoPapelera.columnas['elementoId']
-      )
+    const eliminaciones = this.elementosTablaPapelera.map((elementoPapelera) =>
+      this.elementoService.eliminarElemento(elementoPapelera.columnas['elementoId'])
     );
 
     forkJoin(eliminaciones).subscribe({
@@ -144,15 +138,46 @@ export class PapeleraTableComponent implements OnInit, OnDestroy {
         this.limpiarSeleccion(); // 🧼 Limpiar selección
         this.cargarPapelera(); // 🔄 Recargar lista
       },
+    });
+  }
+
+  eliminarElementosSeleccionados(): void {
+    if (this.elementosSeleccionados.length === 0) return;
+
+    console.log('Eliminar:', this.elementosSeleccionados);
+
+    this.isLoading = true;
+
+    const request = this.elementosSeleccionados.map((elementoPapelera) => ({
+      elementoId: elementoPapelera.columnas['elementoId'],
+      elemento: elementoPapelera.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
+    }));
+
+    console.log('Request:', request);
+
+    forkJoin(
+      request.map((request) =>
+        this.elementoService.eliminarElemento(request).pipe(
+          catchError((error) => {
+            console.error('Error al eliminar elemento:', error);
+            return of(null);
+          })
+        )
+      )
+    ).subscribe({
+      next: () => {
+        this.limpiarSeleccion(); // 🧼 Limpiar selección
+        this.cargarPapelera(); // 🔄 Recargar lista
+      },
       error: (error) => {
+        this.isError = true;
+        this.error = 'No se pudieron eliminar los elementos';
         console.error('Error al eliminar elementos:', error);
       },
       complete: () => {
         this.isLoading = false;
       },
-    }); */
-
-    console.log('Eliminar:', this.elementosSeleccionados);
+    });
   }
 
   restaurarElementosSeleccionados() {

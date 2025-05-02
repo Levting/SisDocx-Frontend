@@ -1,4 +1,4 @@
 export interface SubirCarpetaRequest {
-  carpetaId: number;
+  carpetaPadreId: number;
 }
 
