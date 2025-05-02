@@ -10,6 +10,7 @@ import { ElementoService } from '../../../../core/services/elemento.service';
 import { TransformacionService } from '../../../../core/services/transformacion.service';
 import { catchError, forkJoin, of } from 'rxjs';
 import { ApiError } from '../../../../core/models/errors/apiError';
+import { ConfirmModalService } from '../../../../shared/services/confirm-modal.service';
 
 @Component({
   selector: 'app-papelera-table',
@@ -47,6 +48,8 @@ export class PapeleraTableComponent implements OnInit, OnDestroy {
   public isLoading: boolean = false; // Indicador de carga
   public isError: boolean = false;
   public error: string | null = null;
+
+  constructor(private confirmModalService: ConfirmModalService) {}
 
   ngOnInit(): void {
     this.cargarPapelera();
@@ -108,7 +111,44 @@ export class PapeleraTableComponent implements OnInit, OnDestroy {
 
   // Vaciar papelera
   vaciarPapelera(): void {
-    this.vaciarElementosPapelera();
+    const config = {
+      title: 'Vaciar papelera',
+      message:
+        '¿Estás seguro de que deseas vaciar la papelera? Esta acción eliminará permanentemente todos los elementos y no se puede deshacer.',
+      confirmText: 'Vaciar papelera',
+      cancelText: 'Cancelar',
+    };
+
+    this.confirmModalService.open(config, () => {
+      const requests = this.elementosTablaPapelera.map((elemento) => ({
+        elementoId: elemento.columnas['elementoId'],
+        elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
+      }));
+
+      forkJoin(
+        requests.map((request) =>
+          this.elementoService.eliminarElemento(request).pipe(
+            catchError((error) => {
+              console.error(
+                `Error al eliminar elemento ${request.elementoId}:`,
+                error
+              );
+              return of(null);
+            })
+          )
+        )
+      ).subscribe({
+        next: () => {
+          this.limpiarSeleccion();
+          this.cargarPapelera();
+        },
+        error: (error) => {
+          this.isError = true;
+          this.error = 'No se pudo vaciar la papelera';
+          console.error('Error al vaciar papelera:', error);
+        },
+      });
+    });
   }
 
   // Restaurar elementos seleccionados
@@ -118,67 +158,48 @@ export class PapeleraTableComponent implements OnInit, OnDestroy {
 
   // Eliminar elementos seleccionados
   eliminarSeleccionados(): void {
-    this.eliminarElementosSeleccionados();
+    if (this.elementosSeleccionados.length === 0) return;
+
+    const config = {
+      title: 'Eliminar permanentemente',
+      message: `¿Estás seguro de que deseas eliminar permanentemente ${this.elementosSeleccionados.length} elemento(s)? Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar',
+    };
+
+    this.confirmModalService.open(config, () => {
+      const requests = this.elementosSeleccionados.map((elemento) => ({
+        elementoId: elemento.columnas['elementoId'],
+        elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
+      }));
+
+      forkJoin(
+        requests.map((request) =>
+          this.elementoService.eliminarElemento(request).pipe(
+            catchError((error) => {
+              console.error(
+                `Error al eliminar elemento ${request.elementoId}:`,
+                error
+              );
+              return of(null);
+            })
+          )
+        )
+      ).subscribe({
+        next: () => {
+          this.limpiarSeleccion();
+          this.cargarPapelera();
+        },
+        error: (error) => {
+          this.isError = true;
+          this.error = 'No se pudieron eliminar los elementos';
+          console.error('Error al eliminar elementos:', error);
+        },
+      });
+    });
   }
 
   /* Operaciones con los elementos desde el menu de acciones */
-
-  vaciarElementosPapelera(): void {
-    console.log('Vaciar:', this.elementosTablaPapelera);
-
-    this.isLoading = true;
-
-    const eliminaciones = this.elementosTablaPapelera.map((elementoPapelera) =>
-      this.elementoService.eliminarElemento(elementoPapelera.columnas['elementoId'])
-    );
-
-    forkJoin(eliminaciones).subscribe({
-      next: () => {
-        console.log('Todos los elementos eliminados');
-        this.limpiarSeleccion(); // 🧼 Limpiar selección
-        this.cargarPapelera(); // 🔄 Recargar lista
-      },
-    });
-  }
-
-  eliminarElementosSeleccionados(): void {
-    if (this.elementosSeleccionados.length === 0) return;
-
-    console.log('Eliminar:', this.elementosSeleccionados);
-
-    this.isLoading = true;
-
-    const request = this.elementosSeleccionados.map((elementoPapelera) => ({
-      elementoId: elementoPapelera.columnas['elementoId'],
-      elemento: elementoPapelera.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
-    }));
-
-    console.log('Request:', request);
-
-    forkJoin(
-      request.map((request) =>
-        this.elementoService.eliminarElemento(request).pipe(
-          catchError((error) => {
-            console.error('Error al eliminar elemento:', error);
-            return of(null);
-          })
-        )
-      )
-    ).subscribe({
-      next: () => {
-        this.limpiarSeleccion(); // 🧼 Limpiar selección
-        this.cargarPapelera(); // 🔄 Recargar lista
-      },
-      error: (error) => {
-        this.isError = true;
-        this.error = 'No se pudieron eliminar los elementos';
-        console.error('Error al eliminar elementos:', error);
-      },
-      complete: () => {
-        this.isLoading = false;
-      },
-    });
-  }
 
   restaurarElementosSeleccionados() {
     console.log('Restaurar:', this.elementosSeleccionados);

@@ -18,6 +18,7 @@ import {
   RenombrarElementoRequest,
 } from '../../../../core/models/request/elemento-request';
 import { ApiError } from '../../../../core/models/errors/apiError';
+import { ConfirmModalService } from '../../../../shared/services/confirm-modal.service';
 
 @Component({
   selector: 'app-documentos-table',
@@ -58,6 +59,8 @@ export class DocumentosTableComponent implements OnInit {
   private transformacionService: TransformacionService = inject(
     TransformacionService
   );
+  private confirmModalService: ConfirmModalService =
+    inject(ConfirmModalService);
 
   // Propiedades para la selección de elementos
   public elementosSeleccionados: ElementoTabla[] = [];
@@ -74,6 +77,8 @@ export class DocumentosTableComponent implements OnInit {
   // Propiedades para el modal de renombrar
   public isOpenRenombrarModal: boolean = false;
   public elementoARenombrar: ElementoTabla | null = null;
+
+  constructor() {}
 
   /* Inicializador del Componente */
   ngOnInit(): void {
@@ -247,37 +252,46 @@ export class DocumentosTableComponent implements OnInit {
 
   /* Operaciones con Elementos */
   papeleraSeleccionados(): void {
-    console.log('Mover a papelera:', this.elementosSeleccionados);
-    const request = this.elementosSeleccionados.map((elemento) => ({
-      elementoId: elemento.columnas['elementoId'],
-      elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
-    }));
+    if (this.elementosSeleccionados.length === 0) return;
 
-    console.log('Request:', request);
+    const config = {
+      title: 'Mover a papelera',
+      message: `¿Estás seguro de que deseas mover ${this.elementosSeleccionados.length} elemento(s) a la papelera?`,
+      confirmText: 'Mover a papelera',
+      cancelText: 'Cancelar',
+    };
 
-    // Ejecutar todas las peticiones en paralelo
-    forkJoin(
-      request.map((request) =>
-        this.elementoService.moverElementoPapelera(request).pipe(
-          catchError((error) => {
-            console.error(
-              `Error al mover elemento ${request.elementoId} a papelera:`,
-              error
-            );
-            return of(null);
-          })
+    this.confirmModalService.open(config, () => {
+      const requests = this.elementosSeleccionados.map((elemento) => ({
+        elementoId: elemento.columnas['elementoId'],
+        elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
+      }));
+
+      forkJoin(
+        requests.map((request) =>
+          this.elementoService.moverElementoPapelera(request).pipe(
+            catchError((error) => {
+              console.error(
+                `Error al mover elemento ${request.elementoId} a papelera:`,
+                error
+              );
+              return of(null);
+            })
+          )
         )
-      )
-    ).subscribe({
-      next: () => {
-        this.limpiarSeleccion();
-        this.cargarContenido(this.ruta[this.ruta.length - 1]?.elementoId || 1);
-      },
-      error: (error) => {
-        this.isError = true;
-        this.error = 'No se pudieron mover los elementos a la papelera';
-        console.error('Error al mover elementos a papelera:', error);
-      },
+      ).subscribe({
+        next: () => {
+          this.limpiarSeleccion();
+          this.cargarContenido(
+            this.ruta[this.ruta.length - 1]?.elementoId || 1
+          );
+        },
+        error: (error) => {
+          this.isError = true;
+          this.error = 'No se pudieron mover los elementos a la papelera';
+          console.error('Error al mover elementos a papelera:', error);
+        },
+      });
     });
   }
 
@@ -344,29 +358,36 @@ export class DocumentosTableComponent implements OnInit {
 
   // Métodos para acciones individuales desde el dropdown
   onPapeleraIndividual(elemento: ElementoTabla): void {
-    console.log('Mover a Papelera Individual:', elemento);
-
-    const request: MoverElementoPapeleraRequest = {
-      elementoId: elemento.columnas['elementoId'],
-      elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
+    const config = {
+      title: 'Mover a papelera',
+      message: `¿Estás seguro de que deseas mover "${elemento.columnas['nombre']}" a la papelera?`,
+      confirmText: 'Mover a papelera',
+      cancelText: 'Cancelar',
     };
 
-    this.elementoService.moverElementoPapelera(request).subscribe({
-      next: () => {
-        // Notificar recarga específica de la carpeta actual
-        const carpetaActual = this.carpetaActualService.obtenerCarpetaActual();
-        if (carpetaActual) {
-          this.carpetaActualService.notificarRecargarContenido(
-            carpetaActual.elementoId
-          );
-        }
-      },
-      error: (error: ApiError) => {
-        this.isError = true;
-        this.error =
-          error.message || 'No se pudo mover el elemento a la papelera';
-        console.error('Error al mover a papelera:', error);
-      },
+    this.confirmModalService.open(config, () => {
+      const request = {
+        elementoId: elemento.columnas['elementoId'],
+        elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
+      };
+
+      this.elementoService.moverElementoPapelera(request).subscribe({
+        next: () => {
+          const carpetaActual =
+            this.carpetaActualService.obtenerCarpetaActual();
+          if (carpetaActual) {
+            this.carpetaActualService.notificarRecargarContenido(
+              carpetaActual.elementoId
+            );
+          }
+        },
+        error: (error: ApiError) => {
+          this.isError = true;
+          this.error =
+            error.message || 'No se pudo mover el elemento a la papelera';
+          console.error('Error al mover a papelera:', error);
+        },
+      });
     });
   }
 
