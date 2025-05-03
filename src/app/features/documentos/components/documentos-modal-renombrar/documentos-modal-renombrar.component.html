@@ -1,74 +1,125 @@
-<!-- Modal de renombrar -->
+<!-- Main modal -->
 <div
-  *ngIf="isOpen"
   id="renombrar-modal"
-  class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 cursor-default"
-  (click)="onModalClick($event)"
-  (dblclick)="onModalClick($event)"
+  tabindex="-1"
+  aria-hidden="true"
+  class="fixed inset-0 z-50 flex items-center justify-center w-full h-full bg-black bg-opacity-50"
+  [class.hidden]="!isOpen"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="modal-title"
 >
-  <div
-    class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md cursor-default"
-    (click)="$event.stopPropagation()"
-    (dblclick)="$event.stopPropagation()"
-  >
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-xl font-semibold">
-        Renombrar {{ isFile ? "archivo" : "carpeta" }}
-      </h2>
-      <button
-        (click)="onClose()"
-        class="text-gray-500 hover:text-gray-700 cursor-pointer"
+  <div class="relative w-full max-w-md max-h-[90vh] mx-4">
+    <!-- Modal content -->
+    <div class="relative bg-white rounded-lg shadow-sm dark:bg-gray-700">
+      <!-- Modal header -->
+      <div
+        class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-gray-200"
       >
-        <svg
-          class="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
+        <h3
+          id="modal-title"
+          class="text-xl font-semibold text-gray-900 dark:text-white"
         >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M6 18L18 6M6 6l12 12"
+          Renombrar {{ isFile ? "archivo" : "carpeta" }}
+        </h3>
+        <button
+          type="button"
+          (click)="onClose()"
+          class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+          aria-label="Cerrar modal"
+        >
+          <svg
+            class="w-3 h-3"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 14 14"
+          >
+            <path
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+            />
+          </svg>
+          <span class="sr-only">Cerrar modal</span>
+        </button>
+      </div>
+      <!-- Modal body -->
+      <form class="p-4 md:p-5" (ngSubmit)="onSubmit()">
+        <!-- Campo de entrada -->
+        <div class="mb-4">
+          <label
+            for="nuevo-nombre"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+          >
+            Nuevo nombre
+          </label>
+          <input
+            type="text"
+            id="nuevo-nombre"
+            [(ngModel)]="nuevoNombre"
+            name="nuevoNombre"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+            placeholder="Ingrese el nuevo nombre"
+            required
+            [disabled]="isLoading"
           />
-        </svg>
-      </button>
-    </div>
+        </div>
 
-    <div class="mb-4">
-      <label class="block text-sm font-medium text-gray-700 mb-2">
-        Nuevo nombre
-      </label>
-      <input
-        type="text"
-        [(ngModel)]="nuevoNombre"
-        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-text"
-        [disabled]="isLoading"
-        (keydown.enter)="onSubmit()"
-        (keydown.escape)="onClose()"
-      />
-    </div>
-
-    <div *ngIf="errorMessage" class="mb-4 text-red-500 text-sm">
-      {{ errorMessage }}
-    </div>
-
-    <div class="flex justify-end space-x-3">
-      <button
-        (click)="onClose()"
-        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 cursor-pointer"
-        [disabled]="isLoading"
+        <!-- Mensaje de error -->
+        @if (errorMessage) {
+        <div
+          class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400"
+          role="alert"
+        >
+          <span class="font-medium">Error:</span> {{ errorMessage }}
+        </div>
+        }
+      </form>
+      <!-- Modal footer -->
+      <div
+        class="flex items-center p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600"
       >
-        Cancelar
-      </button>
-      <button
-        (click)="onSubmit()"
-        class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer"
-        [disabled]="isLoading"
-      >
-        <span *ngIf="!isLoading">Renombrar</span>
-        <span *ngIf="isLoading">Procesando...</span>
-      </button>
+        <button
+          type="button"
+          (click)="onSubmit()"
+          [disabled]="!nuevoNombre || isLoading"
+          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          @if (isLoading) {
+          <svg
+            class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            ></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+          Procesando... } @else { Renombrar }
+        </button>
+        <button
+          type="button"
+          (click)="onClose()"
+          class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+          [disabled]="isLoading"
+        >
+          Cancelar
+        </button>
+      </div>
     </div>
   </div>
 </div>
