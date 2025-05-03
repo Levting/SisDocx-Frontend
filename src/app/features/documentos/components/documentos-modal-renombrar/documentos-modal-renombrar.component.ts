@@ -128,7 +128,8 @@ export class DocumentosModalRenombrarComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (elementoActualizado: any) => {
-          this.elementoRenombrado.emit(elementoActualizado);
+          this.elemento.columnas['nombre'] = nombreCompleto;
+          this.elementoRenombrado.emit(this.elemento);
           this.onClose();
         },
         error: (error: ApiError) => {

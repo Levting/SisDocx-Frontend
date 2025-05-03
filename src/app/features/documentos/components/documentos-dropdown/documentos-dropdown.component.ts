@@ -45,6 +45,7 @@ export class DocumentosDropdownComponent {
 
   onElementoRenombrado(elemento: ElementoTabla): void {
     this.isModalRenombrarOpen = false;
-    this.onRenombrar.emit(elemento);
+    this.elemento = { ...elemento };
+    this.onRenombrar.emit(this.elemento);
   }
 }

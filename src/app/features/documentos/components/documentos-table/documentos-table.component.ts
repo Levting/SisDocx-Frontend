@@ -478,6 +478,17 @@ export class DocumentosTableComponent implements OnInit {
   }
 
   onElementoRenombrado(elemento: ElementoTabla): void {
+    // Actualizar el elemento en la tabla
+    const index = this.elementosTabla.findIndex(
+      (e) => e.columnas['elementoId'] === elemento.columnas['elementoId']
+    );
+
+    if (index !== -1) {
+      this.elementosTabla[index] = { ...elemento };
+      // Forzar la detección de cambios
+      this.elementosTabla = [...this.elementosTabla];
+    }
+
     // Obtener la carpeta actual
     const carpetaActual = this.carpetaActualService.obtenerCarpetaActual();
     if (carpetaActual) {
