@@ -94,12 +94,34 @@ export class AuthService {
     return this.http.get<Usuario>(`${this.API_URL_AUTH}/me`).pipe(
       map(() => true),
       catchError((error) => {
-        // Si es un error 401, el token no es válido
         if (error.status === 401) {
+          this.tokenService.removeToken();
+          this.userLoginOnSubject.next(false);
+          this.usuarioSubject.next(null);
           return of(false);
         }
-        // Para otros errores, propagamos el error
         return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Verifica si el usuario está autenticado y el token es válido
+   * @returns Observable<boolean>
+   */
+  verificarAutenticacion(): Observable<boolean> {
+    if (!this.tokenService.isValidToken()) {
+      this.userLoginOnSubject.next(false);
+      this.usuarioSubject.next(null);
+      return of(false);
+    }
+
+    return this.verificarTokenValido().pipe(
+      tap((esValido) => {
+        if (!esValido) {
+          this.userLoginOnSubject.next(false);
+          this.usuarioSubject.next(null);
+        }
       })
     );
   }
@@ -109,9 +131,14 @@ export class AuthService {
    * @param credentials Credenciales de inicio de sesión
    * @returns Observable<LoginResponse>
    */
-  iniciarSesion(credentials: InicioSesionRequest): Observable<InicioSesionResponse> {
+  iniciarSesion(
+    credentials: InicioSesionRequest
+  ): Observable<InicioSesionResponse> {
     return this.http
-      .post<InicioSesionResponse>(`${this.API_URL_AUTH}/iniciar-sesion`, credentials)
+      .post<InicioSesionResponse>(
+        `${this.API_URL_AUTH}/iniciar-sesion`,
+        credentials
+      )
       .pipe(
         tap((response: InicioSesionResponse) => {
           this.tokenService.setToken(response.token);

@@ -7,6 +7,7 @@ import {
 } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { isPlatformBrowser } from '@angular/common';
+import { Observable, map, catchError, of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -19,17 +20,27 @@ export class AuthGuard implements CanActivate {
   canActivate(
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
-  ): boolean {
+  ): Observable<boolean> | boolean {
     if (!isPlatformBrowser(this.platformId)) {
-      return true; // Permitir la renderización en el servidor
+      return true;
     }
 
-    if (!this.authService.estaAutenticado()) {
-      this.router.navigate(['/auth/iniciar-sesion'], {
-        queryParams: { returnUrl: state.url }
-      });
-      return false;
-    }
-    return true;
+    return this.authService.verificarAutenticacion().pipe(
+      map((esValido) => {
+        if (!esValido) {
+          this.router.navigate(['/auth/iniciar-sesion'], {
+            queryParams: { returnUrl: state.url },
+          });
+          return false;
+        }
+        return true;
+      }),
+      catchError(() => {
+        this.router.navigate(['/auth/iniciar-sesion'], {
+          queryParams: { returnUrl: state.url },
+        });
+        return of(false);
+      })
+    );
   }
 }
