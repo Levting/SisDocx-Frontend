@@ -1,13 +1,13 @@
 import { Injectable, OnDestroy, signal } from '@angular/core';
-import { MenuItem } from '../models/menu/menu';
 import { Subscription } from 'rxjs';
 import { NavigationEnd, Router } from '@angular/router';
 import { Menu } from '../constants/menu';
+import { MenuItem } from '../../shared/models/menu/menu.model';
 
 @Injectable({
   providedIn: 'root',
 })
-export class MenuService implements OnDestroy{
+export class MenuService implements OnDestroy {
   private _showSidebar = signal(true);
   private _pagesMenu = signal<MenuItem[]>([]);
   private _subscription = new Subscription();
@@ -25,11 +25,10 @@ export class MenuService implements OnDestroy{
     this._subscription.add(subscription);
   }
 
-
   get showSideBar() {
     return this._showSidebar();
   }
- 
+
   get pagesMenu() {
     return this._pagesMenu();
   }

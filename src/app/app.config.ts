@@ -8,7 +8,7 @@ import {
   withInterceptors,
 } from '@angular/common/http';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
-import { errorInterceptorInterceptor } from './core/interceptors/error-interceptor.interceptor';
+import { errorInterceptorInterceptor } from './core/interceptors/error.interceptor';
 import { provideAngularSvgIcon } from 'angular-svg-icon';
 
 export const appConfig: ApplicationConfig = {

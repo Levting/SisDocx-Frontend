@@ -1,13 +1,13 @@
 import { inject, Injectable } from '@angular/core';
-import { ElementoTabla } from '../models/table/elementoTabla';
-import { Elemento } from '../models/documentos/elemento';
-import { ElementoFavorito } from '../models/documentos/elementoFavoritoReponse';
-import { ElementoPapelera } from '../models/documentos/elementoPapeleraResponse';
+import { ElementoTabla } from '../../shared/models/table/elemento-tabla.model';
+import { Elemento } from '../models/documentos/elemento.model';
+import { ElementoFavorito } from '../models/documentos/elemento-favorito-reponse.model';
+import { ElementoPapelera } from '../models/documentos/elemento-papelera-response.model';
 import { UserService } from './user.service';
 import { FechaUtilsService } from '../utils/fecha-utils.service';
 import { Observable, forkJoin, map, of } from 'rxjs';
-import { Archivo } from '../models/documentos/archivo';
-import { Carpeta } from '../models/documentos/carpeta';
+import { Archivo } from '../models/documentos/archivo.model';
+import { Carpeta } from '../models/documentos/carpeta.model';
 
 @Injectable({
   providedIn: 'root',

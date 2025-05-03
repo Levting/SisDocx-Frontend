@@ -1,7 +1,7 @@
 import { NgFor, NgIf } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { SvgIconComponent } from 'angular-svg-icon';
-import { ClickOutsideDirective } from '../../../core/directives/click-outside.directive';
+import { ClickOutsideDirective } from '../../directives/click-outside.directive';
 
 @Component({
   selector: 'app-dropdown',

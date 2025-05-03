@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { DropdownComponent } from '../../../../shared/components/dropdown/dropdown.component';
-import { ElementoTabla } from '../../../../core/models/table/elementoTabla';
+import { ElementoTabla } from '../../../../shared/models/table/elemento-tabla.model';
 import { DocumentosModalRenombrarComponent } from '../documentos-modal-renombrar/documentos-modal-renombrar.component';
 
 @Component({

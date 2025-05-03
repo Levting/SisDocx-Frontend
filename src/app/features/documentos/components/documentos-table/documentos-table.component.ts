@@ -3,19 +3,19 @@ import { DocumentosDropdownComponent } from '../documentos-dropdown/documentos-d
 import { NgClass, NgIf } from '@angular/common';
 import { SvgIconComponent } from 'angular-svg-icon';
 import { ElementoService } from '../../../../core/services/elemento.service';
-import { Elemento } from '../../../../core/models/documentos/elemento';
+import { Elemento } from '../../../../core/models/documentos/elemento.model';
 import { TableComponent } from '../../../../shared/components/table/table.component';
-import { ElementoTabla } from '../../../../core/models/table/elementoTabla';
-import { DocumentosBreadcrumComponent } from '../documentos-breadcrum/documentos-breadcrum.component';
+import { ElementoTabla } from '../../../../shared/models/table/elemento-tabla.model';
+import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
 import { catchError, forkJoin, of } from 'rxjs';
 import {
   MarcarElementoFavoritoRequest,
   RenombrarElementoRequest,
-} from '../../../../core/models/request/elemento-request';
-import { ApiError } from '../../../../core/models/errors/apiError';
+} from '../../../../core/models/request/elemento-request.model';
+import { ApiError } from '../../../../core/models/errors/api-error.model';
 import { ConfirmModalService } from '../../../../shared/services/confirm-modal.service';
 import { DocumentosModalRenombrarComponent } from '../documentos-modal-renombrar/documentos-modal-renombrar.component';
-import { Carpeta } from '../../../../core/models/documentos/carpeta';
+import { Carpeta } from '../../../../core/models/documentos/carpeta.model';
 import { TransformacionService } from '../../../../core/services/transformacion.service';
 import { CarpetaActualService } from '../../../../core/services/carpeta-actual.service';
 
@@ -28,7 +28,7 @@ import { CarpetaActualService } from '../../../../core/services/carpeta-actual.s
     NgIf,
     SvgIconComponent,
     TableComponent,
-    DocumentosBreadcrumComponent,
+    BreadcrumbComponent,
     DocumentosModalRenombrarComponent,
   ],
   templateUrl: './documentos-table.component.html',

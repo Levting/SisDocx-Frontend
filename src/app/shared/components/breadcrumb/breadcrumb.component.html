@@ -1,0 +1,27 @@
+<nav class="inline-flex items-center gap-2.5 ml-2 flex-wrap">
+  <button
+    (click)="onIrRaiz()"
+    class="inline-flex items-center gap-2 text-sm text-gray-700 last:text-gray-500 font-medium last:pointer-events-none"
+  >
+    <svg-icon src="assets/icons/home.svg" />
+  </button>
+
+  <ng-container *ngFor="let segmento of ruta; let i = index; let last = last">
+    <span class="h-1 w-1 rounded-full bg-gray-300"></span>
+
+    <button
+      *ngIf="!last"
+      (click)="onNavegar(i)"
+      class="inline-flex items-center gap-2 text-sm text-gray-700 last:text-gray-500 font-medium last:pointer-events-none"
+    >
+      {{ segmento.nombre }}
+    </button>
+
+    <span
+      *ngIf="last"
+      class="inline-flex items-center gap-2 text-sm text-gray-700 last:text-gray-500 font-medium last:pointer-events-none"
+    >
+      {{ segmento.nombre }}
+    </span>
+  </ng-container>
+</nav>

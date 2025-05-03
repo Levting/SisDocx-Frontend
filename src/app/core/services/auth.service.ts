@@ -10,13 +10,13 @@ import {
   map,
 } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ApiError } from '../models/errors/apiError';
+import { ApiError } from '../models/errors/api-error.model';
 import { TokenService } from './token.service';
 import { isPlatformBrowser } from '@angular/common';
-import { Usuario } from '../models/usuario/usuario';
+import { Usuario } from '../models/usuario/usuario.model';
 import { Router } from '@angular/router';
-import { InicioSesionRequest } from '../models/auth/inicioSesionRequest';
-import { InicioSesionResponse } from '../models/auth/inicioSesionResponse';
+import { InicioSesionRequest } from '../models/auth/inicio-sesion-request.model';
+import { InicioSesionResponse } from '../models/auth/inicio-sesion-response.model';
 
 @Injectable({
   providedIn: 'root',

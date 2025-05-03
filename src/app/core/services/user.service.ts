@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { catchError, Observable, throwError } from 'rxjs';
-import { Usuario } from '../models/usuario/usuario';
+import { Usuario } from '../models/usuario/usuario.model';
 import { environment } from '../../../environments/environment';
-import { Rol } from '../models/usuario/rol';
+import { Rol } from '../models/usuario/rol.model';
 
 @Injectable({
   providedIn: 'root',

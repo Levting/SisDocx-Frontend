@@ -2,14 +2,14 @@ import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { NgClass, NgIf } from '@angular/common';
 import { SvgIconComponent } from 'angular-svg-icon';
 import { TableComponent } from '../../../../shared/components/table/table.component';
-import { ElementoPapelera } from '../../../../core/models/documentos/elementoPapeleraResponse';
-import { ElementoTabla } from '../../../../core/models/table/elementoTabla';
+import { ElementoPapelera } from '../../../../core/models/documentos/elemento-papelera-response.model';
+import { ElementoTabla } from '../../../../shared/models/table/elemento-tabla.model';
 import { UserService } from '../../../../core/services/user.service';
 import { FechaUtilsService } from '../../../../core/utils/fecha-utils.service';
 import { ElementoService } from '../../../../core/services/elemento.service';
 import { TransformacionService } from '../../../../core/services/transformacion.service';
 import { catchError, forkJoin, of } from 'rxjs';
-import { ApiError } from '../../../../core/models/errors/apiError';
+import { ApiError } from '../../../../core/models/errors/api-error.model';
 import { ConfirmModalService } from '../../../../shared/services/confirm-modal.service';
 
 @Component({

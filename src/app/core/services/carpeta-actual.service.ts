@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
-import { Carpeta } from '../models/documentos/carpeta';
+import { Carpeta } from '../models/documentos/carpeta.model';
 
 /**
  * Servicio para gestionar la carpeta actual en la que se encuentra el usuario.

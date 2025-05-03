@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { AuthComponent } from './auth.component';
-import { LoginComponent } from './login/login.component';
+import { InicioSesionComponent } from './inicio-sesion/inicio-sesion.component';
 
 export const AUTH_ROUTES: Routes = [
   {
@@ -9,7 +9,7 @@ export const AUTH_ROUTES: Routes = [
     children: [
       {
         path: 'iniciar-sesion',
-        component: LoginComponent,
+        component: InicioSesionComponent,
       },
       {
         path: '',

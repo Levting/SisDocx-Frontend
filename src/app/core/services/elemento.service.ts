@@ -2,21 +2,21 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { catchError, map, Observable, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Elemento } from '../models/documentos/elemento';
-import { ElementoPapelera } from '../models/documentos/elementoPapeleraResponse';
-import { ElementoFavorito } from '../models/documentos/elementoFavoritoReponse';
-import { CrearCarpetaRequest } from '../models/documentos/crearCarpetaRequest';
-import { Carpeta } from '../models/documentos/carpeta';
-import { SubirCarpetaRequest } from '../models/documentos/subirCarpetaRequest';
-import { SubirArchivoRequest } from '../models/documentos/subirArchivoRequest';
-import { Archivo } from '../models/documentos/archivo';
-import { MoverElementoRequest } from '../models/documentos/moverElementoRequest';
-import { RenombrarElementoRequest } from '../models/documentos/renombrarElementoRequiest';
-import { MoverElementoPapeleraRequest } from '../models/documentos/moverElementoPapelera';
-import { RestaurarElementoRequest } from '../models/documentos/restaurarElementoRequest';
-import { MarcarElementoFavoritoRequest } from '../models/documentos/marcarElementoFavorito';
-import { EliminarElementoRequest } from '../models/documentos/eliminarElementoRequest';
-import { ApiError } from '../models/errors/apiError';
+import { Elemento } from '../models/documentos/elemento.model';
+import { ElementoPapelera } from '../models/documentos/elemento-papelera-response.model';
+import { ElementoFavorito } from '../models/documentos/elemento-favorito-reponse.model';
+import { CrearCarpetaRequest } from '../models/documentos/crear-carpeta-request.model';
+import { Carpeta } from '../models/documentos/carpeta.model';
+import { SubirCarpetaRequest } from '../models/documentos/subir-carpeta-request.model';
+import { SubirArchivoRequest } from '../models/documentos/subir-archivo-request.model';
+import { Archivo } from '../models/documentos/archivo.model';
+import { RenombrarElementoRequest } from '../models/request/elemento-request.model';
+import { MoverElementoPapeleraRequest } from '../models/request/elemento-request.model';
+import { MarcarElementoFavoritoRequest } from '../models/request/elemento-request.model';
+import { ApiError } from '../models/errors/api-error.model';
+import { EliminarElementoRequest } from '../models/documentos/eliminar-elemento-request.model';
+import { RestaurarElementoRequest } from '../models/documentos/restaurar-elemento-request.model';
+import { MoverElementoRequest } from '../models/documentos/mover-elemento-request.model';
 
 /**
  * Servicio para gestionar las operaciones relacionadas con los elementos (carpetas y archivos).

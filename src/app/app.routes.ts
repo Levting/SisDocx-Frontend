@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
-import { AuthGuard } from './core/guards/auth-guard.guard';
-import { LayoutComponent } from './shared/layout/layout.component';
+import { AuthGuard } from './core/guards/auth.guard';
+import { LayoutComponent } from './layout/layout.component';
 import { InicioComponent } from './features/inicio/inicio.component';
 import { PapeleraComponent } from './features/papelera/papelera.component';
 import { FavoritosComponent } from './features/favoritos/favoritos.component';

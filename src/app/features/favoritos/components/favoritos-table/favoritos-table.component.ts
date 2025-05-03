@@ -4,9 +4,9 @@ import { SvgIconComponent } from 'angular-svg-icon';
 import { TableComponent } from '../../../../shared/components/table/table.component';
 import { FavoritosDropdownComponent } from '../favoritos-dropdown/favoritos-dropdown.component';
 import { ElementoService } from '../../../../core/services/elemento.service';
-import { ElementoFavorito } from '../../../../core/models/documentos/elementoFavoritoReponse';
+import { ElementoFavorito } from '../../../../core/models/documentos/elemento-favorito-reponse.model';
 import { TransformacionService } from '../../../../core/services/transformacion.service';
-import { ElementoTabla } from '../../../../core/models/table/elementoTabla';
+import { ElementoTabla } from '../../../../shared/models/table/elemento-tabla.model';
 
 @Component({
   selector: 'app-favoritos-table',
@@ -24,7 +24,7 @@ export class FavoritosTableComponent {
   public elementosTabla: ElementoTabla[] = [];
   public elementosOriginales: ElementoFavorito[] = [];
   public cabeceras: string[] = ['Nombre', 'Fecha de favorito', 'Tipo'];
-  public columnas: string[] = ['nombre', 'fechaFavorito', 'elemento',];
+  public columnas: string[] = ['nombre', 'fechaFavorito', 'elemento'];
 
   // Inyección de servicios
   private elementoService: ElementoService = inject(ElementoService);
