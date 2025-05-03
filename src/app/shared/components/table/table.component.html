@@ -23,7 +23,7 @@
 
   <!-- Contenedor con scroll -->
   <div
-    class="h-full w-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent scrollbar-thumb-rounded"
+    class="h-full w-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent scrollbar-thumb-rounded relative z-0"
   >
     <table class="w-full text-sm text-left rtl:text-right text-gray-500">
       <thead
@@ -206,7 +206,7 @@
               <!-- Botones -->
               <div class="flex gap-1 items-center" *ngIf="dropdownTemplate">
                 <!-- Cuando un elemento esta marcado como favorito, mostrar el botón con el icono de estrella seleccionado -->
-                <ng-container *ngIf="esFavorito(elementoTabla)" >
+                <ng-container *ngIf="esFavorito(elementoTabla)">
                   <button
                     class="items-center justify-center active:enabled:translate-y-px"
                     type="button"
@@ -237,7 +237,7 @@
                   }"
                 >
                   <!-- Cuando un elemento no esta marcado como favorito, mostrar el botón con el icono de estrella no seleccionado -->
-                  <ng-container *ngIf="!esFavorito(elementoTabla)" >
+                  <ng-container *ngIf="!esFavorito(elementoTabla)">
                     <button
                       class="items-center justify-center active:enabled:translate-y-px"
                       type="button"

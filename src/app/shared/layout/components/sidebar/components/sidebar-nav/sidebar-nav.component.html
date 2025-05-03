@@ -78,9 +78,9 @@
           </ng-template>
 
           <!-- Tooltip -->
-          <div class="fixed w-full" *ngIf="!menuService.showSideBar">
+          <div class="fixed w-full z-[9999]" *ngIf="!menuService.showSideBar">
             <span
-              class="z-10 bg-foreground text-background absolute left-12 -top-[19px] w-auto min-w-max origin-left scale-0 rounded-md p-2 text-xs font-bold shadow-md transition-all duration-200 group-hover:scale-100"
+              class="bg-white text-background absolute left-12 -top-[19px] w-auto min-w-max origin-left scale-0 rounded-md p-2 text-xs font-bold shadow-lg transition-all duration-200 group-hover:scale-100 dark:bg-gray-800 dark:text-white dark:shadow-gray-900/50"
             >
               {{ item.label }}
             </span>
