@@ -167,21 +167,116 @@
 
         <!-- Barra de progreso -->
         @if (isLoading) {
-        <div class="space-y-2">
+        <div class="space-y-4">
+          <!-- Información general -->
           <div class="flex justify-between text-sm">
             <span class="text-gray-700">Progreso de subida</span>
             <span class="text-gray-500"
-              >{{ contadorCarpetasSubidas }} de {{ totalCarpetas }}</span
+              >{{ progreso.archivosSubidos }} de
+              {{ progreso.totalArchivos }} archivos</span
             >
           </div>
+
+          <!-- Barra de progreso principal -->
           <div class="w-full bg-gray-200 rounded-full h-2.5">
             <div
-              class="bg-blue-600 h-2.5 rounded-full"
-              [style.width]="
-                (contadorCarpetasSubidas / totalCarpetas) * 100 + '%'
-              "
+              class="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-in-out"
+              [style.width]="progreso.porcentaje + '%'"
             ></div>
           </div>
+
+          <!-- Información detallada -->
+          <div class="space-y-2">
+            <!-- Carpeta actual -->
+            @if (progreso.carpetaActual) {
+            <div class="flex items-center gap-2 text-sm">
+              <svg
+                class="w-4 h-4 text-gray-500"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 16 20"
+              >
+                <path
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 1v4a1 1 0 0 1-1 1H1m14-4v16a.97.97 0 0 1-.933 1H1.933A.97.97 0 0 1 1 18V5.828a2 2 0 0 1 .586-1.414l2.828-2.828A2 2 0 0 1 5.828 1h8.239A.97.97 0 0 1 15 2Z"
+                />
+              </svg>
+              <span class="text-gray-700">Carpeta actual:</span>
+              <span class="font-medium text-gray-900">{{
+                progreso.carpetaActual
+              }}</span>
+            </div>
+            }
+
+            <!-- Archivo actual -->
+            @if (progreso.archivoActual) {
+            <div class="flex items-center gap-2 text-sm">
+              <svg
+                class="w-4 h-4 text-gray-500"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 16 20"
+              >
+                <path
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 2v16M12 2v16M1 10h14M1 4h14M1 16h14"
+                />
+              </svg>
+              <span class="text-gray-700">Subiendo:</span>
+              <span class="font-medium text-gray-900">{{
+                progreso.archivoActual
+              }}</span>
+            </div>
+            }
+
+            <!-- Porcentaje -->
+            <div class="flex items-center gap-2 text-sm">
+              <svg
+                class="w-4 h-4 text-gray-500"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                />
+              </svg>
+              <span class="text-gray-700">Progreso total:</span>
+              <span class="font-medium text-gray-900"
+                >{{ progreso.porcentaje }}%</span
+              >
+            </div>
+          </div>
+
+          <!-- Errores por carpeta -->
+          @if (erroresPorCarpeta.length > 0) {
+          <div class="mt-4 space-y-2">
+            <h4 class="text-sm font-medium text-red-600">
+              Errores encontrados:
+            </h4>
+            @for (error of erroresPorCarpeta; track error.carpeta) {
+            <div class="p-2 bg-red-50 rounded-lg">
+              <p class="text-sm text-red-700">
+                <span class="font-medium">{{ error.carpeta }}:</span>
+                {{ error.error }}
+              </p>
+            </div>
+            }
+          </div>
+          }
         </div>
         }
 

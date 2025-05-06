@@ -16,6 +16,7 @@ import { Carpeta } from '../../../../../../core/models/documentos/carpeta.model'
 import { ElementoService } from '../../../../../../core/services/elemento.service';
 import { CrearCarpetaRequest } from '../../../../../../core/models/documentos/crear-carpeta-request.model';
 import { ApiError } from '../../../../../../core/models/errors/api-error.model';
+import { ToastService } from '../../../../../../shared/services/toast.service';
 
 @Component({
   selector: 'app-crear-carpeta-modal',
@@ -28,7 +29,7 @@ export class CrearCarpetaModalComponent implements OnInit, OnDestroy {
   @Input() carpetaPadreId: number = 0;
 
   @Output() close = new EventEmitter<void>();
-  @Output() carpetaCreada = new EventEmitter<Carpeta>();
+  @Output() carpetaCreada = new EventEmitter<void>();
 
   public carpetaActual: Carpeta | null = null;
   public nombreCarpeta: string = '';
@@ -42,6 +43,7 @@ export class CrearCarpetaModalComponent implements OnInit, OnDestroy {
 
   private elementoService = inject(ElementoService);
   private carpetaActualService = inject(CarpetaActualService);
+  private toastService = inject(ToastService);
 
   ngOnInit(): void {
     this.setupSubscriptions();
@@ -124,12 +126,17 @@ export class CrearCarpetaModalComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (carpetaCreada: Carpeta) => {
-          this.carpetaCreada.emit(carpetaCreada);
+          this.toastService.show({
+            type: 'success',
+            message: 'Carpeta creada exitosamente',
+            duration: 3000,
+          });
+          this.carpetaCreada.emit();
           this.carpetaActualService.notificarRecargarContenido(carpetaPadreId);
           this.onClose();
         },
         error: (error: ApiError) => {
-          console.error('Error al crear la carpeta:', error);
+          console.error('Error al crear la carpeta:', error.message);
           this.errorMessage = this.obtenerMensajeError(error);
         },
       });

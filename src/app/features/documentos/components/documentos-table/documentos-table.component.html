@@ -114,6 +114,13 @@
     />
   </div>
 
+  <!-- Modal de Previsualización -->
+  <app-documentos-preview-modal
+    *ngIf="isOpenPreviewModal"
+    [elemento]="elementoAPrevisualizar"
+    (cerrar)="onPreviewClose()"
+  />
+
   <!-- Modal para renombrar elemento -->
   <app-documentos-modal-renombrar />
 

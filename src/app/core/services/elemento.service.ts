@@ -17,6 +17,8 @@ import { ApiError } from '../models/errors/api-error.model';
 import { EliminarElementoRequest } from '../models/documentos/eliminar-elemento-request.model';
 import { RestaurarElementoRequest } from '../models/documentos/restaurar-elemento-request.model';
 import { MoverElementoRequest } from '../models/documentos/mover-elemento-request.model';
+import { PrevisualizarArchivoRequest } from '../models/documentos/previsualizar-archivo.model';
+import { SubirElementoRequest } from '../models/documentos/subir-elemento-request.model';
 
 /**
  * Servicio para gestionar las operaciones relacionadas con los elementos (carpetas y archivos).
@@ -67,49 +69,41 @@ export class ElementoService {
     return this.http.get<ElementoFavorito[]>(url);
   }
 
+  previsualizarArchivo(request: PrevisualizarArchivoRequest): Observable<Blob> {
+    const url = `${this.API_URL}/archivos/${request.id}/previsualizar`;
+    return this.http.get(url, { responseType: 'blob' }).pipe(
+      catchError((error: ApiError) => {
+        console.error('Error al previsualizar archivo:', error.message);
+        return throwError(
+          () => new Error('No se pudo previsualizar el archivo')
+        );
+      })
+    );
+  }
+
   crearCarpeta(request: CrearCarpetaRequest): Observable<Carpeta> {
     const url = `${this.API_URL}/carpetas`;
     return this.http.post<Carpeta>(url, request).pipe(
-      catchError((error) => {
-        return throwError(
-          () => new Error('No se pudo crear la carpeta', error)
-        );
+      catchError((error: ApiError) => {
+        console.error('Error al crear la carpeta:', error.error);
+        console.error('Error al crear la carpeta:', error.message);
+        return throwError(() => new Error('No se pudo crear la carpeta'));
       })
     );
   }
 
-  subirCarpeta(request: SubirCarpetaRequest): Observable<Carpeta> {
-    const url = `${this.API_URL}/carpetas/subir`;
-    return this.http.post<Carpeta>(url, request).pipe(
-      catchError((error) => {
-        return throwError(
-          () => new Error('No se pudo subir la carpeta', error)
-        );
-      })
-    );
-  }
-
-  subirArchivo(request: SubirArchivoRequest): Observable<Archivo> {
-    const url = `${this.API_URL}/archivos/subir`;
+  subirElemento(request: SubirElementoRequest): Observable<Elemento> {
+    const url = `${this.API_URL}/subir`;
 
     const formData = new FormData();
     formData.append('carpetaPadreId', request.carpetaPadreId.toString());
-    formData.append('archivo', request.archivo);
+    formData.append('elemento', request.elemento);
 
-    return this.http.post<Archivo>(url, formData).pipe(
+    return this.http.post<Elemento>(url, formData).pipe(
       catchError((error: ApiError) => {
-        console.error('Error al subir archivo:', error.error);
-        console.error('Error al subir archivo:', error.message);
-        return throwError(() => new Error('No se pudo subir el archivo'));
-      })
-    );
-  }
-
-  subirCarpetas(request: SubirCarpetaRequest): Observable<Elemento> {
-    const url = `${this.API_URL}/carpetas/subir`;
-    return this.http.post<Elemento>(url, request).pipe(
-      catchError((error) => {
-        return throwError(() => new Error('No se pudo subir la carpeta'));
+        console.error('Error al subir elemento:', error.error);
+        console.error('Error al subir elemento:', error.message);
+        return throwError(() => new Error('No se pudo subir el elemento'));
       })
     );
   }

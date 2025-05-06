@@ -18,6 +18,7 @@ import { DocumentosModalRenombrarComponent } from '../documentos-modal-renombrar
 import { Carpeta } from '../../../../core/models/documentos/carpeta.model';
 import { TransformacionService } from '../../../../core/services/transformacion.service';
 import { CarpetaActualService } from '../../../../core/services/carpeta-actual.service';
+import { DocumentosPreviewModalComponent } from '../documentos-preview-modal/documentos-preview-modal.component';
 
 @Component({
   selector: 'app-documentos-table',
@@ -30,6 +31,7 @@ import { CarpetaActualService } from '../../../../core/services/carpeta-actual.s
     TableComponent,
     BreadcrumbComponent,
     DocumentosModalRenombrarComponent,
+    DocumentosPreviewModalComponent,
   ],
   templateUrl: './documentos-table.component.html',
 })
@@ -76,6 +78,10 @@ export class DocumentosTableComponent implements OnInit {
   // Propiedades para el modal de renombrar
   public isOpenRenombrarModal: boolean = false;
   public elementoARenombrar: ElementoTabla | null = null;
+
+  // Propiedades para el modal de previsualización
+  public isOpenPreviewModal: boolean = false;
+  public elementoAPrevisualizar: ElementoTabla | null = null;
 
   constructor() {}
 
@@ -263,9 +269,16 @@ export class DocumentosTableComponent implements OnInit {
           },
         });
     } else {
-      // Aquí se manejaría la previsualización del archivo
+      // Abrir modal de previsualización para archivos
       console.log('Previsualizar archivo:', elemento);
+      this.elementoAPrevisualizar = elemento;
+      this.isOpenPreviewModal = true;
     }
+  }
+
+  onPreviewClose(): void {
+    this.isOpenPreviewModal = false;
+    this.elementoAPrevisualizar = null;
   }
 
   /* Operaciones con Elementos */

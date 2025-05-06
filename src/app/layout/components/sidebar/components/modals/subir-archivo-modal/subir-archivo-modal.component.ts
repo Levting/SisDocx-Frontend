@@ -15,6 +15,9 @@ import { Carpeta } from '../../../../../../core/models/documentos/carpeta.model'
 import { ElementoService } from '../../../../../../core/services/elemento.service';
 import { CarpetaActualService } from '../../../../../../core/services/carpeta-actual.service';
 import { SubirArchivoRequest } from '../../../../../../core/models/documentos/subir-archivo-request.model';
+import { ApiError } from '../../../../../../core/models/errors/api-error.model';
+import { Elemento } from '../../../../../../core/models/documentos/elemento.model';
+import { SubirElementoRequest } from '../../../../../../core/models/documentos/subir-elemento-request.model';
 
 @Component({
   selector: 'app-subir-archivo-modal',
@@ -37,6 +40,7 @@ export class SubirArchivoModalComponent implements OnInit, OnDestroy {
   public isDragging: boolean = false;
   public contadorArchivosSubidos: number = 0;
   public totalArchivos: number = 0;
+  public carpetas: File[] = [];
 
   private readonly MAX_ARCHIVO_SIZE = 10 * 1024 * 1024; // 10MB
   private readonly VALID_EXTENSIONS = [
@@ -83,6 +87,7 @@ export class SubirArchivoModalComponent implements OnInit, OnDestroy {
     this.isDragging = false;
     this.contadorArchivosSubidos = 0;
     this.totalArchivos = 0;
+    this.carpetas = [];
   }
 
   onDragOver(event: DragEvent): void {
@@ -112,6 +117,24 @@ export class SubirArchivoModalComponent implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       this.handleFileSelection(Array.from(input.files));
+    }
+  }
+
+  onFolderChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files?.length) {
+      // Llena el array carpetas con los archivos raíz de cada carpeta seleccionada
+      // (esto es solo para mostrar los nombres, la subida real es recursiva)
+      this.carpetas = [];
+      const files = Array.from(input.files);
+      // Agrupa por carpeta raíz
+      const carpetasSet = new Set<string>();
+      files.forEach((file) => {
+        // file.webkitRelativePath = "carpeta/subcarpeta/archivo.txt"
+        const rootFolder = file.webkitRelativePath.split('/')[0];
+        carpetasSet.add(rootFolder);
+      });
+      this.carpetas = Array.from(carpetasSet).map((name) => new File([], name));
     }
   }
 
@@ -179,13 +202,13 @@ export class SubirArchivoModalComponent implements OnInit, OnDestroy {
         return;
       }
 
-      const request: SubirArchivoRequest = {
+      const request: SubirElementoRequest = {
         carpetaPadreId: carpetaPadreId,
-        archivo: this.archivos[index],
+        elemento: this.archivos[index],
       };
 
       this.elementoService
-        .subirArchivo(request)
+        .subirElemento(request)
         .pipe(
           finalize(() => {
             this.contadorArchivosSubidos++;
@@ -194,11 +217,11 @@ export class SubirArchivoModalComponent implements OnInit, OnDestroy {
           takeUntil(this.destroy$)
         )
         .subscribe({
-          next: (response) => {
+          next: (response: Elemento) => {
             console.log('Archivo subido exitosamente:', response);
           },
-          error: (error) => {
-            console.error('Error al subir archivo:', error);
+          error: (error: ApiError) => {
+            console.error('Error al subir archivo:', error.message);
             this.errorMessage = this.obtenerMensajeError(error);
           },
         });
