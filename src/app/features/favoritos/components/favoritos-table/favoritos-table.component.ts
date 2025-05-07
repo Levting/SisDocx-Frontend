@@ -13,6 +13,7 @@ import { Carpeta } from '../../../../core/models/documentos/carpeta.model';
 import { DocumentosPreviewModalComponent } from '../../../documentos/components/documentos-preview-modal/documentos-preview-modal.component';
 import { MarcarElementoFavoritoRequest } from '../../../../core/models/request/elemento-request.model';
 import { ApiError } from '../../../../core/models/errors/api-error.model';
+import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
 
 @Component({
   selector: 'app-favoritos-table',
@@ -24,6 +25,7 @@ import { ApiError } from '../../../../core/models/errors/api-error.model';
     TableComponent,
     FavoritosDropdownComponent,
     DocumentosPreviewModalComponent,
+    BreadcrumbComponent,
   ],
   templateUrl: './favoritos-table.component.html',
 })
@@ -53,6 +55,10 @@ export class FavoritosTableComponent {
   public isOpenPreviewModal: boolean = false;
   public elementoAPrevisualizar: ElementoTabla | null = null;
 
+  // Navegacion
+  public ruta: { nombre: string; elementoId: number; elemento: 'CARPETA' }[] =
+    [];
+
   /* Inicializador del Componente */
   ngOnInit(): void {
     this.cargarFavoritos();
@@ -81,6 +87,7 @@ export class FavoritosTableComponent {
     this.isLoading = true;
     this.isError = false;
     this.elementosTabla = [];
+    this.ruta = []; // Limpiar la ruta al cargar favoritos inicialmente
 
     this.elementoService.obtenerFavoritos().subscribe({
       next: (elementos: ElementoFavorito[]) => {
@@ -124,6 +131,13 @@ export class FavoritosTableComponent {
             this.carpetaActualService.actualizarCarpetaActual(
               carpetaDetalles as Carpeta
             );
+
+            // Actualizar la ruta
+            this.ruta.push({
+              nombre: elemento.columnas['nombre'],
+              elementoId: elemento.columnas['elementoId'],
+              elemento: 'CARPETA',
+            });
 
             // Cargar el contenido de la carpeta
             this.cargarContenido(
@@ -197,5 +211,57 @@ export class FavoritosTableComponent {
         this.error = 'No se pudo actualizar el estado de favorito';
       },
     });
+  }
+
+  navegarA(index: number): void {
+    // Si el índice es mayor o igual que la longitud de la ruta, no hacer nada
+    if (index >= this.ruta.length) {
+      return;
+    }
+
+    // Obtener la carpeta a la que navegaremos
+    const carpeta = this.ruta[index];
+
+    // Si estamos intentando navegar a la carpeta actual, no hacer nada
+    if (index === this.ruta.length - 1) {
+      return;
+    }
+
+    // Truncar la ruta hasta el índice seleccionado
+    this.ruta = this.ruta.slice(0, index + 1);
+
+    // Limpiar selección al navegar usando el breadcrumb
+    this.limpiarSeleccion();
+
+    // Obtener los detalles completos de la carpeta
+    this.elementoService
+      .obtenerDetallesElemento(carpeta.elementoId, 'CARPETA')
+      .subscribe({
+        next: (carpetaDetalles) => {
+          // Actualizar la carpeta actual con los detalles completos
+          this.carpetaActualService.actualizarCarpetaActual(
+            carpetaDetalles as Carpeta
+          );
+
+          // Cargar contenido de esa carpeta
+          this.cargarContenido(carpeta.elementoId, carpeta.nombre);
+        },
+        error: (error) => {
+          console.error('Error al obtener detalles de la carpeta:', error);
+          this.isError = true;
+          this.error = 'No se pudo cargar la carpeta';
+        },
+      });
+  }
+
+  cargarContenidoRaiz(): void {
+    // Limpiar selección al volver a la raíz
+    this.limpiarSeleccion();
+
+    // Cargar favoritos en lugar del contenido de documentos
+    this.cargarFavoritos();
+
+    // Reiniciar la carpeta actual
+    this.carpetaActualService.reiniciarCarpetaActual();
   }
 }

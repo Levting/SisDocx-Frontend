@@ -84,6 +84,12 @@
     </ng-container>
   </div>
 
+  <app-breadcrumb
+    [ruta]="ruta"
+    (navegar)="navegarA($event)"
+    (irRaiz)="cargarContenidoRaiz()"
+  />
+
   <div class="flex-1 min-h-0">
     <app-table
       [cabeceras]="cabeceras"
