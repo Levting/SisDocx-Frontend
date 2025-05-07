@@ -96,6 +96,8 @@
       [isError]="isError"
       [error]="error"
       (cambioSeleccion)="onSeleccionCambiada($event)"
+      (dobleClickElemento)="onDobleClickElemento($event)"
+      (toggleFavorito)="onToggleFavorito($event)"
     />
   </div>
 
@@ -103,4 +105,11 @@
   <ng-template #dropdownFavoritosTemplate let-elemento="elemento">
     <app-favoritos-dropdown />
   </ng-template>
+
+  <!-- Modal de Previsualización -->
+  <app-documentos-preview-modal
+    *ngIf="isOpenPreviewModal"
+    [elemento]="elementoAPrevisualizar"
+    (cerrar)="onPreviewClose()"
+  />
 </div>

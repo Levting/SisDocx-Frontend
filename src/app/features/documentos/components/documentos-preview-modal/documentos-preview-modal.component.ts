@@ -7,17 +7,22 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ElementoTabla } from '../../../../shared/models/table/elemento-tabla.model';
 import { ElementoService } from '../../../../core/services/elemento.service';
 import { PrevisualizarArchivoRequest } from '../../../../core/models/documentos/previsualizar-archivo.model';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import {
+  DomSanitizer,
+  SafeResourceUrl,
+  SafeHtml,
+} from '@angular/platform-browser';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { ApiError } from '../../../../core/models/errors/api-error.model';
 
 @Component({
   selector: 'app-documentos-preview-modal',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './documentos-preview-modal.component.html',
 })
@@ -30,6 +35,7 @@ export class DocumentosPreviewModalComponent implements OnInit, OnDestroy {
   public pdfBlob: Blob | null = null;
   public isLoading: boolean = false;
   public error: string | null = null;
+  public downloadUrl: string | null = null;
 
   constructor(
     private elementoService: ElementoService,
@@ -63,36 +69,33 @@ export class DocumentosPreviewModalComponent implements OnInit, OnDestroy {
     };
 
     this.elementoService.previsualizarArchivo(request).subscribe({
-      next: (blob) => {
+      next: async (blob) => {
         try {
-          // Guardar el blob original
           this.pdfBlob = blob;
 
-          // Crear una copia del blob con tipo explícito para PDF si es necesario
-          let blobToUse = blob;
-
-          // Si el tipo MIME no está establecido o es incorrecto para PDFs, y detectamos que es un PDF
-          if (
-            this.elemento?.columnas['nombre']?.toLowerCase().endsWith('.pdf') &&
-            (!blob.type || blob.type !== 'application/pdf')
-          ) {
-            blobToUse = new Blob([blob], { type: 'application/pdf' });
+          if (this.esExcel() || this.esWord()) {
+            // Para archivos Office, solo creamos la URL para descarga
+            const url = URL.createObjectURL(blob);
+            this.downloadUrl = url;
+          } else {
+            // Procesamiento normal para PDFs e imágenes
+            let blobToUse = blob;
+            if (
+              this.elemento?.columnas['nombre']
+                ?.toLowerCase()
+                .endsWith('.pdf') &&
+              (!blob.type || blob.type !== 'application/pdf')
+            ) {
+              blobToUse = new Blob([blob], { type: 'application/pdf' });
+            }
+            const url = URL.createObjectURL(blobToUse);
+            this.fileUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+            this.fileUrlString = url;
           }
-
-          // Crear la URL para el objeto blob
-          const url = URL.createObjectURL(blobToUse);
-          this.fileUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
-          this.fileUrlString = url;
-
-          console.log('Archivo cargado correctamente', {
-            tipo: blobToUse.type,
-            tamaño: blobToUse.size,
-            url: url,
-          });
 
           this.isLoading = false;
         } catch (err) {
-          console.error('Error al procesar el blob:', err);
+          console.error('Error al procesar el archivo:', err);
           this.error = 'Error al procesar el archivo';
           this.isLoading = false;
         }
@@ -103,6 +106,12 @@ export class DocumentosPreviewModalComponent implements OnInit, OnDestroy {
         console.error('Error al cargar archivo:', error.message);
       },
     });
+  }
+
+  abrirEnNuevaPestana(): void {
+    if (this.downloadUrl) {
+      window.open(this.downloadUrl, '_blank');
+    }
   }
 
   cerrarModal(): void {
@@ -132,5 +141,15 @@ export class DocumentosPreviewModalComponent implements OnInit, OnDestroy {
       nombre.endsWith('.gif') ||
       nombre.endsWith('.webp')
     );
+  }
+
+  esExcel(): boolean {
+    const nombre = this.elemento?.columnas['nombre']?.toLowerCase() ?? '';
+    return nombre.endsWith('.xls') || nombre.endsWith('.xlsx');
+  }
+
+  esWord(): boolean {
+    const nombre = this.elemento?.columnas['nombre']?.toLowerCase() ?? '';
+    return nombre.endsWith('.doc') || nombre.endsWith('.docx');
   }
 }
