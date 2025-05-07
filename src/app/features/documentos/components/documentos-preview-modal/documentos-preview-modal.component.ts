@@ -7,7 +7,6 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
 import { ElementoTabla } from '../../../../shared/models/table/elemento-tabla.model';
 import { ElementoService } from '../../../../core/services/elemento.service';
 import { PrevisualizarArchivoRequest } from '../../../../core/models/documentos/previsualizar-archivo.model';
@@ -18,7 +17,7 @@ import { ApiError } from '../../../../core/models/errors/api-error.model';
 @Component({
   selector: 'app-documentos-preview-modal',
   standalone: true,
-  imports: [CommonModule, NgxExtendedPdfViewerModule],
+  imports: [CommonModule],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './documentos-preview-modal.component.html',
 })

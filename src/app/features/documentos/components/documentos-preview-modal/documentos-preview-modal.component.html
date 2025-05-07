@@ -41,23 +41,17 @@
       </div>
 
       <!-- PDF Preview -->
-      <ngx-extended-pdf-viewer
+      <div
         *ngIf="!isLoading && !error && esPDF() && fileUrlString"
-        [src]="fileUrlString"
-        [useBrowserLocale]="true"
-        [height]="'100%'"
-        [showHandToolButton]="true"
-        [showPresentationModeButton]="true"
-        [showDownloadButton]="true"
-        [showPrintButton]="true"
-        [showBookmarkButton]="true"
-        [showSecondaryToolbarButton]="true"
-        [showRotateButton]="true"
-        [showScrollingButton]="true"
-        [showSpreadButton]="true"
-        [showPropertiesButton]="true"
+        class="h-full"
       >
-      </ngx-extended-pdf-viewer>
+        <iframe
+          [src]="fileUrl"
+          class="w-full h-full"
+          frameborder="0"
+          allowfullscreen
+        ></iframe>
+      </div>
 
       <!-- Image Preview -->
       <div
