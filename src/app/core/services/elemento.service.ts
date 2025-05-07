@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { catchError, map, Observable, throwError } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { catchError, map, Observable, throwError, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Elemento } from '../models/documentos/elemento.model';
 import { ElementoPapelera } from '../models/documentos/elemento-papelera-response.model';
@@ -19,6 +19,7 @@ import { RestaurarElementoRequest } from '../models/documentos/restaurar-element
 import { MoverElementoRequest } from '../models/documentos/mover-elemento-request.model';
 import { PrevisualizarArchivoRequest } from '../models/documentos/previsualizar-archivo.model';
 import { SubirElementoRequest } from '../models/documentos/subir-elemento-request.model';
+import { DescargarElementoRequest } from '../models/documentos/descargar-elemento-request.model';
 
 /**
  * Servicio para gestionar las operaciones relacionadas con los elementos (carpetas y archivos).
@@ -178,5 +179,106 @@ export class ElementoService {
         return throwError(() => new Error('No se pudo eliminar el elemento'));
       })
     );
+  }
+
+  descargarElementos(elementos: DescargarElementoRequest[]): Observable<Blob> {
+    if (!elementos || elementos.length === 0) {
+      return throwError(
+        () => new Error('No se especificaron elementos para descargar')
+      );
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+    });
+
+    return this.http
+      .post(`${this.API_URL}/descargar`, elementos, {
+        headers,
+        responseType: 'blob',
+        observe: 'response',
+      })
+      .pipe(
+        tap((response) => {
+          // Debug: Imprimir todos los headers de la respuesta
+          console.log('Response headers:', response.headers.keys());
+          console.log(
+            'Content-Disposition:',
+            response.headers.get('Content-Disposition')
+          );
+          console.log('Content-Type:', response.headers.get('Content-Type'));
+        }),
+        map((response) => {
+          // Obtener el nombre del archivo del header Content-Disposition
+          const contentDisposition = response.headers.get(
+            'Content-Disposition'
+          );
+          let filename = 'descarga.zip';
+
+          if (contentDisposition) {
+            // El backend envía el nombre en el formato: form-data; name="attachment"; filename="SDX_YYYYMMDD_HHMMSS.zip"
+            const filenameMatch =
+              contentDisposition.match(/filename="([^"]+)"/);
+            if (filenameMatch && filenameMatch[1]) {
+              filename = filenameMatch[1];
+              console.log('Nombre del archivo extraído:', filename);
+            } else {
+              console.warn(
+                'No se pudo extraer el nombre del archivo del header Content-Disposition:',
+                contentDisposition
+              );
+            }
+          } else {
+            // Si no hay Content-Disposition, generar un nombre basado en la fecha y el tipo de descarga
+            const fecha = new Date()
+              .toISOString()
+              .replace(/[-:]/g, '')
+              .replace('T', '_')
+              .slice(0, 15);
+
+            if (elementos.length === 1) {
+              // Para un solo elemento, usar su nombre
+              const elemento = elementos[0];
+              filename = `${
+                elemento.elemento === 'CARPETA' ? 'Carpeta' : 'Archivo'
+              }_${fecha}.zip`;
+            } else {
+              // Para múltiples elementos, usar el formato SDX
+              filename = `SDX_${fecha}.zip`;
+            }
+            console.warn(
+              'No se encontró el header Content-Disposition, usando nombre generado:',
+              filename
+            );
+          }
+
+          // Crear y descargar el archivo
+          const blob = response.body as Blob;
+          this.descargarArchivo(blob, filename);
+          return blob;
+        }),
+        catchError((error: ApiError) => {
+          console.error('Error al descargar elementos:', error.message);
+          return throwError(
+            () => new Error('No se pudieron descargar los elementos')
+          );
+        })
+      );
+  }
+
+  private descargarArchivo(blob: Blob, filename: string): void {
+    try {
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error al iniciar la descarga:', error);
+      throw new Error('No se pudo iniciar la descarga del archivo');
+    }
   }
 }

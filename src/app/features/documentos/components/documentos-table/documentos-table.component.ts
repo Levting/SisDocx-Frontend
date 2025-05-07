@@ -19,6 +19,7 @@ import { Carpeta } from '../../../../core/models/documentos/carpeta.model';
 import { TransformacionService } from '../../../../core/services/transformacion.service';
 import { CarpetaActualService } from '../../../../core/services/carpeta-actual.service';
 import { DocumentosPreviewModalComponent } from '../documentos-preview-modal/documentos-preview-modal.component';
+import { DescargarElementoRequest } from '../../../../core/models/documentos/descargar-elemento-request.model';
 
 @Component({
   selector: 'app-documentos-table',
@@ -350,11 +351,25 @@ export class DocumentosTableComponent implements OnInit {
   }
 
   descargarSeleccionados(): void {
-    // Implementar lógica de descarga múltiple
-    console.log(
-      'Descargar elementos seleccionados:',
-      this.elementosSeleccionados
-    );
+    if (this.elementosSeleccionados.length === 0) return;
+
+    const requests = this.elementosSeleccionados.map((elemento) => ({
+      elementoId: elemento.columnas['elementoId'],
+      elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
+    }));
+
+    this.elementoService.descargarElementos(requests).subscribe({
+      next: () => {
+        // La descarga se maneja automáticamente en el servicio
+        this.limpiarSeleccion();
+        this.cargarContenido(this.ruta[this.ruta.length - 1]?.elementoId || 1);
+      },
+      error: (error) => {
+        this.isError = true;
+        this.error = 'No se pudieron descargar los elementos';
+        console.error('Error al descargar elementos:', error);
+      },
+    });
   }
 
   moverSeleccionados(): void {
@@ -440,11 +455,6 @@ export class DocumentosTableComponent implements OnInit {
     });
   }
 
-  onDescargarIndividual(elemento: ElementoTabla): void {
-    // Implementar lógica de descarga
-    console.log('Descargar elemento:', elemento);
-  }
-
   onCambiarNombreIndividual(elemento: ElementoTabla): void {
     const isFile = elemento.columnas['elemento'] === 'ARCHIVO';
     const request: RenombrarElementoRequest = {
@@ -510,5 +520,24 @@ export class DocumentosTableComponent implements OnInit {
         carpetaActual.elementoId
       );
     }
+  }
+
+  onDescargarIndividual(elemento: ElementoTabla): void {
+    const request: DescargarElementoRequest = {
+      elementoId: elemento.columnas['elementoId'],
+      elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
+    };
+
+    this.elementoService.descargarElementos([request]).subscribe({
+      next: () => {
+        // La descarga se maneja automáticamente en el servicio
+        this.cargarContenido(this.ruta[this.ruta.length - 1]?.elementoId || 1);
+      },
+      error: (error: ApiError) => {
+        this.isError = true;
+        this.error = 'No se pudo descargar el elemento';
+        console.error('Error al descargar elemento:', error.message);
+      },
+    });
   }
 }
