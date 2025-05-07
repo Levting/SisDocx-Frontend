@@ -117,6 +117,8 @@ export class SubirArchivoModalComponent implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       this.handleFileSelection(Array.from(input.files));
+      // Limpiar el input para permitir seleccionar los mismos archivos nuevamente
+      input.value = '';
     }
   }
 
@@ -140,26 +142,36 @@ export class SubirArchivoModalComponent implements OnInit, OnDestroy {
 
   private handleFileSelection(files: File[]): void {
     const errores: string[] = [];
+    const archivosValidos: File[] = [];
 
     files.forEach((file) => {
       const error = this.validateFile(file);
       if (error) {
         errores.push(error);
+      } else {
+        archivosValidos.push(file);
       }
     });
 
     if (errores.length > 0) {
       this.errorMessage = errores.join('\n');
-      return;
     }
 
-    this.archivos = [...this.archivos, ...files];
-    this.errorMessage = null;
+    if (archivosValidos.length > 0) {
+      // Agregar solo los archivos válidos
+      this.archivos = [...this.archivos, ...archivosValidos];
+      this.errorMessage = null;
+    }
   }
 
   private validateFile(file: File): string | null {
     if (!file) {
       return 'No se ha seleccionado ningún archivo';
+    }
+
+    // Verificar si el archivo ya está en la lista
+    if (this.archivos.some((f) => f.name === file.name)) {
+      return `El archivo ${file.name} ya ha sido seleccionado`;
     }
 
     if (file.size > this.MAX_ARCHIVO_SIZE) {
