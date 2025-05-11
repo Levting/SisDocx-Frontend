@@ -40,6 +40,7 @@
             />
           </div>
 
+          <!-- Menú de Subitems -->
           <ng-container
             [ngTemplateOutlet]="item.children ? childMenu : parentMenu"
             [ngTemplateOutletContext]="{ item: item }"

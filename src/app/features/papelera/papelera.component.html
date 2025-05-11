@@ -1,12 +1,18 @@
-<div class="flex flex-col h-full">
-  <header class="mb-4">
-    <h2 class="font-bold text-[22px] lg:text-2xl 4xl:text-[26px]">
-      Papelera de Reciclaje
-    </h2>
+<div class="flex flex-col h-full bg-white rounded-lg shadow-sm">
+  <header>
+    <div>
+      <h2
+        class="font-bold mb-2 text-[22px] text-gray-800 lg:text-2xl 4xl:text-[26px]"
+      >
+        Papelera de Reciclaje
+      </h2>
+    </div>
   </header>
 
-  <div class="flex-1">
+  <div class="flex-1 min-h-0">
     <app-papelera-table />
   </div>
-  <app-confirm-modal></app-confirm-modal>
 </div>
+
+<!-- Modal de confirmación -->
+<app-confirm-modal />

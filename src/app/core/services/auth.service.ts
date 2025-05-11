@@ -17,6 +17,8 @@ import { Usuario } from '../models/usuario/usuario.model';
 import { Router } from '@angular/router';
 import { InicioSesionRequest } from '../models/auth/inicio-sesion-request.model';
 import { InicioSesionResponse } from '../models/auth/inicio-sesion-response.model';
+import { UserService } from './user.service';
+import { LoggerService } from './logger.service';
 
 @Injectable({
   providedIn: 'root',
@@ -27,77 +29,67 @@ export class AuthService {
   private userLoginOnSubject: BehaviorSubject<boolean> =
     new BehaviorSubject<boolean>(false);
   userLoginOn: Observable<boolean> = this.userLoginOnSubject.asObservable();
-  private initialCheckDone: boolean = false;
   private platformId: Object = inject(PLATFORM_ID);
-
-  // Mantener el usuario en un behavior subject
-  private usuarioSubject: BehaviorSubject<Usuario | null> =
-    new BehaviorSubject<Usuario | null>(null);
-  usuario: Observable<Usuario | null> = this.usuarioSubject.asObservable();
 
   constructor(
     private http: HttpClient,
     private tokenService: TokenService,
-    private router: Router
+    private router: Router,
+    private userService: UserService,
+    private logger: LoggerService
   ) {
-    if (!this.initialCheckDone) {
-      this.checkInitialAuth();
+    // Inicializar el estado de autenticación inmediatamente
+    this.initializeAuthState();
+
+    // Suscribirse a los cambios del usuario solo para debug
+    if (!environment.production) {
+      this.userService.usuarioAutenticado$.subscribe((usuario) => {
+        if (usuario) {
+          this.logger.debug('Estado de autenticación:', usuario);
+        }
+      });
     }
   }
 
-  /**
-   * Verifica si el usuario está autenticado
-   * @returns void
-   */
-  private checkInitialAuth(): void {
+  private initializeAuthState(): void {
     if (isPlatformBrowser(this.platformId)) {
       const hasToken = this.tokenService.isValidToken();
 
       if (hasToken) {
-        // Verificar si el token es válido con el servidor actual
+        // Si hay token, verificar su validez
         this.verificarTokenValido().subscribe({
           next: (esValido) => {
             if (esValido) {
               this.userLoginOnSubject.next(true);
-              // Si hay token válido, cargar el usuario
               this.cargarUsuarioAutenticado().subscribe();
             } else {
-              // Token inválido, limpiar y actualizar estado
-              this.tokenService.removeToken();
-              this.userLoginOnSubject.next(false);
-              this.usuarioSubject.next(null);
-              console.warn(
-                '⚠️ Token inválido o expirado. Por favor, inicie sesión nuevamente.'
-              );
+              this.handleInvalidToken();
             }
           },
-          error: (error) => {
-            // Error al verificar el token, asumimos que no es válido
-            this.tokenService.removeToken();
-            this.userLoginOnSubject.next(false);
-            this.usuarioSubject.next(null);
-            console.error('❌ Error al verificar el token:', error.message);
+          error: () => {
+            this.handleInvalidToken();
           },
         });
       } else {
+        // Si no hay token, establecer estado como no autenticado
         this.userLoginOnSubject.next(false);
       }
     }
-    this.initialCheckDone = true;
   }
 
-  /**
-   * Verifica si el token actual es válido con el servidor
-   * @returns Observable<boolean>
-   */
-  private verificarTokenValido(): Observable<boolean> {
-    return this.http.get<Usuario>(`${this.API_URL_AUTH}/me`).pipe(
+  private handleInvalidToken(): void {
+    this.tokenService.removeToken();
+    this.userLoginOnSubject.next(false);
+    this.userService.limpiarUsuarioActual();
+    this.logger.warn('Token inválido o expirado');
+    this.router.navigate(['/auth/iniciar-sesion']);
+  }
+
+  verificarTokenValido(): Observable<boolean> {
+    return this.userService.obtenerUsuarioAutenticado().pipe(
       map(() => true),
       catchError((error) => {
         if (error.status === 401) {
-          this.tokenService.removeToken();
-          this.userLoginOnSubject.next(false);
-          this.usuarioSubject.next(null);
           return of(false);
         }
         return throwError(() => error);
@@ -112,7 +104,7 @@ export class AuthService {
   verificarAutenticacion(): Observable<boolean> {
     if (!this.tokenService.isValidToken()) {
       this.userLoginOnSubject.next(false);
-      this.usuarioSubject.next(null);
+      this.userService.limpiarUsuarioActual();
       return of(false);
     }
 
@@ -120,7 +112,7 @@ export class AuthService {
       tap((esValido) => {
         if (!esValido) {
           this.userLoginOnSubject.next(false);
-          this.usuarioSubject.next(null);
+          this.userService.limpiarUsuarioActual();
         }
       })
     );
@@ -157,7 +149,7 @@ export class AuthService {
   cerrarSesion(): void {
     this.tokenService.removeToken();
     this.userLoginOnSubject.next(false);
-    this.usuarioSubject.next(null);
+    this.userService.limpiarUsuarioActual();
   }
 
   /**
@@ -174,16 +166,13 @@ export class AuthService {
    */
   private cargarUsuarioAutenticado(): Observable<Usuario | null> {
     if (!this.tokenService.isValidToken()) {
-      this.usuarioSubject.next(null);
+      this.userService.limpiarUsuarioActual();
       return of(null);
     }
 
-    return this.http.get<Usuario>(`${this.API_URL_AUTH}/me`).pipe(
-      tap((usuario) => {
-        this.usuarioSubject.next(usuario);
-      }),
+    return this.userService.obtenerUsuarioAutenticado().pipe(
       catchError((error) => {
-        this.usuarioSubject.next(null);
+        this.userService.limpiarUsuarioActual();
 
         // Si es un error de conexión (status 0) o un error de servidor
         if (error.status === 0 || error.status === 500) {
@@ -201,7 +190,7 @@ export class AuthService {
    * @returns Usuario | null
    */
   obtenerUsuarioAutenticado(): Usuario | null {
-    return this.usuarioSubject.getValue();
+    return this.userService.getUsuarioActual();
   }
 
   /**

@@ -8,9 +8,11 @@ import { UserService } from '../../../../core/services/user.service';
 import { FechaUtilsService } from '../../../../core/utils/fecha-utils.service';
 import { ElementoService } from '../../../../core/services/elemento.service';
 import { TransformacionService } from '../../../../core/services/transformacion.service';
-import { catchError, forkJoin, of } from 'rxjs';
+import { catchError, forkJoin, of, filter, switchMap, take } from 'rxjs';
 import { ApiError } from '../../../../core/models/errors/api-error.model';
 import { ConfirmModalService } from '../../../../shared/services/confirm-modal.service';
+import { LoggerService } from '../../../../core/services/logger.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-papelera-table',
@@ -37,14 +39,16 @@ export class PapeleraTableComponent implements OnInit, OnDestroy {
   ];
 
   // Inyección de servicios
-  public elementoService: ElementoService = inject(ElementoService); // Servicio de elemento
-  public usuarioService: UserService = inject(UserService); // Servicio de usuario
+  public elementoService: ElementoService = inject(ElementoService);
+  public usuarioService: UserService = inject(UserService);
   public fechaUtils: FechaUtilsService = inject(FechaUtilsService);
   private transformacionService: TransformacionService = inject(
     TransformacionService
   );
   private confirmModalService: ConfirmModalService =
     inject(ConfirmModalService);
+  private logger: LoggerService = inject(LoggerService);
+  private authService: AuthService = inject(AuthService);
 
   public elementosSeleccionados: ElementoTabla[] = []; // Elementos seleccionados
   public isLoading: boolean = false; // Indicador de carga
@@ -52,10 +56,13 @@ export class PapeleraTableComponent implements OnInit, OnDestroy {
   public error: string | null = null;
 
   ngOnInit(): void {
+    this.logger.debug('Inicializando componente PapeleraTable');
     this.cargarPapelera();
   }
 
-  ngOnDestroy(): void {}
+  ngOnDestroy(): void {
+    this.logger.debug('Destruyendo componente PapeleraTable');
+  }
 
   // Método para manejar el evento de selección de elementos
   onSeleccionCambiada(seleccionados: ElementoTabla[]): void {
@@ -73,40 +80,53 @@ export class PapeleraTableComponent implements OnInit, OnDestroy {
   cargarPapelera(): void {
     this.isLoading = true;
     this.isError = false;
-    this.elementosTablaPapelera = []; // Limpia la tabla al entrar
+    this.elementosTablaPapelera = [];
 
-    this.elementoService.obtenerPapelera().subscribe({
-      next: (elementos: ElementoPapelera[]) => {
-        this.elementosPapeleraOriginales = elementos;
+    this.authService.userLoginOn
+      .pipe(
+        filter((isLoggedIn) => isLoggedIn === true),
+        take(1),
+        switchMap(() => this.elementoService.obtenerPapelera())
+      )
+      .subscribe({
+        next: (elementos: ElementoPapelera[]) => {
+          this.elementosPapeleraOriginales = elementos;
 
-        // Si está vacío, terminar de una vez
-        if (elementos.length === 0) {
+          if (elementos.length === 0) {
+            this.isLoading = false;
+            return;
+          }
+
+          this.transformacionService
+            .transformarPapelerasATabla(elementos)
+            .subscribe({
+              next: (elementosTransformados) => {
+                this.elementosTablaPapelera = elementosTransformados;
+                this.isLoading = false;
+              },
+              error: (err: ApiError) => {
+                this.isLoading = false;
+                this.isError = true;
+                this.error =
+                  err.message || 'No se pudieron transformar los elementos';
+                this.logger.error('Error al transformar elementos:', err);
+              },
+            });
+        },
+        error: (err: ApiError) => {
           this.isLoading = false;
-          return;
-        }
+          this.isError = true;
 
-        this.transformacionService
-          .transformarPapelerasATabla(elementos)
-          .subscribe({
-            next: (elementosTransformados) => {
-              this.elementosTablaPapelera = elementosTransformados;
-              this.isLoading = false;
-            },
-            error: (err) => {
-              this.isLoading = false;
-              this.isError = true;
-              this.error =
-                'Ocurrió un problema al transformar los elementos. Intenta de nuevo más tarde.';
-            },
-          });
-      },
-      error: (err) => {
-        this.isLoading = false;
-        this.isError = true;
-        this.error =
-          'Ocurrió un problema al cargar la papelera. Intenta de nuevo más tarde.';
-      },
-    });
+          if (err.status === 401) {
+            this.error =
+              'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.';
+            this.logger.warn('Sesión expirada al cargar papelera');
+          } else {
+            this.error = err.message || 'No se pudo cargar la papelera';
+            this.logger.error('Error al cargar papelera:', err);
+          }
+        },
+      });
   }
 
   // Vaciar papelera
@@ -128,8 +148,8 @@ export class PapeleraTableComponent implements OnInit, OnDestroy {
       forkJoin(
         requests.map((request) =>
           this.elementoService.eliminarElemento(request).pipe(
-            catchError((error) => {
-              console.error(
+            catchError((error: ApiError) => {
+              this.logger.error(
                 `Error al eliminar elemento ${request.elementoId}:`,
                 error
               );
@@ -141,11 +161,12 @@ export class PapeleraTableComponent implements OnInit, OnDestroy {
         next: () => {
           this.limpiarSeleccion();
           this.cargarPapelera();
+          this.logger.debug('Papelera vaciada correctamente');
         },
-        error: (error) => {
+        error: (error: ApiError) => {
           this.isError = true;
-          this.error = 'No se pudo vaciar la papelera';
-          console.error('Error al vaciar papelera:', error);
+          this.error = error.message || 'No se pudo vaciar la papelera';
+          this.logger.error('Error al vaciar papelera:', error);
         },
       });
     });
@@ -202,22 +223,23 @@ export class PapeleraTableComponent implements OnInit, OnDestroy {
   /* Operaciones con los elementos desde el menu de acciones */
 
   restaurarElementosSeleccionados() {
-    console.log('Restaurar:', this.elementosSeleccionados);
     const request = this.elementosSeleccionados.map((elemento) => ({
       elementoId: elemento.columnas['elementoId'],
       elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
     }));
 
-    // Ejecutar todas las peticiones en paralelo
     forkJoin(
       request.map((request) => this.elementoService.restaurarElemento(request))
     ).subscribe({
       next: () => {
         this.limpiarSeleccion();
         this.cargarPapelera();
+        this.logger.debug('Elementos restaurados correctamente');
       },
       error: (error: ApiError) => {
-        console.log(error.message);
+        this.isError = true;
+        this.error = error.message || 'No se pudieron restaurar los elementos';
+        this.logger.error('Error al restaurar elementos:', error);
       },
     });
   }

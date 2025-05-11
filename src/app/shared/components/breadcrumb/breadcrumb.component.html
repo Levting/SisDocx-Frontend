@@ -1,9 +1,9 @@
-<nav class="inline-flex items-center gap-2.5 ml-2 flex-wrap">
+<nav class="inline-flex items-center gap-2.5 mx-3 flex-wrap">
   <button
     (click)="onIrRaiz()"
     class="inline-flex items-center gap-2 text-sm text-gray-700 last:text-gray-500 font-medium last:pointer-events-none"
   >
-    <svg-icon src="assets/icons/home.svg" />
+    <svg-icon src="assets/icons/home.svg" [svgClass]="'h-5 w-5'" />
   </button>
 
   <ng-container *ngFor="let segmento of ruta; let i = index; let last = last">
@@ -12,14 +12,14 @@
     <button
       *ngIf="!last"
       (click)="onNavegar(i)"
-      class="inline-flex items-center gap-2 text-sm text-gray-700 last:text-gray-500 font-medium last:pointer-events-none"
+      class="inline-flex items-center gap-2 text-md text-gray-700 last:text-gray-500 font-medium last:pointer-events-none"
     >
       {{ segmento.nombre }}
     </button>
 
     <span
       *ngIf="last"
-      class="inline-flex items-center gap-2 text-sm text-gray-700 last:text-gray-500 font-medium last:pointer-events-none"
+      class="inline-flex items-center gap-2 text-md text-gray-700 last:text-gray-500 font-medium last:pointer-events-none"
     >
       {{ segmento.nombre }}
     </span>

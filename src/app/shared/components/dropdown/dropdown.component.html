@@ -2,28 +2,31 @@
   <!-- Botón -->
   <button
     (click)="toggleDropdown()"
-    class="inline-flex items-center justify-center active:enabled:translate-y-px focus:outline-none focus-visible:ring-[1.8px] focus-visible:ring-offset-2 ring-offset-background transition-colors duration-200 p-1 size-10 rounded hover:text-primary focus-visible:ring-primary-lighter"
+    class="inline-flex items-center justify-center active:enabled:translate-y-px focus:outline-none focus-visible:ring-[1.8px] focus-visible:ring-offset-2 ring-offset-background transition-all duration-200 p-1 size-10 rounded-lg hover:bg-gray-100 focus-visible:ring-blue-500 hover:shadow-sm"
     type="button"
     title="Opciones"
   >
-    <svg-icon [src]="'assets/icons/options.svg'" />
+    <svg-icon
+      [src]="'assets/icons/options.svg'"
+      [svgClass]="'h-5 w-5 text-gray-600'"
+    />
   </button>
 
   <!-- Menú -->
   <div
     *ngIf="isOpen"
-    class="z-10 bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-56 dark:bg-gray-700 dark:divide-gray-600 absolute mt-2 right-0"
+    class="z-10 bg-white divide-y divide-gray-100 rounded-lg shadow-lg w-56 dark:bg-gray-700 dark:divide-gray-600 absolute mt-2 right-0 animate-fade-in"
   >
     <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
       <li *ngFor="let item of items">
         <button
           (click)="item.accion()"
-          class="flex items-center w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+          class="flex items-center w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white transition-colors duration-200"
         >
           <svg-icon
             *ngIf="item.icono"
             [src]="item.icono"
-            class="w-5 h-5 mr-2"
+            [svgClass]="'w-5 h-5 mr-2 text-gray-500'"
           ></svg-icon>
           <span class="truncate">{{ item.texto }}</span>
         </button>

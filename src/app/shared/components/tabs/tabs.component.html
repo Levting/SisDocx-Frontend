@@ -1,0 +1,20 @@
+<div class="border-b border-gray-200">
+  <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+    <button
+      *ngFor="let tab of tabs"
+      (click)="onTabClick(tab)"
+      [disabled]="tab.disabled"
+      [class]="getTabClasses(tab)"
+      [attr.aria-current]="tab.active ? 'page' : null"
+    >
+      <span class="flex items-center">
+        <i *ngIf="tab.icon" [class]="tab.icon" class="mr-2"></i>
+        {{ tab.label }}
+      </span>
+    </button>
+  </nav>
+</div>
+
+<div class="flex-1 min-h-0 shadow-none">
+  <ng-content />
+</div>

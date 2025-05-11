@@ -1,20 +1,24 @@
 <!-- Bloque de Acciones -->
-<div class="flex flex-col h-full gap-5">
+<div class="flex flex-col h-full gap-2">
+  <!-- Header Section -->
   <div
-    class="h-12 w-full rounded-lg flex items-center justify-between transition-all duration-300 ease-in-out transform p-2"
+    class="h-14 w-full rounded-lg flex items-center justify-between transition-all duration-300 ease-in-out transform px-4"
     [ngClass]="
       elementosSeleccionados.length > 0
-        ? 'shadow-md border border-gray-200'
+        ? 'shadow-sm border border-gray-200'
         : ''
     "
   >
     <!-- Mostrar cuando no hay elementos seleccionados -->
     <ng-container *ngIf="elementosSeleccionados.length === 0">
       <button
-        class="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg text-center transition-colors duration-200 flex items-center"
+        class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg text-center transition-colors duration-200 flex items-center gap-2"
         (click)="vaciarPapelera()"
       >
-        <svg-icon src="assets/icons/trash.svg" [svgClass]="'h-5 w-5 mr-1'" />
+        <svg-icon
+          src="assets/icons/object.svg"
+          [svgClass]="'h-5 w-5 text-red-500'"
+        />
         Vaciar Papelera
       </button>
     </ng-container>
@@ -24,23 +28,23 @@
       <div class="flex w-full justify-between select-none">
         <div class="flex gap-2">
           <button
-            class="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg text-center transition-colors duration-200 flex items-center"
+            class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg text-center transition-colors duration-200 flex items-center gap-2"
             (click)="restaurarSeleccionados()"
           >
             <svg-icon
-              src="assets/icons/trash.svg"
-              [svgClass]="'h-5 w-5 mr-1'"
+              src="assets/icons/object.svg"
+              [svgClass]="'h-5 w-5 text-green-500'"
             />
             Restaurar
           </button>
 
           <button
-            class="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg text-center transition-colors duration-200 flex items-center"
+            class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg text-center transition-colors duration-200 flex items-center gap-2"
             (click)="eliminarSeleccionados()"
           >
             <svg-icon
-              src="assets/icons/trash.svg"
-              [svgClass]="'h-5 w-5 mr-1'"
+              src="assets/icons/object.svg"
+              [svgClass]="'h-5 w-5 text-red-500'"
             />
             Eliminar permanentemente
           </button>
@@ -48,12 +52,12 @@
 
         <div class="flex flex-row">
           <button
-            class="text-sm p-1.5 text-gray-50 hover:text-white border border-gray-300 hover:bg-gray-50 font-medium rounded-lg text-center items-center transition-colors duration-200 flex"
+            class="text-sm px-4 py-2 text-gray-700 hover:text-gray-900 border border-gray-200 hover:bg-gray-50 font-medium rounded-lg text-center items-center transition-all duration-200 flex gap-2"
             (click)="limpiarSeleccion()"
             aria-label="Limpiar selección"
           >
-            <span class="text-sm font-medium text-gray-700 mr-2">
-              <i class="bi bi-x-lg mr-2"></i>
+            <i class="bi bi-x-lg"></i>
+            <span class="text-sm font-medium">
               {{ elementosSeleccionados.length }} seleccionado(s)
             </span>
           </button>
@@ -66,23 +70,23 @@
       <div class="flex w-full justify-between select-none">
         <div class="flex gap-2">
           <button
-            class="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg text-center transition-colors duration-200 flex items-center"
+            class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg text-center transition-colors duration-200 flex items-center gap-2"
             (click)="restaurarSeleccionados()"
           >
             <svg-icon
-              src="assets/icons/trash.svg"
-              [svgClass]="'h-5 w-5 mr-1'"
+              src="assets/icons/object.svg"
+              [svgClass]="'h-5 w-5 text-green-500'"
             />
             Restaurar seleccionados
           </button>
 
           <button
-            class="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg text-center transition-colors duration-200 flex items-center"
+            class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg text-center transition-colors duration-200 flex items-center gap-2"
             (click)="eliminarSeleccionados()"
           >
             <svg-icon
-              src="assets/icons/trash.svg"
-              [svgClass]="'h-5 w-5 mr-1'"
+              src="assets/icons/object.svg"
+              [svgClass]="'h-5 w-5 text-red-500'"
             />
             Eliminar permanentemente
           </button>
@@ -90,12 +94,12 @@
 
         <div class="flex flex-row">
           <button
-            class="text-sm p-1.5 text-gray-50 hover:text-white border border-gray-300 hover:bg-gray-50 font-medium rounded-lg text-center items-center transition-colors duration-200 flex"
+            class="text-sm px-4 py-2 text-gray-700 hover:text-gray-900 border border-gray-200 hover:bg-gray-50 font-medium rounded-lg text-center items-center transition-all duration-200 flex gap-2"
             (click)="limpiarSeleccion()"
             aria-label="Limpiar selección"
           >
-            <span class="text-sm font-medium text-gray-700 mr-2">
-              <i class="bi bi-x-lg mr-2"></i>
+            <i class="bi bi-x-lg"></i>
+            <span class="text-sm font-medium">
               {{ elementosSeleccionados.length }} seleccionado(s)
             </span>
           </button>
@@ -104,7 +108,10 @@
     </ng-container>
   </div>
 
-  <div class="flex-1 min-h-0">
+  <!-- Table Section -->
+  <div
+    class="flex-1 min-h-0 bg-white rounded-lg shadow-sm border border-gray-200"
+  >
     <app-table
       [cabeceras]="cabeceras"
       [columnas]="columnas"

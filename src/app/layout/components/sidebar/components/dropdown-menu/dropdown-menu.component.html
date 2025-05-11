@@ -2,7 +2,7 @@
   <button
     id="dropdownDividerButton"
     (click)="toggleDropdown.emit()"
-    class="text-white w-full bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm py-2.5 inline-flex items-center justify-center"
+    class="text-white w-full bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm py-2.5 inline-flex items-center justify-center transition-all duration-200 shadow-sm hover:shadow-md"
     type="button"
   >
     <div class="flex items-center" [ngClass]="showSideBar ? 'gap-2' : 'gap-0'">
@@ -15,36 +15,42 @@
   <div
     *ngIf="dropdownOpen"
     id="dropdownDivider"
-    class="absolute top-full mt-1 right-0 w-full z-20 bg-white divide-y divide-gray-100 rounded-lg shadow-sm dark:bg-gray-700 dark:divide-gray-600"
+    class="absolute top-full mt-1 right-0 w-full z-20 bg-white divide-y divide-gray-100 rounded-lg shadow-lg dark:bg-gray-700 dark:divide-gray-600 animate-fade-in"
   >
     <div class="py-2">
       <div
-        class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white cursor-pointer"
+        class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white cursor-pointer transition-colors duration-200"
         (click)="abrirModalCrearCarpetaHandler()"
       >
-        <svg-icon src="assets/icons/plus.svg" class="w-5 h-5"></svg-icon>
+        <svg-icon
+          src="assets/icons/plus.svg"
+          [svgClass]="'w-5 h-5 text-blue-600'"
+        ></svg-icon>
         <div class="text-sm font-medium">Crear carpeta</div>
       </div>
     </div>
     <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
       <li>
         <div
-          class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white cursor-pointer"
+          class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white cursor-pointer transition-colors duration-200"
           (click)="abrirModalCargaArchivosHandler()"
         >
-          <svg-icon src="assets/icons/upload.svg" class="w-5 h-5"></svg-icon>
+          <svg-icon
+            src="assets/icons/upload.svg"
+            [svgClass]="'w-5 h-5 text-green-600'"
+          ></svg-icon>
           <div class="text-sm font-medium">Subir archivos</div>
         </div>
       </li>
 
       <li>
         <div
-          class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white cursor-pointer"
+          class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white cursor-pointer transition-colors duration-200"
           (click)="abrirModalCargaCarpetasHandler()"
         >
           <svg-icon
             src="assets/icons/upload.svg"
-            class="w-5 h-5"
+            [svgClass]="'w-5 h-5 text-green-600'"
           ></svg-icon>
           <div class="text-sm font-medium">Subir carpetas</div>
         </div>

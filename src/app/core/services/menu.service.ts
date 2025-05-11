@@ -1,5 +1,5 @@
 import { Injectable, OnDestroy, signal } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Subscription, BehaviorSubject } from 'rxjs';
 import { NavigationEnd, Router } from '@angular/router';
 import { Menu } from '../constants/menu';
 import { MenuItem } from '../../shared/models/menu/menu.model';
@@ -11,6 +11,8 @@ export class MenuService implements OnDestroy {
   private _showSidebar = signal(true);
   private _pagesMenu = signal<MenuItem[]>([]);
   private _subscription = new Subscription();
+  private pagesMenuSubject = new BehaviorSubject<MenuItem[]>([]);
+  public pagesMenu$ = this.pagesMenuSubject.asObservable();
 
   constructor(private router: Router) {
     /* Definir un menu dinamico */
@@ -29,8 +31,8 @@ export class MenuService implements OnDestroy {
     return this._showSidebar();
   }
 
-  get pagesMenu() {
-    return this._pagesMenu();
+  get pagesMenu(): MenuItem[] {
+    return this.pagesMenuSubject.getValue();
   }
 
   set showSideBar(value: boolean) {
@@ -39,6 +41,10 @@ export class MenuService implements OnDestroy {
 
   public toggleSidebar() {
     this._showSidebar.set(!this._showSidebar());
+  }
+
+  updateMenuItems(items: MenuItem[]): void {
+    this.pagesMenuSubject.next(items);
   }
 
   ngOnDestroy(): void {

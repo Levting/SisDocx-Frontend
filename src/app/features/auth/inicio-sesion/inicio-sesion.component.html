@@ -3,7 +3,7 @@
   <!-- Mensaje de error global -->
   <div
     *ngIf="loginError"
-    class="p-4 mb-4 text-sm rounded-lg bg-red-50 text-red-600 border border-red-200"
+    class="p-4 mb-4 text-sm rounded-lg bg-red-50 text-red-600 border border-red-200 animate-fade-in"
   >
     <div class="flex items-center">
       <svg
@@ -27,19 +27,10 @@
     class="mb-7 px-6 pt-3 text-center md:pt-0 lg:px-0 lg:text-start xl:mb-8 2xl:mb-10"
   >
     <h2
-      class="font-bold mb-5 text-[26px] leading-snug md:text-3xl md:!leading-normal lg:mb-7 lg:pe-16 lg:text-[28px] xl:text-3xl 2xl:pe-8 2xl:text-3xl"
+      class="font-bold mb-2 text-3xl leading-snug md:text-4xl md:!leading-normal lg:mb-3 lg:pe-16 lg:text-xl xl:text-3xl 2xl:pe-8 2xl:text-3xl text-gray-800"
     >
-      Bienvenido de Nuevo!
-    </h2>
-
-    <div
-      class="font-bold mb-5 text-[26px] leading-snug md:text-3xl md:!leading-normal lg:mb-7 lg:pe-16 lg:text-[28px] xl:text-3xl 2xl:pe-8 2xl:text-2xl"
-    >
-      <!-- -->
-
-      <span class="relative inline-block"
-        >Inicia Sesión
-
+      <div class="relative inline-block">
+        Bienvenido
         <svg
           viewBox="0 0 147 10"
           fill="none"
@@ -51,11 +42,17 @@
             clip-rule="evenodd"
             d="M62.4325 0.957703C55.5264 1.2859 48.7014 1.68945 42.0459 2.13063C32.6242 2.75474 23.2063 3.40038 13.8451 4.42263C10.8984 4.74545 7.90595 4.94989 4.97767 5.35341C3.13948 5.60628 0.702089 5.96671 0.382211 6.04203C0.214902 6.08507 0.141911 6.1497 0.118325 6.17122C-0.0475096 6.32187 -0.0172508 6.46707 0.0763539 6.58006C0.113943 6.62848 0.208995 6.74689 0.472857 6.76303C18.1192 7.86599 36.1635 5.71388 53.8312 5.48791C84.4702 5.10053 116.038 6.63929 146.433 9.99658C146.699 10.0235 146.957 9.88894 146.994 9.68987C147.038 9.49618 146.846 9.30786 146.581 9.28096C116.134 5.91829 84.5144 4.37415 53.8165 4.76691C37.3509 4.97674 20.5603 6.86525 4.07184 6.21962C4.45068 6.16582 4.82217 6.112 5.16122 6.06357C8.0777 5.66005 11.0576 5.461 13.9925 5.13818C23.3338 4.11593 32.7326 3.4703 42.1417 2.85157C53.8165 2.07681 65.9998 1.40965 78.279 1.0976C82.6718 1.14602 87.0498 1.19446 91.4278 1.25364C100.899 1.38277 110.414 1.75939 119.863 2.26514C122.708 2.42117 125.553 2.58256 128.398 2.72245C129.341 2.77087 131.774 2.91073 132.113 2.89997C132.533 2.88921 132.614 2.63098 132.621 2.58794C132.643 2.4911 132.629 2.35658 132.422 2.2436C132.4 2.22745 132.267 2.17362 131.973 2.14134C114.792 0.236721 96.4471 -0.0806646 78.2937 0.376658C59.1453 0.177588 39.9232 0.0914646 20.8234 0C20.55 0 20.3266 0.161432 20.3244 0.360502C20.323 0.559572 20.5433 0.721008 20.8168 0.726389C34.6467 0.790952 48.5466 0.855478 62.4325 0.957703Z"
             fill="currentColor"
-          ></path></svg
-      ></span>
-      <!-- -->
-      para continuar.
-    </div>
+          ></path>
+        </svg>
+      </div>
+      de Nuevo
+    </h2>
+
+    <p
+      class="font-normal leading-[1.85] text-gray-600 md:leading-loose lg:pe-8 2xl:pe-14 text-lg"
+    >
+      Ingresa tus credenciales para continuar.
+    </p>
   </div>
 
   <!-- Formulario -->
@@ -67,20 +64,37 @@
       <div>
         <label
           for="correo"
-          class="block mb-2 text-sm font-medium text-gray-900"
+          class="block mb-2 text-sm font-medium text-gray-700"
         >
-          Correo
+          Correo Electrónico
         </label>
         <div class="relative">
+          <div
+            class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+          >
+            <svg
+              class="w-4 h-4 text-gray-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
+              />
+            </svg>
+          </div>
           <input
             type="email"
             name="correo"
             id="correo"
-            placeholder="sebas@sisdocx.com"
+            placeholder="sebas@eeasa.com"
             formControlName="correo"
             autocomplete="email"
             required
-            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 placeholder:text-gray-400"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pl-10 placeholder:text-gray-400 transition-colors duration-200"
             [ngClass]="{
               'bg-red-50 border-red-500 text-red-900 placeholder-red-700 focus:ring-red-500 focus:border-red-500':
                 correo.invalid && (correo.dirty || correo.touched)
@@ -90,7 +104,7 @@
         <!-- Mensajes de error -->
         <div
           *ngIf="correo.invalid && (correo.dirty || correo.touched)"
-          class="mt-2 text-sm text-red-600"
+          class="mt-2 text-sm text-red-600 animate-fade-in"
         >
           <div *ngIf="correo.hasError('required')">El correo es requerido.</div>
           <div *ngIf="correo.hasError('email')">Ingresa un correo válido.</div>
@@ -104,12 +118,29 @@
         <div class="flex items-center justify-between">
           <label
             for="contrasena"
-            class="block text-sm font-medium text-gray-900"
+            class="block text-sm font-medium text-gray-700"
           >
             Contraseña
           </label>
         </div>
         <div class="relative mt-2">
+          <div
+            class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+          >
+            <svg
+              class="w-4 h-4 text-gray-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
+            </svg>
+          </div>
           <input
             [type]="showPassword ? 'text' : 'password'"
             name="contrasena"
@@ -118,7 +149,7 @@
             formControlName="contrasena"
             autocomplete="current-password"
             required
-            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-10 placeholder:text-gray-400"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pl-10 pr-10 placeholder:text-gray-400 transition-colors duration-200"
             [ngClass]="{
               'bg-red-50 border-red-500 text-red-900 placeholder-red-700 focus:ring-red-500 focus:border-red-500':
                 contrasena.invalid && (contrasena.dirty || contrasena.touched)
@@ -130,7 +161,7 @@
             class="absolute inset-y-0 end-0 flex items-center pe-3.5"
           >
             <svg
-              class="w-4 h-4 text-gray-500 hover:text-gray-700"
+              class="w-4 h-4 text-gray-500 hover:text-gray-700 transition-colors duration-200"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -163,7 +194,7 @@
         <!-- Mensajes de error -->
         <div
           *ngIf="contrasena.invalid && (contrasena.dirty || contrasena.touched)"
-          class="mt-2 text-sm text-red-600"
+          class="mt-2 text-sm text-red-600 animate-fade-in"
         >
           <div *ngIf="contrasena.hasError('required')">
             La contraseña es requerida.
@@ -180,7 +211,7 @@
           type="submit"
           (click)="iniciarSesion()"
           [disabled]="isLoading"
-          class="text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center w-full inline-flex items-center justify-center disabled:bg-indigo-400"
+          class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center w-full inline-flex items-center justify-center disabled:bg-blue-400 transition-colors duration-200 shadow-md hover:shadow-lg"
         >
           <svg
             *ngIf="isLoading"

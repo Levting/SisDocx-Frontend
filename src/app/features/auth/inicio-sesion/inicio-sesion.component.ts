@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgClass, NgIf } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
 import { InicioSesionRequest } from '../../../core/models/auth/inicio-sesion-request.model';
+import { ApiError } from '../../../core/models/errors/api-error.model';
 
 @Component({
   selector: 'app-inicio-sesion',
@@ -47,23 +48,15 @@ export class InicioSesionComponent {
       this.authService
         .iniciarSesion(this.loginForm.value as InicioSesionRequest)
         .subscribe({
-          next: (data) => {
+          next: () => {
             this.router.navigate(['/']);
           },
-          error: (error) => {
+          error: (error: ApiError) => {
             this.contrasena.setValue('');
-
-            // Extraemos el mensaje de error exacto de la API
-            if (error instanceof Error) {
-              this.loginError = error.message;
-            } else {
-              this.loginError = 'Error desconocido durante el inicio de sesión';
-            }
-
+            this.loginError = error.message;
             this.isLoading = false;
           },
           complete: () => {
-            console.info('Inicio de sesión completado');
             this.isLoading = false;
             this.router.navigate(['/']);
             this.loginForm.reset();

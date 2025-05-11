@@ -14,6 +14,9 @@ import { DocumentosPreviewModalComponent } from '../../../documentos/components/
 import { MarcarElementoFavoritoRequest } from '../../../../core/models/request/elemento-request.model';
 import { ApiError } from '../../../../core/models/errors/api-error.model';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
+import { LoggerService } from '../../../../core/services/logger.service';
+import { AuthService } from '../../../../core/services/auth.service';
+import { filter, switchMap, take } from 'rxjs';
 
 @Component({
   selector: 'app-favoritos-table',
@@ -42,6 +45,8 @@ export class FavoritosTableComponent {
   );
   private carpetaActualService: CarpetaActualService =
     inject(CarpetaActualService);
+  private logger: LoggerService = inject(LoggerService);
+  private authService: AuthService = inject(AuthService);
 
   // Propiedades para la selección de elementos
   public elementosSeleccionados: ElementoTabla[] = [];
@@ -87,28 +92,28 @@ export class FavoritosTableComponent {
     this.isLoading = true;
     this.isError = false;
     this.elementosTabla = [];
-    this.ruta = []; // Limpiar la ruta al cargar favoritos inicialmente
+    this.ruta = [];
 
-    this.elementoService.obtenerFavoritos().subscribe({
-      next: (elementos: ElementoFavorito[]) => {
-        this.elementosOriginales = elementos;
-
-        if (elementos.length === 0) {
+    this.authService.userLoginOn
+      .pipe(
+        filter((isLoggedIn) => isLoggedIn === true),
+        take(1),
+        switchMap(() => this.elementoService.obtenerFavoritos())
+      )
+      .subscribe({
+        next: (elementos: ElementoFavorito[]) => {
+          this.elementosOriginales = elementos;
+          this.elementosTabla =
+            this.transformacionService.transformarFavoritosATabla(elementos);
           this.isLoading = false;
-          return;
-        }
-
-        this.elementosTabla =
-          this.transformacionService.transformarFavoritosATabla(elementos);
-        this.isLoading = false;
-      },
-      error: (err) => {
-        this.isLoading = false;
-        this.isError = true;
-        this.error =
-          'Ocurrió un problema al cargar los favoritos. Intenta de nuevo más tarde.';
-      },
-    });
+        },
+        error: (err: ApiError) => {
+          this.isLoading = false;
+          this.isError = true;
+          this.error = 'No se pudieron cargar los favoritos';
+          this.logger.error('Error al cargar favoritos:', err);
+        },
+      });
   }
 
   eliminarElementosFavoritos(): void {
@@ -117,43 +122,32 @@ export class FavoritosTableComponent {
 
   onDobleClickElemento(elemento: ElementoTabla): void {
     if (elemento.columnas['elemento'] === 'CARPETA') {
-      console.log('Doble clic en carpeta:', elemento.columnas);
-
-      // Limpiar selección al cambiar de carpeta
       this.limpiarSeleccion();
 
-      // Obtener los detalles completos de la carpeta
       this.elementoService
         .obtenerDetallesElemento(elemento.columnas['elementoId'], 'CARPETA')
         .subscribe({
           next: (carpetaDetalles) => {
-            // Actualizar la carpeta actual con los detalles completos
             this.carpetaActualService.actualizarCarpetaActual(
               carpetaDetalles as Carpeta
             );
-
-            // Actualizar la ruta
             this.ruta.push({
               nombre: elemento.columnas['nombre'],
               elementoId: elemento.columnas['elementoId'],
               elemento: 'CARPETA',
             });
-
-            // Cargar el contenido de la carpeta
             this.cargarContenido(
               elemento.columnas['elementoId'],
               elemento.columnas['nombre']
             );
           },
           error: (error) => {
-            console.error('Error al obtener detalles de la carpeta:', error);
             this.isError = true;
-            this.error = 'No se pudo cargar la carpeta';
+            this.error = 'No se pudo acceder a la carpeta';
+            this.logger.error('Error al acceder a carpeta:', error);
           },
         });
     } else {
-      // Abrir modal de previsualización para archivos
-      console.log('Previsualizar archivo:', elemento);
       this.elementoAPrevisualizar = elemento;
       this.isOpenPreviewModal = true;
     }
@@ -168,30 +162,30 @@ export class FavoritosTableComponent {
     this.isLoading = true;
     this.isError = false;
     this.error = null;
-    this.elementosTabla = []; // Limpia la tabla al entrar
+    this.elementosTabla = [];
 
-    this.elementoService.obtenerContenidoCarpeta(carpetaId).subscribe({
-      next: (elementos: Elemento[]) => {
-        this.elementosOriginales = elementos as ElementoFavorito[];
-
-        if (elementos.length === 0) {
+    this.authService.userLoginOn
+      .pipe(
+        filter((isLoggedIn) => isLoggedIn === true),
+        take(1),
+        switchMap(() => this.elementoService.obtenerContenidoCarpeta(carpetaId))
+      )
+      .subscribe({
+        next: (elementos: Elemento[]) => {
+          this.elementosOriginales = elementos as ElementoFavorito[];
+          this.elementosTabla =
+            this.transformacionService.transformarFavoritosATabla(
+              elementos as ElementoFavorito[]
+            );
           this.isLoading = false;
-          return;
-        }
-
-        this.elementosTabla =
-          this.transformacionService.transformarFavoritosATabla(
-            elementos as ElementoFavorito[]
-          );
-        this.isLoading = false;
-      },
-      error: (err) => {
-        this.isLoading = false;
-        this.isError = true;
-        this.error =
-          'Ocurrió un problema al cargar los favoritos. Intenta de nuevo más tarde.';
-      },
-    });
+        },
+        error: (err: ApiError) => {
+          this.isLoading = false;
+          this.isError = true;
+          this.error = 'No se pudo cargar el contenido de la carpeta';
+          this.logger.error('Error al cargar contenido:', err);
+        },
+      });
   }
 
   onToggleFavorito(elemento: ElementoTabla): void {
@@ -202,54 +196,38 @@ export class FavoritosTableComponent {
 
     this.elementoService.marcarElementoFavorito(request).subscribe({
       next: () => {
-        // Recargar la lista de favoritos
         this.cargarFavoritos();
       },
       error: (error: ApiError) => {
-        console.error('Error al cambiar estado de favorito:', error.message);
         this.isError = true;
         this.error = 'No se pudo actualizar el estado de favorito';
+        this.logger.error('Error al actualizar favorito:', error);
       },
     });
   }
 
   navegarA(index: number): void {
-    // Si el índice es mayor o igual que la longitud de la ruta, no hacer nada
-    if (index >= this.ruta.length) {
+    if (index >= this.ruta.length || index === this.ruta.length - 1) {
       return;
     }
 
-    // Obtener la carpeta a la que navegaremos
     const carpeta = this.ruta[index];
-
-    // Si estamos intentando navegar a la carpeta actual, no hacer nada
-    if (index === this.ruta.length - 1) {
-      return;
-    }
-
-    // Truncar la ruta hasta el índice seleccionado
     this.ruta = this.ruta.slice(0, index + 1);
-
-    // Limpiar selección al navegar usando el breadcrumb
     this.limpiarSeleccion();
 
-    // Obtener los detalles completos de la carpeta
     this.elementoService
       .obtenerDetallesElemento(carpeta.elementoId, 'CARPETA')
       .subscribe({
         next: (carpetaDetalles) => {
-          // Actualizar la carpeta actual con los detalles completos
           this.carpetaActualService.actualizarCarpetaActual(
             carpetaDetalles as Carpeta
           );
-
-          // Cargar contenido de esa carpeta
           this.cargarContenido(carpeta.elementoId, carpeta.nombre);
         },
         error: (error) => {
-          console.error('Error al obtener detalles de la carpeta:', error);
           this.isError = true;
-          this.error = 'No se pudo cargar la carpeta';
+          this.error = 'No se pudo acceder a la carpeta';
+          this.logger.error('Error al navegar a carpeta:', error);
         },
       });
   }

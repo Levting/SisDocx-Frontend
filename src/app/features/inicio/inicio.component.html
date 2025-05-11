@@ -1,17 +1,276 @@
 <!-- Bienvenida Mejorada -->
 <header class="mb-6 @container xs:-mt-2 lg:mb-7 select-none">
-  <div class="flex flex-col @lg:flex-row @lg:items-center @lg:justify-between">
+  <div class="flex flex-col gap-4">
     <div>
       <div
-        class="inline-flex items-center gap-2 text-sm text-gray-700 last:text-gray-500 font-medium last:pointer-events-none"
+        class="relative flex items-center justify-between rounded-lg p-5 sm:p-6 lg:p-7 border border-muted bg-gray-0 @4xl:col-span-2 @7xl:col-span-8 dark:bg-gray-100/30"
       >
-        Bienvenido/a SisDocx!
+        <div>
+          <h2 class="font-bold mb-4 text-2xl md:text-3xl text-gray-800">
+            {{ mensajeBienvenida }}, <br />
+            {{ usuario?.nombre }} {{ usuario?.apellido }}
+          </h2>
+          <p
+            class="font-normal text-sm leading-[1.6] text-gray-700 sm:text-base"
+          >
+            {{ rol }} de {{ provincia }}
+          </p>
+        </div>
+        <div>
+          <div
+            class="absolute -bottom-6 end-4 hidden w-[300px] @2xl:block lg:w-[320px] 2xl:-bottom-7 2xl:w-[330px]"
+          >
+            <div class="relative">
+              <img
+                alt="Welcome shop image form freepik"
+                loading="lazy"
+                width="2000"
+                height="2000"
+                decoding="async"
+                data-nimg="1"
+                src="assets/bg/folder-bg.png"
+                style="color: transparent"
+              />
+            </div>
+          </div>
+        </div>
       </div>
-      <h2
-        class="rizzui-title-h2 font-bold mb-2 text-[22px] lg:text-2xl 4xl:text-[26px]"
+    </div>
+
+    <div class="flex gap-4">
+      <div
+        class="border border-muted bg-gray-0 p-5 dark:bg-gray-50 lg:p-6 rounded-lg w-full max-w-full justify-between min-w-[292px]"
       >
-        {{ mensajeBienvenida }}, {{ usuario?.nombre }} {{ usuario?.apellido }}
-      </h2>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <div class="">
+              <p class="font-normal mb-0.5 text-gray-500">Total Images</p>
+              <p
+                class="font-lexend text-lg font-semibold text-gray-900 2xl:xl:text-xl dark:text-gray-700 3xl:text-[22px]"
+              >
+                36,476 GB
+              </p>
+            </div>
+          </div>
+          <div class="h-12 w-20">
+            <svg
+              viewBox="0 0 80 80"
+              class="transition-all duration-200 transform -rotate-90"
+            >
+              <circle
+                cx="40"
+                cy="40"
+                r="36.5"
+                fill="transparent"
+                stroke-width="7"
+                stroke="#D7E3FE"
+                class="dark:stroke-gray-300"
+              ></circle>
+              <circle
+                cx="40"
+                cy="40"
+                r="36.5"
+                fill="transparent"
+                stroke-width="7"
+                stroke="#3872FA"
+                stroke-dasharray="229.3362637120549 229.3362637120549"
+                stroke-dashoffset="-155.9486593241973"
+                stroke-linecap="round"
+                style="
+                  transition: stroke-dashoffset 0.3s ease-in-out;
+                  stroke-dashoffset: 155.949;
+                "
+              ></circle>
+              <foreignObject x="0" y="0" width="80" height="80"
+                ><div
+                  class="flex h-full w-full flex-col items-center justify-center transition-all duration-200 transform rotate-90"
+                >
+                  <span
+                    class="rizzui-text-span font-lexend text-base font-medium text-gray-700"
+                    >32%</span
+                  >
+                </div></foreignObject
+              >
+            </svg>
+          </div>
+        </div>
+        <p
+          class="font-normal mt-3 flex items-center leading-none text-gray-500"
+        >
+          <span class="me-2 inline-flex items-center font-medium text-green"
+            ><svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="me-1 h-4 w-4"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941"
+              ></path></svg
+            >+32.40%</span
+          >last month
+        </p>
+      </div>
+
+      <div
+        class="border border-muted bg-gray-0 p-5 dark:bg-gray-50 lg:p-6 rounded-lg w-full max-w-full justify-between min-w-[292px]"
+      >
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <div class="">
+              <p class="font-normal mb-0.5 text-gray-500">Total Images</p>
+              <p
+                class="font-lexend text-lg font-semibold text-gray-900 2xl:xl:text-xl dark:text-gray-700 3xl:text-[22px]"
+              >
+                36,476 GB
+              </p>
+            </div>
+          </div>
+          <div class="h-12 w-20">
+            <svg
+              viewBox="0 0 80 80"
+              class="transition-all duration-200 transform -rotate-90"
+            >
+              <circle
+                cx="40"
+                cy="40"
+                r="36.5"
+                fill="transparent"
+                stroke-width="7"
+                stroke="#D7E3FE"
+                class="dark:stroke-gray-300"
+              ></circle>
+              <circle
+                cx="40"
+                cy="40"
+                r="36.5"
+                fill="transparent"
+                stroke-width="7"
+                stroke="#3872FA"
+                stroke-dasharray="229.3362637120549 229.3362637120549"
+                stroke-dashoffset="-155.9486593241973"
+                stroke-linecap="round"
+                style="
+                  transition: stroke-dashoffset 0.3s ease-in-out;
+                  stroke-dashoffset: 155.949;
+                "
+              ></circle>
+              <foreignObject x="0" y="0" width="80" height="80"
+                ><div
+                  class="flex h-full w-full flex-col items-center justify-center transition-all duration-200 transform rotate-90"
+                >
+                  <span
+                    class="rizzui-text-span font-lexend text-base font-medium text-gray-700"
+                    >32%</span
+                  >
+                </div></foreignObject
+              >
+            </svg>
+          </div>
+        </div>
+        <p
+          class="font-normal mt-3 flex items-center leading-none text-gray-500"
+        >
+          <span class="me-2 inline-flex items-center font-medium text-green"
+            ><svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="me-1 h-4 w-4"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941"
+              ></path></svg
+            >+32.40%</span
+          >last month
+        </p>
+      </div>
+
+      <div
+        class="border border-muted bg-gray-0 p-5 dark:bg-gray-50 lg:p-6 rounded-lg w-full max-w-full justify-between min-w-[292px]"
+      >
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <div class="">
+              <p class="font-normal mb-0.5 text-gray-500">Total Images</p>
+              <p
+                class="font-lexend text-lg font-semibold text-gray-900 2xl:xl:text-xl dark:text-gray-700 3xl:text-[22px]"
+              >
+                36,476 GB
+              </p>
+            </div>
+          </div>
+          <div class="h-12 w-20">
+            <svg
+              viewBox="0 0 80 80"
+              class="transition-all duration-200 transform -rotate-90"
+            >
+              <circle
+                cx="40"
+                cy="40"
+                r="36.5"
+                fill="transparent"
+                stroke-width="7"
+                stroke="#D7E3FE"
+                class="dark:stroke-gray-300"
+              ></circle>
+              <circle
+                cx="40"
+                cy="40"
+                r="36.5"
+                fill="transparent"
+                stroke-width="7"
+                stroke="#3872FA"
+                stroke-dasharray="229.3362637120549 229.3362637120549"
+                stroke-dashoffset="-155.9486593241973"
+                stroke-linecap="round"
+                style="
+                  transition: stroke-dashoffset 0.3s ease-in-out;
+                  stroke-dashoffset: 155.949;
+                "
+              ></circle>
+              <foreignObject x="0" y="0" width="80" height="80"
+                ><div
+                  class="flex h-full w-full flex-col items-center justify-center transition-all duration-200 transform rotate-90"
+                >
+                  <span
+                    class="rizzui-text-span font-lexend text-base font-medium text-gray-700"
+                    >32%</span
+                  >
+                </div></foreignObject
+              >
+            </svg>
+          </div>
+        </div>
+        <p
+          class="font-normal mt-3 flex items-center leading-none text-gray-500"
+        >
+          <span class="me-2 inline-flex items-center font-medium text-green"
+            ><svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="me-1 h-4 w-4"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941"
+              ></path></svg
+            >+32.40%</span
+          >last month
+        </p>
+      </div>
     </div>
   </div>
 </header>

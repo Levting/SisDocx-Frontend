@@ -161,32 +161,25 @@ export class SubirCarpetaModalComponent {
             filesDeCarpeta
           );
           this.contadorCarpetasSubidas++;
-          // Pequeña pausa entre carpetas para evitar sobrecarga
-          await new Promise((resolve) => setTimeout(resolve, 100));
         } catch (error: any) {
+          console.error(`Error al subir la carpeta ${carpetaRaiz}:`, error);
           this.erroresPorCarpeta.push({
             carpeta: carpetaRaiz,
-            error:
-              error?.error?.message ||
-              error?.message ||
-              'Error desconocido al subir la carpeta.',
+            error: error?.message || 'Error desconocido al subir la carpeta.',
           });
+          // Si falla una carpeta, detenemos el proceso
+          throw new Error(
+            `Error al subir la carpeta ${carpetaRaiz}: ${error.message}`
+          );
         }
       }
 
-      if (this.erroresPorCarpeta.length === 0) {
-        this.carpetasSubidas.emit();
-        this.carpetaActualService.notificarRecargarContenido(
-          this.carpetaPadreId
-        );
-        this.onClose();
-      } else {
-        this.errorMessage =
-          'Algunas carpetas no pudieron ser subidas. Revisa los detalles.';
-      }
+      // Si llegamos aquí, todo se subió correctamente
+      this.carpetasSubidas.emit();
+      this.carpetaActualService.notificarRecargarContenido(this.carpetaPadreId);
+      this.onClose();
     } catch (error: any) {
       this.errorMessage =
-        error?.error?.message ||
         error?.message ||
         'Error al subir las carpetas. Por favor, intenta nuevamente.';
       console.error('Error al subir carpetas:', error);
@@ -208,107 +201,174 @@ export class SubirCarpetaModalComponent {
     carpetaRaiz: string,
     files: FileWithPath[]
   ): Promise<void> {
-    // 1. Crear la carpeta raíz
-    const folderFile = new File([], carpetaRaiz);
-    const carpetaResponse = await firstValueFrom(
-      this.elementoService.subirElemento({
-        carpetaPadreId,
-        elemento: folderFile,
-      })
-    );
+    // Estructura para mantener registro de elementos creados
+    const elementosCreados: { id: number; tipo: 'CARPETA' | 'ARCHIVO' }[] = [];
 
-    if (!carpetaResponse) {
-      throw new Error('No se pudo crear la carpeta en el backend');
-    }
-
-    // 2. Organizar archivos por nivel
-    const archivosPorNivel = new Map<string, FileWithPath[]>();
-    for (const file of files) {
-      const relativePath = file.webkitRelativePath.substring(
-        carpetaRaiz.length + 1
+    try {
+      // 1. Crear la carpeta raíz
+      const folderFile = new File([], carpetaRaiz);
+      const carpetaResponse = await firstValueFrom(
+        this.elementoService.subirElemento({
+          carpetaPadreId,
+          elemento: folderFile,
+        })
       );
-      if (!relativePath) continue;
 
-      const partes = relativePath.split('/');
-      const nivel = partes.length;
-      if (!archivosPorNivel.has(nivel.toString())) {
-        archivosPorNivel.set(nivel.toString(), []);
+      if (!carpetaResponse) {
+        throw new Error('No se pudo crear la carpeta en el backend');
       }
-      archivosPorNivel.get(nivel.toString())!.push(file);
-    }
 
-    // 3. Subir archivos nivel por nivel
-    const niveles = Array.from(archivosPorNivel.keys()).sort(
-      (a, b) => Number(a) - Number(b)
-    );
+      elementosCreados.push({
+        id: carpetaResponse.elementoId,
+        tipo: 'CARPETA',
+      });
 
-    for (const nivel of niveles) {
-      const archivosDelNivel = archivosPorNivel.get(nivel)!;
-      const carpetasCreadas = new Map<string, number>();
-
-      for (const file of archivosDelNivel) {
+      // 2. Organizar archivos por nivel
+      const archivosPorNivel = new Map<string, FileWithPath[]>();
+      for (const file of files) {
         const relativePath = file.webkitRelativePath.substring(
           carpetaRaiz.length + 1
         );
+        if (!relativePath) continue;
+
         const partes = relativePath.split('/');
-        const nombreArchivo = partes[partes.length - 1];
-        const rutaCarpeta = partes.slice(0, -1).join('/');
+        const nivel = partes.length;
+        if (!archivosPorNivel.has(nivel.toString())) {
+          archivosPorNivel.set(nivel.toString(), []);
+        }
+        archivosPorNivel.get(nivel.toString())!.push(file);
+      }
 
-        this.actualizarProgreso(nombreArchivo);
+      // 3. Subir archivos nivel por nivel
+      const niveles = Array.from(archivosPorNivel.keys()).sort(
+        (a, b) => Number(a) - Number(b)
+      );
 
-        // Si hay subcarpetas, asegurarse de que existan
-        if (rutaCarpeta) {
-          const carpetas = rutaCarpeta.split('/');
-          let carpetaPadreIdActual = carpetaResponse.elementoId;
+      const carpetasCreadas = new Map<string, number>();
 
-          for (const carpeta of carpetas) {
-            const rutaCompleta = carpetas
-              .slice(0, carpetas.indexOf(carpeta) + 1)
-              .join('/');
+      try {
+        for (const nivel of niveles) {
+          const archivosDelNivel = archivosPorNivel.get(nivel)!;
 
-            if (!carpetasCreadas.has(rutaCompleta)) {
-              const carpetaFile = new File([], carpeta);
-              const carpetaCreada = await firstValueFrom(
+          for (const file of archivosDelNivel) {
+            const relativePath = file.webkitRelativePath.substring(
+              carpetaRaiz.length + 1
+            );
+            const partes = relativePath.split('/');
+            const nombreArchivo = partes[partes.length - 1];
+            const rutaCarpeta = partes.slice(0, -1).join('/');
+
+            this.actualizarProgreso(nombreArchivo);
+
+            // Si hay subcarpetas, asegurarse de que existan
+            if (rutaCarpeta) {
+              const carpetas = rutaCarpeta.split('/');
+              let carpetaPadreIdActual = carpetaResponse.elementoId;
+
+              for (const carpeta of carpetas) {
+                const rutaCompleta = carpetas
+                  .slice(0, carpetas.indexOf(carpeta) + 1)
+                  .join('/');
+
+                if (!carpetasCreadas.has(rutaCompleta)) {
+                  const carpetaFile = new File([], carpeta);
+                  const carpetaCreada = await firstValueFrom(
+                    this.elementoService.subirElemento({
+                      carpetaPadreId: carpetaPadreIdActual,
+                      elemento: carpetaFile,
+                    })
+                  );
+                  carpetasCreadas.set(rutaCompleta, carpetaCreada.elementoId);
+                  elementosCreados.push({
+                    id: carpetaCreada.elementoId,
+                    tipo: 'CARPETA',
+                  });
+                  carpetaPadreIdActual = carpetaCreada.elementoId;
+                } else {
+                  carpetaPadreIdActual = carpetasCreadas.get(rutaCompleta)!;
+                }
+              }
+
+              // Crear un nuevo File con solo el nombre del archivo
+              const fileToUpload = new File([file], nombreArchivo, {
+                type: file.type,
+                lastModified: file.lastModified,
+              });
+
+              // Subir el archivo en la carpeta correspondiente
+              const archivoSubido = await firstValueFrom(
                 this.elementoService.subirElemento({
                   carpetaPadreId: carpetaPadreIdActual,
-                  elemento: carpetaFile,
+                  elemento: fileToUpload,
                 })
               );
-              carpetasCreadas.set(rutaCompleta, carpetaCreada.elementoId);
-              carpetaPadreIdActual = carpetaCreada.elementoId;
+              elementosCreados.push({
+                id: archivoSubido.elementoId,
+                tipo: 'ARCHIVO',
+              });
             } else {
-              carpetaPadreIdActual = carpetasCreadas.get(rutaCompleta)!;
+              // Crear un nuevo File con solo el nombre del archivo
+              const fileToUpload = new File([file], nombreArchivo, {
+                type: file.type,
+                lastModified: file.lastModified,
+              });
+
+              // Subir el archivo directamente en la carpeta raíz
+              const archivoSubido = await firstValueFrom(
+                this.elementoService.subirElemento({
+                  carpetaPadreId: carpetaResponse.elementoId,
+                  elemento: fileToUpload,
+                })
+              );
+              elementosCreados.push({
+                id: archivoSubido.elementoId,
+                tipo: 'ARCHIVO',
+              });
             }
           }
-
-          // Crear un nuevo File con solo el nombre del archivo
-          const fileToUpload = new File([file], nombreArchivo, {
-            type: file.type,
-            lastModified: file.lastModified,
-          });
-
-          // Subir el archivo en la carpeta correspondiente
-          await firstValueFrom(
-            this.elementoService.subirElemento({
-              carpetaPadreId: carpetaPadreIdActual,
-              elemento: fileToUpload,
-            })
-          );
-        } else {
-          // Crear un nuevo File con solo el nombre del archivo
-          const fileToUpload = new File([file], nombreArchivo, {
-            type: file.type,
-            lastModified: file.lastModified,
-          });
-
-          // Subir el archivo directamente en la carpeta raíz
-          await firstValueFrom(
-            this.elementoService.subirElemento({
-              carpetaPadreId: carpetaResponse.elementoId,
-              elemento: fileToUpload,
-            })
-          );
         }
+      } catch (error: any) {
+        // Si ocurre un error, intentar revertir los cambios
+        console.error('Error durante la subida:', error);
+
+        // Realizar rollback de los elementos creados
+        await this.realizarRollback(elementosCreados);
+
+        throw new Error(
+          `Error al subir la carpeta ${carpetaRaiz}: ${error.message}`
+        );
+      }
+    } catch (error) {
+      console.error('Error en uploadFolderStructure:', error);
+      throw error;
+    }
+  }
+
+  private async realizarRollback(
+    elementosCreados: { id: number; tipo: 'CARPETA' | 'ARCHIVO' }[]
+  ): Promise<void> {
+    console.log('Iniciando rollback de elementos:', elementosCreados);
+
+    // Eliminar elementos en orden inverso (primero los archivos, luego las carpetas)
+    const elementosOrdenados = [...elementosCreados].reverse();
+
+    for (const elemento of elementosOrdenados) {
+      try {
+        await firstValueFrom(
+          this.elementoService.eliminarElemento({
+            elementoId: elemento.id,
+            elemento: elemento.tipo,
+          })
+        );
+        console.log(
+          `Elemento eliminado exitosamente: ${elemento.tipo} ${elemento.id}`
+        );
+      } catch (error) {
+        console.error(
+          `Error al eliminar elemento durante rollback: ${elemento.tipo} ${elemento.id}`,
+          error
+        );
+        // Continuamos con el rollback aunque falle algún elemento
       }
     }
   }

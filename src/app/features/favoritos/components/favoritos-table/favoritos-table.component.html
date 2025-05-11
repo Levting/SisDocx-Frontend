@@ -1,96 +1,131 @@
-<div class="flex flex-col h-full gap-5">
-  <div
-    class="h-12 w-full rounded-lg flex items-center justify-between transition-all duration-300 ease-in-out transform p-2"
-    [ngClass]="
-      elementosSeleccionados.length > 0
-        ? 'shadow-md border border-gray-200'
-        : ''
-    "
-  >
-    <!-- Mostrar cuando no hay elementos seleccionados -->
-    <ng-container *ngIf="elementosSeleccionados.length === 0">
-      <!-- Aquí puedes agregar un mensaje o un botón para seleccionar elementos -->
-    </ng-container>
+<div class="flex flex-col h-full">
+  <div class="flex flex-col my-2 gap-2">
+    <!-- Header Section -->
+    <div
+      class="h-14 w-full rounded-lg flex items-center justify-between transition-all duration-300 ease-in-out transform px-3"
+      [ngClass]="
+        elementosSeleccionados.length > 0
+          ? 'shadow-sm border border-gray-200 bg-white'
+          : ''
+      "
+    >
+      <!-- Mostrar cuando no hay elementos seleccionados -->
+      <ng-container *ngIf="elementosSeleccionados.length === 0">
+        <header>
+          <div>
+            <h2
+              class="font-bold mb-2 text-[22px] text-gray-800 lg:text-2xl 4xl:text-[26px]"
+            >
+              Mis Favoritos
+            </h2>
+            <!-- <div class="inline-flex items-center gap-2.5 flex-wrap">
+            <a
+              role="button"
+              class="inline-flex items-center gap-2 text-sm text-gray-700 last:text-gray-500 font-medium last:pointer-events-none"
+              href="/ecommerce"
+              >Dashboard</a
+            ><span class="h-1 w-1 rounded-full bg-gray-300"></span
+            ><a
+              role="button"
+              class="inline-flex items-center gap-2 text-sm text-gray-700 last:text-gray-500 font-medium last:pointer-events-none"
+              href="/logistics/shipments"
+              >Shipments</a
+            ><span class="h-1 w-1 rounded-full bg-gray-300"></span
+            ><a
+              role="button"
+              class="inline-flex items-center gap-2 text-sm text-gray-700 last:text-gray-500 font-medium last:pointer-events-none"
+              href="#"
+              >Create Shipment</a
+            >
+          </div> -->
+          </div>
+        </header>
+      </ng-container>
 
-    <!-- Mostrar cuando se selecciona un solo elemento -->
-    <ng-container *ngIf="elementosSeleccionados.length === 1">
-      <div class="flex w-full justify-between select-none">
-        <div class="flex gap-2">
-          <button
-            class="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg text-center transition-colors duration-200 flex items-center"
-          >
-            <svg-icon
-              src="assets/icons/trash.svg"
-              [svgClass]="'h-5 w-5 mr-1'"
-            />
-            Abrir
-          </button>
+      <!-- Mostrar cuando se selecciona un solo elemento -->
+      <ng-container *ngIf="elementosSeleccionados.length === 1">
+        <div class="flex w-full justify-between select-none">
+          <div class="flex gap-2">
+            <button
+              class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg text-center transition-colors duration-200 flex items-center gap-2"
+            >
+              <svg-icon
+                src="assets/icons/open.svg"
+                [svgClass]="'h-5 w-5 text-blue-500'"
+              />
+              Abrir
+            </button>
 
-          <button
-            class="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg text-center transition-colors duration-200 flex items-center"
-          >
-            <svg-icon
-              src="assets/icons/trash.svg"
-              [svgClass]="'h-5 w-5 mr-1'"
-            />
-            Quitar de Favoritos
-          </button>
+            <button
+              class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg text-center transition-colors duration-200 flex items-center gap-2"
+            >
+              <svg-icon
+                src="assets/icons/star.svg"
+                [svgClass]="'h-5 w-5 text-yellow-500'"
+              />
+              Quitar de Favoritos
+            </button>
+          </div>
+
+          <div class="flex flex-row">
+            <button
+              class="text-sm px-4 py-2 text-gray-700 hover:text-gray-900 border border-gray-200 hover:bg-gray-50 font-medium rounded-lg text-center items-center transition-all duration-200 flex gap-2"
+              (click)="limpiarSeleccion()"
+              aria-label="Limpiar selección"
+            >
+              <i class="bi bi-x-lg"></i>
+              <span class="text-sm font-medium">
+                {{ elementosSeleccionados.length }} seleccionado(s)
+              </span>
+            </button>
+          </div>
         </div>
+      </ng-container>
 
-        <div class="flex flex-row">
-          <button
-            class="text-sm p-1.5 text-gray-50 hover:text-white border border-gray-300 hover:bg-gray-50 font-medium rounded-lg text-center items-center transition-colors duration-200 flex"
-            (click)="limpiarSeleccion()"
-            aria-label="Limpiar selección"
-          >
-            <span class="text-sm font-medium text-gray-700 mr-2">
-              <i class="bi bi-x-lg mr-2"></i>
-              {{ elementosSeleccionados.length }} seleccionado(s)
-            </span>
-          </button>
-        </div>
-      </div>
-    </ng-container>
+      <!-- Mostrar cuando se seleccionan múltiples elementos -->
+      <ng-container *ngIf="elementosSeleccionados.length > 1">
+        <div class="flex w-full justify-between select-none">
+          <div class="flex gap-2">
+            <button
+              class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg text-center transition-colors duration-200 flex items-center gap-2"
+              aria-label="Quitar de Favoritos"
+            >
+              <svg-icon
+                src="assets/icons/star.svg"
+                [svgClass]="'h-5 w-5 text-yellow-500'"
+              />
+              Quitar de Favoritos
+            </button>
+          </div>
 
-    <!-- Mostrar cuando se seleccionan múltiples elementos -->
-    <ng-container *ngIf="elementosSeleccionados.length > 1">
-      <div class="flex w-full justify-between select-none">
-        <div class="flex gap-2">
-          <button
-            class="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg text-center transition-colors duration-200 flex items-center"
-            aria-label="Quitar de Favoritos"
-          >
-            <svg-icon
-              src="assets/icons/trash.svg"
-              [svgClass]="'h-5 w-5 mr-1'"
-            />
-            Quitar de Favoritos
-          </button>
+          <div class="flex flex-row">
+            <button
+              class="text-sm px-4 py-2 text-gray-700 hover:text-gray-900 border border-gray-200 hover:bg-gray-50 font-medium rounded-lg text-center items-center transition-all duration-200 flex gap-2"
+              (click)="limpiarSeleccion()"
+              aria-label="Limpiar selección"
+            >
+              <i class="bi bi-x-lg"></i>
+              <span class="text-sm font-medium">
+                {{ elementosSeleccionados.length }} seleccionado(s)
+              </span>
+            </button>
+          </div>
         </div>
+      </ng-container>
+    </div>
 
-        <div class="flex flex-row">
-          <button
-            class="text-sm p-1.5 text-gray-50 hover:text-white border border-gray-300 hover:bg-gray-50 font-medium rounded-lg text-center items-center transition-colors duration-200 flex"
-            (click)="limpiarSeleccion()"
-            aria-label="Limpiar selección"
-          >
-            <span class="text-sm font-medium text-gray-700 mr-2">
-              <i class="bi bi-x-lg mr-2"></i>
-              {{ elementosSeleccionados.length }} seleccionado(s)
-            </span>
-          </button>
-        </div>
-      </div>
-    </ng-container>
+    <!-- Breadcrumb -->
+    <app-breadcrumb
+      [ruta]="ruta"
+      (navegar)="navegarA($event)"
+      (irRaiz)="cargarContenidoRaiz()"
+    />
   </div>
 
-  <app-breadcrumb
-    [ruta]="ruta"
-    (navegar)="navegarA($event)"
-    (irRaiz)="cargarContenidoRaiz()"
-  />
-
-  <div class="flex-1 min-h-0">
+  <!-- Table Section -->
+  <div
+    class="flex-1 min-h-0 bg-white rounded-lg shadow-sm border border-gray-200"
+  >
     <app-table
       [cabeceras]="cabeceras"
       [columnas]="columnas"
@@ -107,12 +142,12 @@
     />
   </div>
 
-  <!-- Plantilla para el dropdown -->
+  <!-- Dropdown Template -->
   <ng-template #dropdownFavoritosTemplate let-elemento="elemento">
     <app-favoritos-dropdown />
   </ng-template>
 
-  <!-- Modal de Previsualización -->
+  <!-- Preview Modal -->
   <app-documentos-preview-modal
     *ngIf="isOpenPreviewModal"
     [elemento]="elementoAPrevisualizar"

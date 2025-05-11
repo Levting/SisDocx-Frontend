@@ -1,15 +1,12 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { catchError, map, Observable, throwError, tap } from 'rxjs';
+import { catchError, map, Observable, throwError, tap, switchMap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Elemento } from '../models/documentos/elemento.model';
 import { ElementoPapelera } from '../models/documentos/elemento-papelera-response.model';
 import { ElementoFavorito } from '../models/documentos/elemento-favorito-reponse.model';
 import { CrearCarpetaRequest } from '../models/documentos/crear-carpeta-request.model';
 import { Carpeta } from '../models/documentos/carpeta.model';
-import { SubirCarpetaRequest } from '../models/documentos/subir-carpeta-request.model';
-import { SubirArchivoRequest } from '../models/documentos/subir-archivo-request.model';
-import { Archivo } from '../models/documentos/archivo.model';
 import { RenombrarElementoRequest } from '../models/request/elemento-request.model';
 import { MoverElementoPapeleraRequest } from '../models/request/elemento-request.model';
 import { MarcarElementoFavoritoRequest } from '../models/request/elemento-request.model';
@@ -20,6 +17,8 @@ import { MoverElementoRequest } from '../models/documentos/mover-elemento-reques
 import { PrevisualizarArchivoRequest } from '../models/documentos/previsualizar-archivo.model';
 import { SubirElementoRequest } from '../models/documentos/subir-elemento-request.model';
 import { DescargarElementoRequest } from '../models/documentos/descargar-elemento-request.model';
+import { AuthService } from './auth.service';
+import { LoggerService } from './logger.service';
 
 /**
  * Servicio para gestionar las operaciones relacionadas con los elementos (carpetas y archivos).
@@ -29,34 +28,41 @@ import { DescargarElementoRequest } from '../models/documentos/descargar-element
 })
 export class ElementoService {
   private readonly API_URL: string = `${environment.URL_API}/elementos`;
-
-  // Inyección de dependencias
   private http: HttpClient = inject(HttpClient);
+  private authService: AuthService = inject(AuthService);
+  private logger: LoggerService = inject(LoggerService);
+
+  private waitForAuth<T>(request: Observable<T>): Observable<T> {
+    return this.authService.userLoginOn.pipe(
+      switchMap((isLoggedIn) => {
+        if (!isLoggedIn) {
+          this.logger.warn('No autenticado');
+          return throwError(() => new Error('No autenticado'));
+        }
+        return request;
+      })
+    );
+  }
 
   obtenerContenidoCarpeta(carpetaId: number): Observable<Elemento[]> {
     const url = `${this.API_URL}/carpetas/${carpetaId}/contenido`;
-    return this.http.get<Elemento[]>(url);
+    return this.waitForAuth(this.http.get<Elemento[]>(url));
   }
 
   obtenerDetallesElemento(
     elementoId: number,
     elemento: 'CARPETA' | 'ARCHIVO'
   ): Observable<Elemento> {
-    // Construimos la URL con el parámetro de consulta
     const url = `${this.API_URL}/${elementoId}/detalles?elemento=${elemento}`;
-
-    // Realizamos la petición HTTP GET
-    return this.http.get<Elemento>(url).pipe(
-      map((respuesta) => {
-        // Transformamos la respuesta si es necesario
-        return respuesta;
-      }),
-      catchError((error) => {
-        console.error('Error al obtener detalles del elemento', error);
-        return throwError(
-          () => new Error('No se pudo obtener los detalles del elemento')
-        );
-      })
+    return this.waitForAuth(
+      this.http.get<Elemento>(url).pipe(
+        catchError((error) => {
+          this.logger.error('Error al obtener detalles del elemento:', error);
+          return throwError(
+            () => new Error('No se pudo obtener los detalles del elemento')
+          );
+        })
+      )
     );
   }
 
@@ -104,7 +110,9 @@ export class ElementoService {
       catchError((error: ApiError) => {
         console.error('Error al subir elemento:', error.error);
         console.error('Error al subir elemento:', error.message);
-        return throwError(() => new Error('No se pudo subir el elemento'));
+        return throwError(
+          () => new Error(error.message || 'No se pudo subir el elemento')
+        );
       })
     );
   }
@@ -174,9 +182,11 @@ export class ElementoService {
     const url = `${this.API_URL}/${request.elementoId}?elemento=${request.elemento}`;
     return this.http.delete<Elemento>(url).pipe(
       catchError((error: ApiError) => {
-        console.error('Error:', error.error);
+        console.error('Error al eliminar elemento:', error.error);
         console.error('Error al eliminar elemento:', error.message);
-        return throwError(() => new Error('No se pudo eliminar el elemento'));
+        return throwError(
+          () => new Error(error.message || 'No se pudo eliminar el elemento')
+        );
       })
     );
   }
@@ -281,4 +291,14 @@ export class ElementoService {
       throw new Error('No se pudo iniciar la descarga del archivo');
     }
   }
+
+  /**
+   * Obtiene los documentos agrupados por usuario
+   * @returns Observable con la lista de elementos
+   */
+  /* obtenerDocumentosPorUsuario(): Observable<Elemento[]> {
+    return this.http
+      .get<Elemento[]>(`${this.API_URL}/por-usuario`)
+      .pipe(catchError(this.handleError));
+  } */
 }

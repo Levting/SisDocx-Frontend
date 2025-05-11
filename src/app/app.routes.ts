@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { AuthGuard } from './core/guards/auth.guard';
+import { RoleGuard } from './core/guards/role.guard';
 import { LayoutComponent } from './layout/layout.component';
 import { InicioComponent } from './features/inicio/inicio.component';
 import { PapeleraComponent } from './features/papelera/papelera.component';
@@ -22,6 +23,12 @@ export const routes: Routes = [
         component: DocumentosComponent,
       },
       {
+        path: 'documentos-por-aprobar',
+        component: DocumentosComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['Administrador'] },
+      },
+      {
         path: 'papelera',
         component: PapeleraComponent,
       },
@@ -32,6 +39,20 @@ export const routes: Routes = [
       {
         path: 'ajustes',
         component: AjustesComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['Administrador'] },
+      },
+      {
+        path: 'campana-medicion',
+        component: DocumentosComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['Administrador'] },
+      },
+      {
+        path: 'fusion',
+        component: DocumentosComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['Administrador'] },
       },
       {
         path: '',

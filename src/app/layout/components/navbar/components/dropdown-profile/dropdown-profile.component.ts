@@ -11,6 +11,7 @@ import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { AuthService } from '../../../../../core/services/auth.service';
 import { Usuario } from '../../../../../core/models/usuario/usuario.model';
+import { UserService } from '../../../../../core/services/user.service';
 
 @Component({
   selector: 'app-dropdown-profile',
@@ -25,13 +26,14 @@ export class DropdownProfileComponent implements OnInit, OnDestroy {
 
   private elementRef = inject(ElementRef);
   private authService = inject(AuthService);
+  private userService = inject(UserService);
   private router = inject(Router);
 
   private destroy$ = new Subject<void>();
 
   ngOnInit() {
     // Suscripción al observable 'usuario' del servicio de autenticación para actualizar el perfil del usuario.
-    this.authService.usuario
+    this.userService.usuarioAutenticado$
       .pipe(takeUntil(this.destroy$))
       .subscribe((usuario) => (this.usuario = usuario));
 

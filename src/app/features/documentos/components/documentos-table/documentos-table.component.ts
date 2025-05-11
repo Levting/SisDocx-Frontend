@@ -7,7 +7,7 @@ import { Elemento } from '../../../../core/models/documentos/elemento.model';
 import { TableComponent } from '../../../../shared/components/table/table.component';
 import { ElementoTabla } from '../../../../shared/models/table/elemento-tabla.model';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
-import { catchError, forkJoin, of } from 'rxjs';
+import { catchError, forkJoin, of, filter, switchMap, take } from 'rxjs';
 import {
   MarcarElementoFavoritoRequest,
   RenombrarElementoRequest,
@@ -20,6 +20,8 @@ import { TransformacionService } from '../../../../core/services/transformacion.
 import { CarpetaActualService } from '../../../../core/services/carpeta-actual.service';
 import { DocumentosPreviewModalComponent } from '../documentos-preview-modal/documentos-preview-modal.component';
 import { DescargarElementoRequest } from '../../../../core/models/documentos/descargar-elemento-request.model';
+import { LoggerService } from '../../../../core/services/logger.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-documentos-table',
@@ -63,6 +65,8 @@ export class DocumentosTableComponent implements OnInit {
   );
   private confirmModalService: ConfirmModalService =
     inject(ConfirmModalService);
+  private logger: LoggerService = inject(LoggerService);
+  private authService: AuthService = inject(AuthService);
 
   // Propiedades para la selección de elementos
   public elementosSeleccionados: ElementoTabla[] = [];
@@ -88,9 +92,14 @@ export class DocumentosTableComponent implements OnInit {
 
   /* Inicializador del Componente */
   ngOnInit(): void {
-    if (this.elementosTabla.length === 0) {
-      this.cargarContenido(1); // Cargar contenido inicial (raiz)
-    }
+    this.carpetaActualService.carpetaActual$.pipe().subscribe((carpeta) => {
+      if (carpeta) {
+        this.cargarContenido(carpeta.elementoId);
+      } else if (this.ruta.length === 0) {
+        // Si estamos en la raíz y no hay carpeta actual
+        this.cargarContenido(1);
+      }
+    });
 
     // Suscribirse a eventos de recarga de contenido
     this.carpetaActualService.recargarContenido$
@@ -120,15 +129,6 @@ export class DocumentosTableComponent implements OnInit {
           }
         }
       });
-
-    this.carpetaActualService.carpetaActual$.pipe().subscribe((carpeta) => {
-      if (carpeta) {
-        this.cargarContenido(carpeta.elementoId);
-      } else if (this.ruta.length === 0) {
-        // Si estamos en la raíz y no hay carpeta actual
-        this.cargarContenido(1);
-      }
-    });
   }
 
   // Método para manejar el evento de selección de elementos
@@ -147,56 +147,70 @@ export class DocumentosTableComponent implements OnInit {
     this.isLoading = true;
     this.isError = false;
     this.error = null;
-    this.elementosTabla = []; // Limpia la tabla al entrar
+    this.elementosTabla = [];
 
-    this.elementoService.obtenerContenidoCarpeta(carpetaId).subscribe({
-      next: (elementos: Elemento[]) => {
-        // Solo actualizar la ruta si estamos navegando a una nueva carpeta
-        if (
-          nombre &&
-          (this.ruta.length === 0 ||
-            this.ruta[this.ruta.length - 1].elementoId !== carpetaId)
-        ) {
-          this.ruta.push({
-            nombre,
-            elementoId: carpetaId,
-            elemento: 'CARPETA',
-          });
-        } else if (carpetaId === 1) {
-          this.ruta = [];
-        }
+    this.authService.userLoginOn
+      .pipe(
+        filter((isLoggedIn) => isLoggedIn === true),
+        take(1),
+        switchMap(() => this.elementoService.obtenerContenidoCarpeta(carpetaId))
+      )
+      .subscribe({
+        next: (elementos: Elemento[]) => {
+          if (
+            nombre &&
+            (this.ruta.length === 0 ||
+              this.ruta[this.ruta.length - 1].elementoId !== carpetaId)
+          ) {
+            this.ruta.push({
+              nombre,
+              elementoId: carpetaId,
+              elemento: 'CARPETA',
+            });
+          } else if (carpetaId === 1) {
+            this.ruta = [];
+          }
 
-        this.elementosOriginales = elementos;
+          this.elementosOriginales = elementos;
 
-        // Si está vacío, terminar de una vez
-        if (elementos.length === 0) {
+          if (elementos.length === 0) {
+            this.isLoading = false;
+            return;
+          }
+
+          this.transformacionService
+            .transformarDocumentosATabla(elementos)
+            .subscribe({
+              next: (filas) => {
+                this.elementosTabla = filas;
+                this.isLoading = false;
+              },
+              error: (err: ApiError) => {
+                this.isLoading = false;
+                this.isError = true;
+                this.error = 'Error al transformar los elementos para la tabla';
+                this.logger.error(
+                  'Error al transformar elementos:',
+                  err.message
+                );
+              },
+            });
+        },
+        error: (err: ApiError) => {
           this.isLoading = false;
-          return;
-        }
-
-        this.transformacionService
-          .transformarDocumentosATabla(elementos)
-          .subscribe({
-            next: (filas) => {
-              this.elementosTabla = filas;
-              this.isLoading = false;
-            },
-            error: (err) => {
-              this.isLoading = false;
-              this.isError = true;
-              this.error = 'Error al transformar los elementos para la tabla';
-              console.error('Error al transformar elementos:', err);
-            },
-          });
-      },
-      error: (err) => {
-        this.isLoading = false;
-        this.isError = true;
-        this.error =
-          'Ocurrió un problema al cargar los archivos. Intenta de nuevo más tarde.';
-        console.error('Error al cargar contenido:', err);
-      },
-    });
+          this.isError = true;
+          if (err.status === 401) {
+            this.error =
+              'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.';
+            this.logger.warn('Sesión expirada al cargar contenido');
+          } else {
+            this.error =
+              err.message ||
+              'Ocurrió un problema al cargar los archivos. Intenta de nuevo más tarde.';
+            this.logger.error('Error al cargar contenido:', err.message);
+          }
+        },
+      });
   }
 
   navegarA(index: number): void {
