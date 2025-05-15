@@ -211,7 +211,7 @@
               <!-- Botones -->
               <div class="flex gap-1 items-center" *ngIf="dropdownTemplate">
                 <!-- Cuando un elemento esta marcado como favorito, mostrar el botón con el icono de estrella seleccionado -->
-                <ng-container *ngIf="esFavorito(elementoTabla)">
+               <!--  <ng-container *ngIf="esFavorito(elementoTabla)">
                   <button
                     class="items-center justify-center active:enabled:translate-y-px"
                     type="button"
@@ -230,7 +230,7 @@
                       }"
                     ></svg-icon>
                   </button>
-                </ng-container>
+                </ng-container> -->
 
                 <!-- Dropdown -->
                 <div
@@ -242,7 +242,7 @@
                   }"
                 >
                   <!-- Cuando un elemento no esta marcado como favorito, mostrar el botón con el icono de estrella no seleccionado -->
-                  <ng-container *ngIf="!esFavorito(elementoTabla)">
+                  <!-- <ng-container *ngIf="!esFavorito(elementoTabla)">
                     <button
                       class="items-center justify-center active:enabled:translate-y-px"
                       type="button"
@@ -261,7 +261,7 @@
                         }"
                       ></svg-icon>
                     </button>
-                  </ng-container>
+                  </ng-container> -->
 
                   <ng-container
                     *ngIf="dropdownTemplate"

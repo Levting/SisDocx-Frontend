@@ -17,6 +17,7 @@ import { ElementoService } from '../../../../../../core/services/elemento.servic
 import { CrearCarpetaRequest } from '../../../../../../core/models/documentos/crear-carpeta-request.model';
 import { ApiError } from '../../../../../../core/models/errors/api-error.model';
 import { ToastService } from '../../../../../../shared/services/toast.service';
+import { Elemento } from '../../../../../../core/models/documentos/elemento.model';
 
 @Component({
   selector: 'app-crear-carpeta-modal',
@@ -35,6 +36,7 @@ export class CrearCarpetaModalComponent implements OnInit, OnDestroy {
   public nombreCarpeta: string = '';
   public isLoading: boolean = false;
   public errorMessage: string | null = null;
+  private carpetaRaiz: Elemento | null = null;
 
   private readonly MAX_NOMBRE_LENGTH = 100;
   private readonly MIN_NOMBRE_LENGTH = 1;
@@ -47,6 +49,7 @@ export class CrearCarpetaModalComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.setupSubscriptions();
+    this.obtenerCarpetaRaiz();
   }
 
   private setupSubscriptions(): void {
@@ -54,6 +57,20 @@ export class CrearCarpetaModalComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((carpeta) => {
         this.carpetaActual = carpeta;
+      });
+  }
+
+  private obtenerCarpetaRaiz(): void {
+    this.elementoService
+      .obtenerRaiz()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: ({ carpetaRaiz }) => {
+          this.carpetaRaiz = carpetaRaiz;
+        },
+        error: (error) => {
+          console.error('Error al obtener la carpeta raíz:', error);
+        },
       });
   }
 
@@ -106,11 +123,58 @@ export class CrearCarpetaModalComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.errorMessage = null;
 
-    const carpetaPadreId = this.carpetaActualService.obtenerCarpetaActual()?.elementoId || 1;
+    // Obtener la carpeta actual del servicio
+    const carpetaActual = this.carpetaActualService.obtenerCarpetaActual();
 
+    // Si no hay carpeta actual, usar la carpeta raíz del usuario
+    if (!carpetaActual) {
+      if (!this.carpetaRaiz) {
+        this.errorMessage =
+          'No se pudo obtener la carpeta raíz. Por favor, intente nuevamente.';
+        this.isLoading = false;
+        return;
+      }
+
+      const crearCarpetaRequest: CrearCarpetaRequest = {
+        nombre: this.nombreCarpeta,
+        carpetaPadreId: this.carpetaRaiz.elementoId,
+      };
+
+      this.elementoService
+        .crearCarpeta(crearCarpetaRequest)
+        .pipe(
+          finalize(() => {
+            this.isLoading = false;
+          }),
+          takeUntil(this.destroy$)
+        )
+        .subscribe({
+          next: (carpetaCreada: Carpeta) => {
+            this.toastService.show({
+              type: 'success',
+              message: 'Carpeta creada exitosamente',
+              duration: 3000,
+            });
+
+            // Notificar la recarga usando la carpeta raíz
+            this.carpetaActualService.notificarRecargarContenido(
+              this.carpetaRaiz!.elementoId
+            );
+            this.carpetaCreada.emit();
+            this.onClose();
+          },
+          error: (error: ApiError) => {
+            console.error('Error al crear la carpeta:', error.message);
+            this.errorMessage = this.obtenerMensajeError(error);
+          },
+        });
+      return;
+    }
+
+    // Si hay carpeta actual, usar esa
     const crearCarpetaRequest: CrearCarpetaRequest = {
       nombre: this.nombreCarpeta,
-      carpetaPadreId: carpetaPadreId,
+      carpetaPadreId: carpetaActual.elementoId,
     };
 
     this.elementoService
@@ -128,7 +192,11 @@ export class CrearCarpetaModalComponent implements OnInit, OnDestroy {
             message: 'Carpeta creada exitosamente',
             duration: 3000,
           });
-          this.carpetaActualService.notificarRecargarContenido(carpetaPadreId);
+
+          // Notificar la recarga usando la carpeta actual
+          this.carpetaActualService.notificarRecargarContenido(
+            carpetaActual.elementoId
+          );
           this.carpetaCreada.emit();
           this.onClose();
         },

@@ -7,7 +7,17 @@ import { Elemento } from '../../../../core/models/documentos/elemento.model';
 import { TableComponent } from '../../../../shared/components/table/table.component';
 import { ElementoTabla } from '../../../../shared/models/table/elemento-tabla.model';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
-import { catchError, forkJoin, of, filter, switchMap, take, tap } from 'rxjs';
+import {
+  catchError,
+  forkJoin,
+  of,
+  filter,
+  switchMap,
+  take,
+  tap,
+  map,
+  throwError,
+} from 'rxjs';
 import {
   MarcarElementoFavoritoRequest,
   RenombrarElementoRequest,
@@ -119,25 +129,28 @@ export class DocumentosTableComponent implements OnInit {
 
     // Suscribirse a eventos de recarga de contenido
     this.carpetaActualService.recargarContenido$
-      .pipe()
+      .pipe(
+        tap((carpetaId) => {
+          this.logger.debug('Recargando contenido para carpeta:', carpetaId);
+        })
+      )
       .subscribe((carpetaId) => {
-        if (carpetaId !== null) {
-          const carpetaActual =
-            this.carpetaActualService.obtenerCarpetaActual();
-          if (this.ruta.length === 0) {
-            this.cargarRaiz();
-          } else if (carpetaActual && carpetaActual.elementoId === carpetaId) {
-            this.cargarContenido(carpetaId);
-          }
-        } else {
-          const carpetaActual =
-            this.carpetaActualService.obtenerCarpetaActual();
-          if (carpetaActual) {
-            this.cargarContenido(carpetaActual.elementoId);
-          } else {
-            this.cargarRaiz();
-          }
+        const carpetaActual = this.carpetaActualService.obtenerCarpetaActual();
+
+        // Si no hay carpeta actual o estamos en la raíz, cargar la raíz
+        if (!carpetaActual || this.ruta.length === 0) {
+          this.cargarRaiz();
+          return;
         }
+
+        // Si el ID de la carpeta coincide con la actual, recargar su contenido
+        if (carpetaId === carpetaActual.elementoId) {
+          this.cargarContenido(carpetaId, carpetaActual.nombre);
+          return;
+        }
+
+        // Si estamos en una subcarpeta y el ID no coincide, volver a la raíz
+        this.cargarRaiz();
       });
   }
 
@@ -146,53 +159,65 @@ export class DocumentosTableComponent implements OnInit {
     this.isError = false;
     this.error = null;
     this.elementosTabla = [];
-    this.ruta = []; // Limpiar la ruta al cargar la raíz
+    this.ruta = [];
 
     this.logger.debug('Iniciando carga de contenido raíz');
 
-    this.elementoService.obtenerRaiz().subscribe({
-      next: ({ carpetaRaiz, contenido }) => {
-        this.logger.debug('Contenido raíz recibido:', contenido);
-        this.elementosOriginales = contenido;
+    this.elementoService
+      .obtenerRaiz()
+      .pipe(
+        tap(({ carpetaRaiz, contenido }) => {
+          this.logger.debug('Contenido raíz recibido:', contenido);
+          this.elementosOriginales = contenido;
 
-        // Transformar los elementos para la tabla
-        this.transformacionService
-          .transformarDocumentosATabla(contenido)
-          .subscribe({
-            next: (filas) => {
-              this.elementosTabla = filas;
-              this.isLoading = false;
-
-              // Actualizar la carpeta actual con la carpeta raíz del usuario
-              this.carpetaActualService.actualizarCarpetaActual({
-                elementoId: carpetaRaiz.elementoId,
-                nombre: carpetaRaiz.nombre,
-                cantidadElementos: contenido.length,
-                creadoPor: carpetaRaiz.creadoPor,
-                creadoEl: carpetaRaiz.creadoEl,
-                carpetaPadreId: carpetaRaiz.carpetaPadreId,
-                elemento: 'CARPETA',
-                estado: carpetaRaiz.estado,
-                ruta: carpetaRaiz.ruta,
-              });
-
-              this.logger.debug('Contenido raíz cargado exitosamente');
-            },
-            error: (err: ApiError) => {
-              this.isLoading = false;
-              this.isError = true;
-              this.error = 'Error al transformar los elementos para la tabla';
-              this.logger.error('Error al transformar elementos:', err.message);
-            },
+          // Actualizar la carpeta actual con la carpeta raíz
+          this.carpetaActualService.actualizarCarpetaActual({
+            elementoId: carpetaRaiz.elementoId,
+            nombre: carpetaRaiz.nombre,
+            cantidadElementos: contenido.length,
+            creadoPor: carpetaRaiz.creadoPor,
+            creadoEl: carpetaRaiz.creadoEl,
+            carpetaPadreId: carpetaRaiz.carpetaPadreId,
+            elemento: 'CARPETA',
+            estado: carpetaRaiz.estado,
+            ruta: carpetaRaiz.ruta,
           });
-      },
-      error: (err: ApiError) => {
-        this.isLoading = false;
-        this.isError = true;
-        this.error = err.message || 'Error al cargar la carpeta raíz';
-        this.logger.error('Error al cargar la carpeta raíz:', err);
-      },
-    });
+
+          // Si no hay contenido, terminar aquí
+          if (contenido.length === 0) {
+            this.isLoading = false;
+            return;
+          }
+        }),
+        switchMap(({ carpetaRaiz, contenido }) =>
+          contenido.length > 0
+            ? this.transformacionService
+                .transformarDocumentosATabla(contenido)
+                .pipe(map((filas) => ({ filas, carpetaRaiz })))
+            : of({ filas: [], carpetaRaiz })
+        ),
+        catchError((err: ApiError) => {
+          this.isLoading = false;
+          this.isError = true;
+          this.error = err.message || 'Error al cargar la carpeta raíz';
+          this.logger.error('Error al cargar la carpeta raíz:', err);
+          return throwError(() => err);
+        })
+      )
+      .subscribe({
+        next: ({ filas, carpetaRaiz }) => {
+          this.elementosTabla = filas;
+          this.isLoading = false;
+          this.logger.debug('Contenido raíz cargado exitosamente');
+        },
+        error: () => {
+          // El error ya se maneja en el catchError del pipe
+        },
+        complete: () => {
+          // Asegurarse de que el estado de carga se actualice incluso si hay un error
+          this.isLoading = false;
+        },
+      });
   }
 
   // Método para manejar el evento de selección de elementos

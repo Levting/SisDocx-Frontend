@@ -95,21 +95,21 @@ export class SidebarNavComponent implements OnInit {
           {
             label: 'Por Aprobar',
             route: '/documentos-por-aprobar',
-            icon: 'assets/icons/approve.svg',
+            icon: 'assets/icons/object.svg',
             active: false,
             roles: ['Administrador'],
           },
-          {
+          /* {
             label: 'Favoritos',
             route: '/favoritos',
             icon: 'assets/icons/star.svg',
             active: false,
             roles: ['Administrador', 'Personal'],
-          },
+          }, */
           {
             label: 'Papelera',
             route: '/papelera',
-            icon: 'assets/icons/trash.svg',
+            icon: 'assets/icons/object.svg',
             active: false,
             roles: ['Administrador', 'Personal'],
           },

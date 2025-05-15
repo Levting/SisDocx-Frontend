@@ -22,7 +22,7 @@ export class Menu {
           route: '/favoritos',
         },
         {
-          icon: 'assets/icons/trash.svg',
+          icon: 'assets/icons/object.svg',
           label: 'Papelera',
           route: '/papelera',
         },
@@ -39,7 +39,7 @@ export class Menu {
       separator: false,
       items: [
         {
-          icon: 'assets/icons/settings.svg',
+          icon: 'assets/icons/object.svg',
           label: 'Fusión de Documentos',
           route: '/automatizaciones/fusion-documentos',
         },
