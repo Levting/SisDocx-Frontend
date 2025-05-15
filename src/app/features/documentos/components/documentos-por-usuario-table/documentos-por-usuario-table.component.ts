@@ -1,5 +1,4 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { TableComponent } from '../../../../shared/components/table/table.component';
 import { ElementoService } from '../../../../core/services/elemento.service';
 import { Elemento } from '../../../../core/models/documentos/elemento.model';

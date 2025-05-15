@@ -151,29 +151,29 @@ export class DocumentosTableComponent implements OnInit {
     this.logger.debug('Iniciando carga de contenido raíz');
 
     this.elementoService.obtenerRaiz().subscribe({
-      next: (elementos) => {
-        this.logger.debug('Contenido raíz recibido:', elementos);
-        this.elementosOriginales = elementos;
+      next: ({ carpetaRaiz, contenido }) => {
+        this.logger.debug('Contenido raíz recibido:', contenido);
+        this.elementosOriginales = contenido;
 
         // Transformar los elementos para la tabla
         this.transformacionService
-          .transformarDocumentosATabla(elementos)
+          .transformarDocumentosATabla(contenido)
           .subscribe({
             next: (filas) => {
               this.elementosTabla = filas;
               this.isLoading = false;
 
-              // Actualizar la carpeta actual
+              // Actualizar la carpeta actual con la carpeta raíz del usuario
               this.carpetaActualService.actualizarCarpetaActual({
-                elementoId: 1,
-                nombre: 'Raíz',
-                cantidadElementos: elementos.length,
-                creadoPor: 0,
-                creadoEl: '',
-                carpetaPadreId: 0,
+                elementoId: carpetaRaiz.elementoId,
+                nombre: carpetaRaiz.nombre,
+                cantidadElementos: contenido.length,
+                creadoPor: carpetaRaiz.creadoPor,
+                creadoEl: carpetaRaiz.creadoEl,
+                carpetaPadreId: carpetaRaiz.carpetaPadreId,
                 elemento: 'CARPETA',
-                estado: 'DISPONIBLE',
-                ruta: [],
+                estado: carpetaRaiz.estado,
+                ruta: carpetaRaiz.ruta,
               });
 
               this.logger.debug('Contenido raíz cargado exitosamente');
@@ -207,7 +207,6 @@ export class DocumentosTableComponent implements OnInit {
     });
   }
 
-  // Modificar el método cargarContenido para manejar roles
   cargarContenido(carpetaId: number, nombre?: string): void {
     this.isLoading = true;
     this.isError = false;

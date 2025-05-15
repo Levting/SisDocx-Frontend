@@ -10,7 +10,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
-import { finalize } from 'rxjs/operators';
+import { finalize, switchMap, take } from 'rxjs/operators';
 import { CarpetaActualService } from '../../../../../../core/services/carpeta-actual.service';
 import { Carpeta } from '../../../../../../core/models/documentos/carpeta.model';
 import { ElementoService } from '../../../../../../core/services/elemento.service';
@@ -106,10 +106,7 @@ export class CrearCarpetaModalComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.errorMessage = null;
 
-    const carpetaPadreId =
-      this.carpetaPadreId > 0
-        ? this.carpetaPadreId
-        : this.carpetaActualService.obtenerCarpetaActual()?.elementoId || 1;
+    const carpetaPadreId = this.carpetaActualService.obtenerCarpetaActual()?.elementoId || 1;
 
     const crearCarpetaRequest: CrearCarpetaRequest = {
       nombre: this.nombreCarpeta,
@@ -131,8 +128,8 @@ export class CrearCarpetaModalComponent implements OnInit, OnDestroy {
             message: 'Carpeta creada exitosamente',
             duration: 3000,
           });
-          this.carpetaCreada.emit();
           this.carpetaActualService.notificarRecargarContenido(carpetaPadreId);
+          this.carpetaCreada.emit();
           this.onClose();
         },
         error: (error: ApiError) => {

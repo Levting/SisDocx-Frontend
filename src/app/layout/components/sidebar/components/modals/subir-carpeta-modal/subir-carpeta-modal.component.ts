@@ -176,13 +176,17 @@ export class SubirCarpetaModalComponent {
 
       // Si llegamos aquí, todo se subió correctamente
       this.carpetasSubidas.emit();
+      // Notificar la recarga del contenido
       this.carpetaActualService.notificarRecargarContenido(this.carpetaPadreId);
+      this.onSubidaCompletada.emit();
       this.onClose();
     } catch (error: any) {
       this.errorMessage =
         error?.message ||
         'Error al subir las carpetas. Por favor, intenta nuevamente.';
       console.error('Error al subir carpetas:', error);
+      // Aún así, intentamos recargar el contenido por si algo se subió
+      this.carpetaActualService.notificarRecargarContenido(this.carpetaPadreId);
     } finally {
       this.isLoading = false;
     }

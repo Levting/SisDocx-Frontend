@@ -44,12 +44,12 @@ export class ElementoService {
     );
   }
 
-  obtenerRaiz(): Observable<Elemento[]> {
+  obtenerRaiz(): Observable<{ carpetaRaiz: Elemento; contenido: Elemento[] }> {
     const url = `${this.API_URL}/raiz`;
     return this.waitForAuth(
-      this.http.get<Elemento[]>(url).pipe(
-        tap((elementos) => {
-          this.logger.debug('Contenido raíz obtenido:', elementos);
+      this.http.get<{ carpetaRaiz: Elemento; contenido: Elemento[] }>(url).pipe(
+        tap((response) => {
+          this.logger.debug('Contenido raíz obtenido:', response);
         }),
         catchError((error: ApiError) => {
           this.logger.error('Error al obtener contenido raíz:', error);
