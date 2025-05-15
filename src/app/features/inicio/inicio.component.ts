@@ -1,13 +1,16 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Usuario } from '../../core/models/usuario/usuario.model';
-import { Subscription } from 'rxjs';
 import { UserService } from '../../core/services/user.service';
+import { AdminDashboardComponent } from './components/admin-dashboard/admin-dashboard.component';
 import { RoleService } from '../../core/services/role.service';
+import { Subscription } from 'rxjs';
+import { PersonalDashboardComponent } from './components/personal-dashboard/personal-dashboard.component';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-inicio',
   standalone: true,
-  imports: [],
+  imports: [AdminDashboardComponent, PersonalDashboardComponent, CommonModule],
   templateUrl: './inicio.component.html',
 })
 export class InicioComponent implements OnInit, OnDestroy {
@@ -24,12 +27,14 @@ export class InicioComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     // Suscribirse a los cambios del usuario
-    this.userService.usuarioAutenticado$.subscribe((usuario) => {
-      this.usuario = usuario;
-      this.rol = this.roleService.getUserRole();
-      this.provincia = this.roleService.getUserProvince();
-      this.actualizarMensajeBienvenida();
-    });
+    this.usuarioSubscription = this.userService.usuarioAutenticado$.subscribe(
+      (usuario) => {
+        this.usuario = usuario;
+        this.rol = this.roleService.getUserRole();
+        this.provincia = this.roleService.getUserProvince();
+        this.actualizarMensajeBienvenida();
+      }
+    );
   }
 
   /**
@@ -53,6 +58,12 @@ export class InicioComponent implements OnInit, OnDestroy {
       saludo = 'Buenas Noches';
     }
     this.mensajeBienvenida = `${saludo}`;
+  }
 
+  /**
+   * Determina si el usuario es administrador
+   */
+  isAdmin(): boolean {
+    return this.rol === 'Administrador';
   }
 }
