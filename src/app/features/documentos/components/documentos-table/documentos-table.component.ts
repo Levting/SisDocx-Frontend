@@ -7,7 +7,7 @@ import { Elemento } from '../../../../core/models/documentos/elemento.model';
 import { TableComponent } from '../../../../shared/components/table/table.component';
 import { ElementoTabla } from '../../../../shared/models/table/elemento-tabla.model';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
-import { catchError, forkJoin, of, filter, switchMap, take } from 'rxjs';
+import { catchError, forkJoin, of, filter, switchMap, take, tap } from 'rxjs';
 import {
   MarcarElementoFavoritoRequest,
   RenombrarElementoRequest,
@@ -88,47 +88,111 @@ export class DocumentosTableComponent implements OnInit {
   public isOpenPreviewModal: boolean = false;
   public elementoAPrevisualizar: ElementoTabla | null = null;
 
-  constructor() {}
+  // Propiedades para manejo de roles
+  private userRole: string | null = null;
+  private userProvincia: string | null = null;
+
+  constructor() {
+    // Suscribirse a los cambios del rol y provincia
+    this.authService.userRole$.subscribe((role) => {
+      this.userRole = role;
+    });
+
+    this.authService.userProvincia$.subscribe((provincia) => {
+      this.userProvincia = provincia;
+    });
+  }
 
   /* Inicializador del Componente */
   ngOnInit(): void {
-    this.carpetaActualService.carpetaActual$.pipe().subscribe((carpeta) => {
-      if (carpeta) {
-        this.cargarContenido(carpeta.elementoId);
-      } else if (this.ruta.length === 0) {
-        // Si estamos en la raíz y no hay carpeta actual
-        this.cargarContenido(1);
-      }
-    });
+    // Asegurarse de que el usuario esté autenticado antes de cargar el contenido
+    this.authService.userLoginOn
+      .pipe(
+        filter((isLoggedIn) => isLoggedIn === true),
+        take(1),
+        tap(() => {
+          this.logger.debug('Usuario autenticado, cargando contenido raíz');
+          this.cargarRaiz();
+        })
+      )
+      .subscribe();
 
     // Suscribirse a eventos de recarga de contenido
     this.carpetaActualService.recargarContenido$
       .pipe()
       .subscribe((carpetaId) => {
-        // Si se especifica una carpeta específica y estamos en ella, recargar
         if (carpetaId !== null) {
           const carpetaActual =
             this.carpetaActualService.obtenerCarpetaActual();
-          // Si estamos en la raíz (ruta vacía) y se recarga la raíz (ID 1)
-          if (this.ruta.length === 0 && carpetaId === 1) {
-            this.cargarContenido(1);
-          }
-          // Si estamos en una carpeta específica y coincide con la carpeta a recargar
-          else if (carpetaActual && carpetaActual.elementoId === carpetaId) {
+          if (this.ruta.length === 0) {
+            this.cargarRaiz();
+          } else if (carpetaActual && carpetaActual.elementoId === carpetaId) {
             this.cargarContenido(carpetaId);
           }
         } else {
-          // Si no se especifica carpeta, recargar la carpeta actual
           const carpetaActual =
             this.carpetaActualService.obtenerCarpetaActual();
           if (carpetaActual) {
             this.cargarContenido(carpetaActual.elementoId);
-          } else if (this.ruta.length === 0) {
-            // Si estamos en la raíz y no hay carpeta actual
-            this.cargarContenido(1);
+          } else {
+            this.cargarRaiz();
           }
         }
       });
+  }
+
+  cargarRaiz(): void {
+    this.isLoading = true;
+    this.isError = false;
+    this.error = null;
+    this.elementosTabla = [];
+    this.ruta = []; // Limpiar la ruta al cargar la raíz
+
+    this.logger.debug('Iniciando carga de contenido raíz');
+
+    this.elementoService.obtenerRaiz().subscribe({
+      next: (elementos) => {
+        this.logger.debug('Contenido raíz recibido:', elementos);
+        this.elementosOriginales = elementos;
+
+        // Transformar los elementos para la tabla
+        this.transformacionService
+          .transformarDocumentosATabla(elementos)
+          .subscribe({
+            next: (filas) => {
+              this.elementosTabla = filas;
+              this.isLoading = false;
+
+              // Actualizar la carpeta actual
+              this.carpetaActualService.actualizarCarpetaActual({
+                elementoId: 1,
+                nombre: 'Raíz',
+                cantidadElementos: elementos.length,
+                creadoPor: 0,
+                creadoEl: '',
+                carpetaPadreId: 0,
+                elemento: 'CARPETA',
+                estado: 'DISPONIBLE',
+                ruta: [],
+              });
+
+              this.logger.debug('Contenido raíz cargado exitosamente');
+            },
+            error: (err: ApiError) => {
+              this.isLoading = false;
+              this.isError = true;
+              this.error = 'Error al transformar los elementos para la tabla';
+              this.logger.error('Error al transformar elementos:', err.message);
+            },
+          });
+      },
+      error: (err: ApiError) => {
+        this.isLoading = false;
+        this.isError = true;
+        this.error = err.message || 'Error al cargar la carpeta raíz';
+        this.logger.error('Error al cargar la carpeta raíz:', err);
+      },
+    });
   }
 
   // Método para manejar el evento de selección de elementos
@@ -143,6 +207,7 @@ export class DocumentosTableComponent implements OnInit {
     });
   }
 
+  // Modificar el método cargarContenido para manejar roles
   cargarContenido(carpetaId: number, nombre?: string): void {
     this.isLoading = true;
     this.isError = false;
@@ -394,26 +459,6 @@ export class DocumentosTableComponent implements OnInit {
   copiarSeleccionados(): void {
     // TODO: Implementar lógica de copiar elementos
     console.log('Copiar elementos seleccionados:', this.elementosSeleccionados);
-  }
-
-  // Manejar el evento de ir a la raíz
-  cargarContenidoRaiz(): void {
-    // Limpiar selección al volver a la raíz
-    this.limpiarSeleccion();
-
-    // Cargar contenido de la carpeta raíz (ID 1)
-    this.cargarContenido(1);
-
-    // Obtener la carpeta raíz y actualizar la carpeta actual
-    this.elementoService
-      .obtenerDetallesElemento(1, 'CARPETA')
-      .subscribe((elemento) => {
-        if (elemento) {
-          this.carpetaActualService.actualizarCarpetaActual(
-            elemento as Carpeta
-          );
-        }
-      });
   }
 
   // Métodos para acciones individuales desde el dropdown

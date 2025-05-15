@@ -28,7 +28,15 @@ export class AuthService {
 
   private userLoginOnSubject: BehaviorSubject<boolean> =
     new BehaviorSubject<boolean>(false);
-  userLoginOn: Observable<boolean> = this.userLoginOnSubject.asObservable();
+  public userLoginOn: Observable<boolean> = this.userLoginOnSubject.asObservable();
+
+  // Nuevos BehaviorSubjects para rol y provincia
+  private userRoleSubject: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
+  public userRole$: Observable<string | null> = this.userRoleSubject.asObservable();
+
+  private userProvinciaSubject: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
+  public userProvincia$: Observable<string | null> = this.userProvinciaSubject.asObservable();
+
   private platformId: Object = inject(PLATFORM_ID);
 
   constructor(
@@ -46,6 +54,9 @@ export class AuthService {
       this.userService.usuarioAutenticado$.subscribe((usuario) => {
         if (usuario) {
           this.logger.debug('Estado de autenticación:', usuario);
+          // Actualizar rol y provincia cuando el usuario cambia
+          this.userRoleSubject.next(usuario.rol.nombre);
+          this.userProvinciaSubject.next(usuario.provincia.nombre);
         }
       });
     }

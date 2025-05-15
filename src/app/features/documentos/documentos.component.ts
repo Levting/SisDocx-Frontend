@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { DocumentosTableComponent } from './components/documentos-table/documentos-table.component';
 import { DocumentosPorUsuarioTableComponent } from './components/documentos-por-usuario-table/documentos-por-usuario-table.component';
 import { ConfirmModalComponent } from '../../shared/components/confirm-modal/confirm-modal.component';
@@ -9,6 +9,8 @@ import {
 } from '../../shared/components/tabs/tabs.component';
 import { NgIf } from '@angular/common';
 import { CarpetaActualService } from '../../core/services/carpeta-actual.service';
+import { AuthService } from '../../core/services/auth.service';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-documentos',
@@ -22,21 +24,32 @@ import { CarpetaActualService } from '../../core/services/carpeta-actual.service
   ],
   templateUrl: './documentos.component.html',
 })
-export class DocumentosComponent {
+export class DocumentosComponent implements OnInit {
   private logger: LoggerService = inject(LoggerService);
   private carpetaActualService: CarpetaActualService =
     inject(CarpetaActualService);
+  private authService: AuthService = inject(AuthService);
   // Configuración de tabs
   public tabs: Tab[] = [
     { id: 'documentos', label: 'Por Equipo de Distribución', active: true },
     { id: 'documentos-por-usuario', label: 'Por Usuario' },
   ];
   public activeTab: string = 'documentos';
+  public isAdmin = false;
 
   // Propiedades para modales
   public isSubirArchivoModalOpen: boolean = false;
   public isSubirCarpetaModalOpen: boolean = false;
   public carpetaPadreId: number = 0;
+
+  constructor() {}
+
+  ngOnInit(): void {
+    // Suscribirse a los cambios del rol del usuario
+    this.authService.userRole$.subscribe((role) => {
+      this.isAdmin = role === 'Administrador';
+    });
+  }
 
   // Cuando el usuario de click en el tab, esta recargara el contenido de la carpeta raiz
   onReload(): void {}

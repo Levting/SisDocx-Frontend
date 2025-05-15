@@ -3,7 +3,9 @@
     <header class="mb-0 @container xs:-mt-2 lg:mb-0">
       <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h2 class="font-bold mb-0 text-[22px] text-gray-800 lg:text-2xl 4xl:text-[26px]">
+          <h2
+            class="font-bold mb-0 text-[22px] text-gray-800 lg:text-2xl 4xl:text-[26px]"
+          >
             Mis Documentos
           </h2>
         </div>
@@ -11,18 +13,32 @@
     </header>
   </div>
 
-  <app-tabs
-    [tabs]="tabs"
-    (tabChange)="onTabChange($event)"
-    class="flex flex-col h-full"
-  >
-    <div *ngIf="activeTab === 'documentos'" (click)="onReload()" class="h-full">
+  <!-- Mostrar tabs solo para administradores -->
+  <ng-container *ngIf="isAdmin">
+    <app-tabs
+      [tabs]="tabs"
+      (tabChange)="onTabChange($event)"
+      class="flex flex-col h-full"
+    >
+      <div
+        *ngIf="activeTab === 'documentos'"
+        (click)="onReload()"
+        class="h-full"
+      >
+        <app-documentos-table />
+      </div>
+      <div *ngIf="activeTab === 'documentos-por-usuario'" class="h-full">
+        <app-documentos-por-usuario-table />
+      </div>
+    </app-tabs>
+  </ng-container>
+
+  <!-- Mostrar solo la tabla para personal -->
+  <ng-container *ngIf="!isAdmin">
+    <div class="h-full">
       <app-documentos-table />
     </div>
-    <div *ngIf="activeTab === 'documentos-por-usuario'" class="h-full">
-      <app-documentos-por-usuario-table />
-    </div>
-  </app-tabs>
+  </ng-container>
 </div>
 
 <!-- Modal de confirmación -->

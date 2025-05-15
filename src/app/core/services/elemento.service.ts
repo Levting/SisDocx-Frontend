@@ -44,6 +44,23 @@ export class ElementoService {
     );
   }
 
+  obtenerRaiz(): Observable<Elemento[]> {
+    const url = `${this.API_URL}/raiz`;
+    return this.waitForAuth(
+      this.http.get<Elemento[]>(url).pipe(
+        tap((elementos) => {
+          this.logger.debug('Contenido raíz obtenido:', elementos);
+        }),
+        catchError((error: ApiError) => {
+          this.logger.error('Error al obtener contenido raíz:', error);
+          return throwError(
+            () => new Error(error.message || 'Error al obtener contenido raíz')
+          );
+        })
+      )
+    );
+  }
+
   obtenerContenidoCarpeta(carpetaId: number): Observable<Elemento[]> {
     const url = `${this.API_URL}/carpetas/${carpetaId}/contenido`;
     return this.waitForAuth(this.http.get<Elemento[]>(url));
