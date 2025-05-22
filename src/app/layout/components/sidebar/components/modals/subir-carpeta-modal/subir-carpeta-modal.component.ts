@@ -1,4 +1,12 @@
-import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  inject,
+  OnInit,
+  OnDestroy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ElementoService } from '../../../../../../core/services/elemento.service';
 import { Carpeta } from '../../../../../../core/models/documentos/carpeta.model';
@@ -24,7 +32,7 @@ interface ProgresoSubida {
   imports: [CommonModule],
   templateUrl: './subir-carpeta-modal.component.html',
 })
-export class SubirCarpetaModalComponent {
+export class SubirCarpetaModalComponent implements OnInit, OnDestroy {
   @Input() isOpen: boolean = false;
   @Input() carpetaPadreId: number = 0;
 
@@ -53,10 +61,8 @@ export class SubirCarpetaModalComponent {
   private archivosSeleccionados: FileWithPath[] = [];
   private destroy$ = new Subject<void>();
 
-  onClose(): void {
+  ngOnInit(): void {
     this.setupSubscriptions();
-    this.close.emit();
-    this.resetState();
   }
 
   private setupSubscriptions(): void {
@@ -65,6 +71,16 @@ export class SubirCarpetaModalComponent {
       .subscribe((carpeta) => {
         this.carpetaActual = carpeta;
       });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  onClose(): void {
+    this.close.emit();
+    this.resetState();
   }
 
   private resetState(): void {
@@ -129,25 +145,23 @@ export class SubirCarpetaModalComponent {
   }
 
   async onSubmit(): Promise<void> {
-    // Usar la carpeta actual o la carpeta padre proporcionada
-    const carpetaPadreId =
-      this.carpetaActual?.elementoId || this.carpetaPadreId;
-
-    if (!carpetaPadreId) {
-      this.errorMessage = 'No se pudo determinar la carpeta destino';
-      return;
-    }
-
-    if (this.carpetas.length === 0 || this.archivosSeleccionados.length === 0) {
-      this.errorMessage = 'Por favor, selecciona una carpeta para subir';
-      return;
-    }
+    if (this.isLoading || this.carpetas.length === 0) return;
 
     this.isLoading = true;
     this.errorMessage = null;
     this.erroresPorCarpeta = [];
     this.totalCarpetas = this.carpetas.length;
     this.contadorCarpetasSubidas = 0;
+
+    // Usar la carpeta actual o la carpeta padre proporcionada
+    const carpetaPadreId =
+      this.carpetaActual?.elementoId || this.carpetaPadreId;
+
+    if (!carpetaPadreId) {
+      this.errorMessage = 'No se pudo determinar la carpeta destino';
+      this.isLoading = false;
+      return;
+    }
 
     // Calcular el total de archivos a subir
     this.progreso.totalArchivos = this.archivosSeleccionados.length;
@@ -182,15 +196,13 @@ export class SubirCarpetaModalComponent {
             carpeta: carpetaRaiz,
             error: error?.message || 'Error desconocido al subir la carpeta.',
           });
-          // Si falla una carpeta, detenemos el proceso
-          throw new Error(
-            `Error al subir la carpeta ${carpetaRaiz}: ${error.message}`
-          );
+          throw error;
         }
       }
 
       // Si llegamos aquí, todo se subió correctamente
       this.carpetasSubidas.emit();
+      this.onSubidaCompletada.emit();
 
       // Notificar la recarga del contenido
       if (this.carpetaActual) {
@@ -217,37 +229,12 @@ export class SubirCarpetaModalComponent {
           });
       }
 
-      this.onSubidaCompletada.emit();
       this.onClose();
     } catch (error: any) {
       this.errorMessage =
         error?.message ||
         'Error al subir las carpetas. Por favor, intenta nuevamente.';
       console.error('Error al subir carpetas:', error);
-
-      // Aún así, intentamos recargar el contenido por si algo se subió
-      if (this.carpetaActual) {
-        this.carpetaActualService.notificarRecargarContenido(
-          this.carpetaActual.elementoId
-        );
-      } else {
-        this.elementoService
-          .obtenerRaiz()
-          .pipe(takeUntil(this.destroy$))
-          .subscribe({
-            next: ({ carpetaRaiz }) => {
-              this.carpetaActualService.notificarRecargarContenido(
-                carpetaRaiz.elementoId
-              );
-            },
-            error: (error: ApiError) => {
-              console.error(
-                'Error al obtener carpeta raíz para recarga:',
-                error
-              );
-            },
-          });
-      }
     } finally {
       this.isLoading = false;
     }
