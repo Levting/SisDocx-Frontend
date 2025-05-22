@@ -1,5 +1,5 @@
 <div
-  class="relative h-full w-full overflow-hidden border border-gray-200 rounded-lg shadow-sm"
+  class="relative h-full w-full overflow-hidden border border-gray-200 rounded-lg shadow-sm select-none"
 >
   <!-- Estado de Error -->
   <!-- <div
@@ -30,10 +30,17 @@
         class="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0 z-10"
       >
         <tr>
-          <th
-            *ngFor="let cabecera of cabeceras"
-            class="px-6 py-3 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
-          >
+          <th class="p-4">
+            <div class="flex items-center justify-center">
+              <input
+                type="checkbox"
+                class="appearance-none w-4 h-4 border border-gray-400 rounded-full checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-150 cursor-pointer"
+                [checked]="todosSeleccionados"
+                (change)="toggleSeleccionTodos()"
+              />
+            </div>
+          </th>
+          <th *ngFor="let cabecera of cabeceras" class="px-6 py-3">
             {{ cabecera }}
           </th>
         </tr>
@@ -42,7 +49,7 @@
       <tbody>
         <!-- Estado de carga -->
         <tr *ngIf="isLoading">
-          <td [colSpan]="cabeceras.length" class="px-6 py-20">
+          <td [colSpan]="cabeceras.length + 1" class="px-6 py-20">
             <div class="flex justify-center items-center animate-pulse">
               <div role="status">
                 <svg
@@ -104,106 +111,105 @@
           *ngFor="let elementoTabla of elementosTabla"
           class="group border-b cursor-pointer transition-all duration-200"
           [ngClass]="{
-            'bg-gray-100': estaSeleccionado(elementoTabla),
-            'hover:bg-gray-50': !estaSeleccionado(elementoTabla)
+            'bg-blue-100': estaSeleccionado(elementoTabla),
+            'bg-blue-50': estaEnfocado(elementoTabla)
           }"
-          (click)="toggleSeleccion(elementoTabla)"
+          (click)="enfocarFila(elementoTabla)"
           (dblclick)="habilitarNavegacion ? abrirCarpeta(elementoTabla) : null"
         >
+          <!-- Columna de selección -->
+          <td class="px-6 py-4">
+            <div class="flex items-center justify-center">
+              <input
+                type="checkbox"
+                class="appearance-none w-4 h-4 border border-gray-400 rounded-full checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-150 cursor-pointer"
+                [ngClass]="{
+                  'opacity-100 scale-110': estaSeleccionado(elementoTabla),
+                  'opacity-0 group-hover:opacity-100 group-hover:scale-110':
+                    !estaSeleccionado(elementoTabla)
+                }"
+                [checked]="estaSeleccionado(elementoTabla)"
+                (click)="
+                  toggleSeleccion(elementoTabla); $event.stopPropagation()
+                "
+              />
+            </div>
+          </td>
+
+          <!-- Nombre y Circulo de Estado -->
           <td class="px-6 py-4">
             <div class="flex items-center justify-between">
-              <div class="flex gap-5">
-                <!-- Circulo de Estado -->
-                <div
-                  class="w-4 h-4 transition-all duration-200 relative flex items-center justify-center"
-                  [ngClass]="{
-                    'opacity-100 scale-110': estaSeleccionado(elementoTabla),
-                    'opacity-0 group-hover:opacity-100 group-hover:scale-110':
-                      !estaSeleccionado(elementoTabla)
-                  }"
-                >
-                  <div
-                    class="w-3.5 h-3.5 rounded-full border border-gray-400 transition-all duration-200"
-                    [ngClass]="{
-                      'bg-gray-500 border-none':
-                        estaSeleccionado(elementoTabla),
-                      'group-hover:border-gray-500':
-                        !estaSeleccionado(elementoTabla)
-                    }"
-                  ></div>
+              <!-- Icono y Nombre -->
+              <div class="flex items-center space-x-3">
+                <div class="w-8 h-8">
+                  <ng-container
+                    *ngIf="elementoTabla.columnas['elemento'] === 'CARPETA'"
+                  >
+                    <svg-icon src="assets/icons/folder.svg" class="w-8 h-8" />
+                  </ng-container>
+
+                  <ng-container
+                    *ngIf="elementoTabla.columnas['elemento'] === 'ARCHIVO'"
+                  >
+                    <ng-container
+                      [ngSwitch]="
+                        elementoTabla.columnas['extension']?.toLowerCase()
+                      "
+                    >
+                      <svg-icon
+                        *ngSwitchCase="'pdf'"
+                        src="assets/icons/filePdf.svg"
+                        class="w-8 h-8"
+                      />
+                      <svg-icon
+                        *ngSwitchCase="'docx'"
+                        src="assets/icons/fileDocx.svg"
+                        class="w-8 h-8"
+                      />
+                      <svg-icon
+                        *ngSwitchCase="'doc'"
+                        src="assets/icons/fileDocx.svg"
+                        class="w-8 h-8"
+                      />
+                      <svg-icon
+                        *ngSwitchCase="'xls'"
+                        src="assets/icons/fileExcel.svg"
+                        class="w-8 h-8"
+                      />
+                      <svg-icon
+                        *ngSwitchCase="'xlsx'"
+                        src="assets/icons/fileExcel.svg"
+                        class="w-8 h-8"
+                      />
+                      <svg-icon
+                        *ngSwitchCase="'jpg'"
+                        src="assets/icons/fileImage.svg"
+                        class="w-8 h-8"
+                      />
+                      <svg-icon
+                        *ngSwitchCase="'jpeg'"
+                        src="assets/icons/fileImage.svg"
+                        class="w-8 h-8"
+                      />
+                      <svg-icon
+                        *ngSwitchCase="'png'"
+                        src="assets/icons/fileImage.svg"
+                        class="w-8 h-8"
+                      />
+                      <svg-icon
+                        *ngSwitchDefault
+                        src="assets/icons/fileNone.svg"
+                        class="w-8 h-8"
+                      />
+                    </ng-container>
+                  </ng-container>
                 </div>
-
-                <!-- Icono y Nombre -->
-                <div class="flex gap-1">
-                  <div class="w-5 mr-3">
-                    <ng-container
-                      *ngIf="elementoTabla.columnas['elemento'] === 'CARPETA'"
-                    >
-                      <svg-icon src="assets/icons/folder.svg" class="h-5 w-5" />
-                    </ng-container>
-
-                    <ng-container
-                      *ngIf="elementoTabla.columnas['elemento'] === 'ARCHIVO'"
-                    >
-                      <ng-container
-                        [ngSwitch]="
-                          elementoTabla.columnas['extension']?.toLowerCase()
-                        "
-                      >
-                        <svg-icon
-                          *ngSwitchCase="'pdf'"
-                          src="assets/icons/filePdf.svg"
-                          class="h-5 w-5"
-                        />
-                        <svg-icon
-                          *ngSwitchCase="'docx'"
-                          src="assets/icons/fileDocx.svg"
-                          class="h-5 w-5"
-                        />
-                        <svg-icon
-                          *ngSwitchCase="'doc'"
-                          src="assets/icons/fileDocx.svg"
-                          class="h-5 w-5"
-                        />
-                        <svg-icon
-                          *ngSwitchCase="'xls'"
-                          src="assets/icons/fileExcel.svg"
-                          class="h-5 w-5"
-                        />
-                        <svg-icon
-                          *ngSwitchCase="'xlsx'"
-                          src="assets/icons/fileExcel.svg"
-                          class="h-5 w-5"
-                        />
-                        <svg-icon
-                          *ngSwitchCase="'jpg'"
-                          src="assets/icons/fileImage.svg"
-                          class="h-5 w-5"
-                        />
-                        <svg-icon
-                          *ngSwitchCase="'jpeg'"
-                          src="assets/icons/fileImage.svg"
-                          class="h-5 w-5"
-                        />
-                        <svg-icon
-                          *ngSwitchCase="'png'"
-                          src="assets/icons/fileImage.svg"
-                          class="h-5 w-5"
-                        />
-                        <svg-icon
-                          *ngSwitchDefault
-                          src="assets/icons/folder.svg"
-                          class="h-5 w-5"
-                        />
-                      </ng-container>
-                    </ng-container>
+                <div>
+                  <div class="font-medium text-gray-900">
+                    {{ elementoTabla.columnas["nombre"] }}
                   </div>
-                  <div>
-                    <div
-                      class="text-base font-semibold text-gray-900 dark:text-white transition-colors duration-200"
-                    >
-                      {{ elementoTabla.columnas["nombre"] }}
-                    </div>
+                  <div class="text-sm text-gray-500">
+                    {{ elementoTabla.columnas["tipo"] }}
                   </div>
                 </div>
               </div>
@@ -211,7 +217,7 @@
               <!-- Botones -->
               <div class="flex gap-1 items-center" *ngIf="dropdownTemplate">
                 <!-- Cuando un elemento esta marcado como favorito, mostrar el botón con el icono de estrella seleccionado -->
-               <!--  <ng-container *ngIf="esFavorito(elementoTabla)">
+                <!-- <ng-container *ngIf="esFavorito(elementoTabla)">
                   <button
                     class="items-center justify-center active:enabled:translate-y-px"
                     type="button"

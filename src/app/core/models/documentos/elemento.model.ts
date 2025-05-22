@@ -3,8 +3,12 @@ export interface Elemento {
   elemento: string; // Puede ser "ARCHIVO" o "CARPETA"
   nombre: string; // Nombre del elemento
   carpetaPadreId: number; // Carpeta padre del elemento
-  creadoPor: number; // ID del usuario que creó el elemento
+  carpetaPadre: string;
+  creadoPorId: number; // ID del usuario que creó el elemento
+  creadoPor: string;
   creadoEl: string; // Fecha en formato ISO
   estado: string; // Estado del elemento (ACTIVO, ELIMINADO, ARCHIVADO)
   ruta: number[]; // Array de IDs que representa la ruta del elemento
+  equipoDistribucion?: string;
+  visibleParaAdmin?: boolean;
 }

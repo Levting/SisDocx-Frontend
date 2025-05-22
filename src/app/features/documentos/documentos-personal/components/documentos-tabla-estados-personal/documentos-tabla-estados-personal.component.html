@@ -12,7 +12,11 @@
       <!-- Mostrar cuando no hay elementos seleccionados -->
       <ng-container *ngIf="elementosSeleccionados.length === 0">
         <header>
-          <h2 class="font-bold text-md text-gray-800">Por Equipo de Distribución</h2>
+          <h2
+            class="font-bold mb-0 text-[22px] text-gray-800 lg:text-2xl 4xl:text-[26px]"
+          >
+            Documentos para {{ carpetaRaiz?.nombre }}
+          </h2>
         </header>
       </ng-container>
 
@@ -26,21 +30,10 @@
             >
               <svg-icon
                 src="assets/icons/object.svg"
-                [svgClass]="'h-5 w-5 text-red-500'"
+                [svgClass]="'h-5 w-5 text-green-500'"
               />
               Eliminar
             </button>
-
-            <!-- <button
-              class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg text-center transition-colors duration-200 flex items-center gap-2"
-              (click)="favoritoSeleccionados()"
-            >
-              <svg-icon
-                src="assets/icons/star.svg"
-                [svgClass]="'h-5 w-5 text-yellow-500'"
-              />
-              Favorito
-            </button> -->
 
             <button
               class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg text-center transition-colors duration-200 flex items-center gap-2"
@@ -48,32 +41,21 @@
             >
               <svg-icon
                 src="assets/icons/object.svg"
-                [svgClass]="'h-5 w-5 text-blue-500'"
+                [svgClass]="'h-5 w-5 text-red-500'"
               />
               Descargar
             </button>
 
-            <!-- <button
-              class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg text-center transition-colors duration-200 flex items-center gap-2"
-              (click)="moverSeleccionados()"
-            >
-              <svg-icon
-                src="assets/icons/move.svg"
-                [svgClass]="'h-5 w-5 text-green-500'"
-              />
-              Mover
-            </button>
-
             <button
               class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg text-center transition-colors duration-200 flex items-center gap-2"
-              (click)="copiarSeleccionados()"
+              (click)="enviarSolicitudSeleccionados()"
             >
               <svg-icon
-                src="assets/icons/copy.svg"
-                [svgClass]="'h-5 w-5 text-purple-500'"
+                src="assets/icons/object.svg"
+                [svgClass]="'h-5 w-5 text-red-500'"
               />
-              Copiar
-            </button> -->
+              Enviar solicitud
+            </button>
           </div>
 
           <div class="flex flex-row">
@@ -92,33 +74,67 @@
       </ng-container>
     </div>
 
-     <!-- Breadcrumb -->
-     <app-breadcrumb
-     [ruta]="ruta"
-     (navegar)="navegarA($event)"
-     (irRaiz)="cargarRaiz()"
-   />
+    <!-- Breadcrumb -->
+    <app-breadcrumb
+      [ruta]="ruta"
+      (navegar)="navegarA($event)"
+      (irRaiz)="cargarRaiz()"
+    />
   </div>
 
   <!-- Table Section -->
   <div
     class="flex-1 min-h-0 bg-white rounded-lg shadow-sm border border-gray-200"
   >
-    <app-table
+    <!-- <app-tabla-estado
       [cabeceras]="cabeceras"
       [columnas]="columnas"
       [elementosTabla]="elementosTabla"
       [mostrarDropdown]="true"
-      [dropdownTemplate]="dropdownFavoritosTemplate"
       [habilitarNavegacion]="true"
       [isLoading]="isLoading"
       [isError]="isError"
       [error]="error"
       (cambioSeleccion)="onSeleccionCambiada($event)"
       (dobleClickElemento)="onDobleClickElemento($event)"
-      (toggleFavorito)="onToggleFavorito($event)"
+      (enviarSolicitud)="onEnviarSolicitud($event)"
+    /> -->
+
+    <app-table
+      [cabeceras]="cabeceras"
+      [columnas]="columnas"
+      [elementosTabla]="elementosTabla"
+      [mostrarDropdown]="true"
+      [habilitarNavegacion]="true"
+      [isLoading]="isLoading"
+      [isError]="isError"
+      [error]="error"
+      (cambioSeleccion)="onSeleccionCambiada($event)"
+      (dobleClickElemento)="onDobleClickElemento($event)"
     />
   </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="flex items-center justify-center h-full">
+    <div
+      class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"
+    ></div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="isError" class="flex items-center justify-center h-full">
+    <div class="text-red-500">
+      {{ error }}
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <!--   <div
+    *ngIf="!isLoading && !isError && elementosTabla.length === 0"
+    class="flex items-center justify-center h-full"
+  >
+    <div class="text-gray-500">No hay elementos para mostrar</div>
+  </div> -->
 
   <!-- Modals -->
   <app-documentos-preview-modal
@@ -126,16 +142,4 @@
     [elemento]="elementoAPrevisualizar"
     (cerrar)="onPreviewClose()"
   />
-
-  <app-documentos-modal-renombrar />
-
-  <!-- Dropdown Template -->
-  <ng-template #dropdownFavoritosTemplate let-elemento="elemento">
-    <app-documentos-dropdown
-      [elemento]="elemento"
-      (onPapelera)="onPapeleraIndividual(elemento)"
-      (onDescargar)="onDescargarIndividual(elemento)"
-      (onRenombrar)="onElementoRenombrado($event)"
-    />
-  </ng-template>
 </div>

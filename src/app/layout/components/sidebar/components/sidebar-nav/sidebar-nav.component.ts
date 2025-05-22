@@ -90,7 +90,14 @@ export class SidebarNavComponent implements OnInit {
             route: '/documentos',
             icon: 'assets/icons/document.svg',
             active: false,
-            roles: ['Administrador', 'Personal'],
+            roles: ['Administrador'],
+          },
+          {
+            label: 'Mis Archivos',
+            route: '/documentos-personal',
+            icon: 'assets/icons/document.svg',
+            active: false,
+            roles: ['Personal'],
           },
           {
             label: 'Por Aprobar',

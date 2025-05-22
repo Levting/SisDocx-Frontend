@@ -42,7 +42,7 @@ export class SubirArchivoModalComponent implements OnInit, OnDestroy {
   public totalArchivos: number = 0;
   public carpetas: File[] = [];
 
-  private readonly MAX_ARCHIVO_SIZE = 10 * 1024 * 1024; // 10MB
+  private readonly MAX_ARCHIVO_SIZE = 30 * 1024 * 1024; // 30MB
   private readonly VALID_EXTENSIONS = [
     '.pdf',
     '.doc',
@@ -52,6 +52,9 @@ export class SubirArchivoModalComponent implements OnInit, OnDestroy {
     '.jpeg',
     '.jpg',
     '.png',
+
+    // Analizadores
+    '.pqm702'
   ];
 
   private destroy$ = new Subject<void>();
@@ -200,8 +203,15 @@ export class SubirArchivoModalComponent implements OnInit, OnDestroy {
     this.contadorArchivosSubidos = 0;
     this.totalArchivos = this.archivos.length;
 
+    // Usar la carpeta actual o la carpeta padre proporcionada
     const carpetaPadreId =
-      this.carpetaPadreId || this.carpetaActual?.elementoId || 1;
+      this.carpetaActual?.elementoId || this.carpetaPadreId;
+
+    if (!carpetaPadreId) {
+      this.errorMessage = 'No se pudo determinar la carpeta destino';
+      this.isLoading = false;
+      return;
+    }
 
     // Subir archivos secuencialmente
     const subirArchivo = (index: number) => {
@@ -209,7 +219,32 @@ export class SubirArchivoModalComponent implements OnInit, OnDestroy {
         this.isLoading = false;
         this.onArchivosSubidos.emit();
         this.onSubidaCompletada.emit();
-        this.carpetaActualService.notificarRecargarContenido();
+
+        // Notificar la recarga del contenido
+        if (this.carpetaActual) {
+          this.carpetaActualService.notificarRecargarContenido(
+            this.carpetaActual.elementoId
+          );
+        } else {
+          // Si no hay carpeta actual, recargar la raíz
+          this.elementoService
+            .obtenerRaiz()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+              next: ({ carpetaRaiz }) => {
+                this.carpetaActualService.notificarRecargarContenido(
+                  carpetaRaiz.elementoId
+                );
+              },
+              error: (error: ApiError) => {
+                console.error(
+                  'Error al obtener carpeta raíz para recarga:',
+                  error
+                );
+              },
+            });
+        }
+
         this.onClose();
         return;
       }

@@ -7,6 +7,10 @@ import { PapeleraComponent } from './features/papelera/papelera.component';
 import { FavoritosComponent } from './features/favoritos/favoritos.component';
 import { AjustesComponent } from './features/ajustes/ajustes.component';
 import { DocumentosComponent } from './features/documentos/documentos.component';
+import { CampanaMedicionComponent } from './features/campana-medicion/campana-medicion.component';
+import { FusionComponent } from './features/fusion/fusion.component';
+import { DocumentosPorAprobarComponent } from './features/documentos/documentos-admin/documentos-por-aprobar/documentos-por-aprobar.component';
+import { DocumentosPersonalComponent } from './features/documentos/documentos-personal/documentos-personal.component';
 
 export const routes: Routes = [
   {
@@ -21,21 +25,45 @@ export const routes: Routes = [
       {
         path: 'documentos',
         component: DocumentosComponent,
-      },
-      {
-        path: 'documentos-por-aprobar',
-        component: DocumentosComponent,
         canActivate: [RoleGuard],
         data: { roles: ['Administrador'] },
       },
       {
+        path: 'documentos-personal',
+        component: DocumentosPersonalComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['Personal'] },
+      },
+
+      {
+        path: 'documentos-por-aprobar',
+        component: DocumentosPorAprobarComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['Administrador'] },
+      },
+
+      {
         path: 'papelera',
         component: PapeleraComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['Administrador', 'Personal'] },
       },
       {
+        path: 'campana-medicion',
+        component: CampanaMedicionComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['Administrador'] },
+      },
+      {
+        path: 'fusion',
+        component: FusionComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['Administrador'] },
+      },
+      /* {
         path: 'favoritos',
         component: FavoritosComponent,
-      },
+      }, */
       {
         path: 'ajustes',
         component: AjustesComponent,

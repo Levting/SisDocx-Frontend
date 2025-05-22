@@ -36,8 +36,8 @@ export class ElementoService {
     return this.authService.userLoginOn.pipe(
       switchMap((isLoggedIn) => {
         if (!isLoggedIn) {
-          this.logger.warn('No autenticado');
-          return throwError(() => new Error('No autenticado'));
+          // this.logger.warn('No autenticado');
+          // return throwError(() => new Error('No autenticado'));
         }
         return request;
       })

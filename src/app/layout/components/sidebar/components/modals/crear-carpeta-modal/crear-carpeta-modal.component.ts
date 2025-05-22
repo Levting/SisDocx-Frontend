@@ -10,7 +10,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
-import { finalize, switchMap, take } from 'rxjs/operators';
+import { finalize } from 'rxjs/operators';
 import { CarpetaActualService } from '../../../../../../core/services/carpeta-actual.service';
 import { Carpeta } from '../../../../../../core/models/documentos/carpeta.model';
 import { ElementoService } from '../../../../../../core/services/elemento.service';
@@ -68,8 +68,9 @@ export class CrearCarpetaModalComponent implements OnInit, OnDestroy {
         next: ({ carpetaRaiz }) => {
           this.carpetaRaiz = carpetaRaiz;
         },
-        error: (error) => {
-          console.error('Error al obtener la carpeta raíz:', error);
+        error: (error: ApiError) => {
+          console.error('Error al obtener carpeta raíz:', error);
+          this.errorMessage = 'Error al obtener la carpeta raíz';
         },
       });
   }
@@ -152,14 +153,18 @@ export class CrearCarpetaModalComponent implements OnInit, OnDestroy {
           next: (carpetaCreada: Carpeta) => {
             this.toastService.show({
               type: 'success',
-              message: 'Carpeta creada exitosamente',
+              message:
+                'Carpeta ' + carpetaCreada.nombre + ' creada exitosamente',
               duration: 3000,
             });
 
-            // Notificar la recarga usando la carpeta raíz
+            // Actualizar el contenido de la carpeta actual
+            this.carpetaActualService.actualizarCarpetaActual(carpetaCreada);
+            // Notificar para recargar el contenido de la carpeta raíz
             this.carpetaActualService.notificarRecargarContenido(
               this.carpetaRaiz!.elementoId
             );
+
             this.carpetaCreada.emit();
             this.onClose();
           },

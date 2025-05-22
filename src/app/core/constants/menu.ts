@@ -17,9 +17,14 @@ export class Menu {
           route: '/documentos',
         },
         {
-          icon: 'assets/icons/star.svg',
-          label: 'Favoritos',
-          route: '/favoritos',
+          icon: 'assets/icons/document.svg',
+          label: 'Mis Archivos',
+          route: '/documentos-personal',
+        },
+        {
+          icon: 'assets/icons/object.svg',
+          label: 'Por Aprobar',
+          route: '/documentos-por-aprobar',
         },
         {
           icon: 'assets/icons/object.svg',

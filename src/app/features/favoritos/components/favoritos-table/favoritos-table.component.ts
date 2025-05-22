@@ -10,13 +10,13 @@ import { TransformacionService } from '../../../../core/services/transformacion.
 import { ElementoTabla } from '../../../../shared/models/table/elemento-tabla.model';
 import { CarpetaActualService } from '../../../../core/services/carpeta-actual.service';
 import { Carpeta } from '../../../../core/models/documentos/carpeta.model';
-import { DocumentosPreviewModalComponent } from '../../../documentos/components/documentos-preview-modal/documentos-preview-modal.component';
 import { MarcarElementoFavoritoRequest } from '../../../../core/models/request/elemento-request.model';
 import { ApiError } from '../../../../core/models/errors/api-error.model';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
 import { LoggerService } from '../../../../core/services/logger.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { filter, switchMap, take } from 'rxjs';
+import { DocumentosPreviewModalComponent } from '../../../documentos/documentos-admin/components/documentos-preview-modal/documentos-preview-modal.component';
 
 @Component({
   selector: 'app-favoritos-table',

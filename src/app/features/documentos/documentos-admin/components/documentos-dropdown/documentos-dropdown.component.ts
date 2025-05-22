@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { DropdownComponent } from '../../../../shared/components/dropdown/dropdown.component';
-import { ElementoTabla } from '../../../../shared/models/table/elemento-tabla.model';
+import { DropdownComponent } from '../../../../../shared/components/dropdown/dropdown.component';
+import { ElementoTabla } from '../../../../../shared/models/table/elemento-tabla.model';
 import { DocumentosModalRenombrarComponent } from '../documentos-modal-renombrar/documentos-modal-renombrar.component';
 
 @Component({
@@ -20,17 +20,17 @@ export class DocumentosDropdownComponent {
   public items = [
     {
       texto: 'Mover a Papelera',
-      icono: 'assets/icons/trash.svg',
+      icono: 'assets/icons/object.svg',
       accion: () => this.onPapelera.emit(this.elemento),
     },
     {
       texto: 'Descargar',
-      icono: 'assets/icons/download.svg',
+      icono: 'assets/icons/object.svg',
       accion: () => this.onDescargar.emit(this.elemento),
     },
     {
       texto: 'Cambiar Nombre',
-      icono: 'assets/icons/rename.svg',
+      icono: 'assets/icons/object.svg',
       accion: () => this.abrirModalRenombrar(),
     },
   ];

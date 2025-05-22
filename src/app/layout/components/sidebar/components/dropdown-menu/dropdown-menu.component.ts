@@ -1,3 +1,4 @@
+import { ElementoService } from './../../../../../core/services/elemento.service';
 import { SvgIconComponent } from 'angular-svg-icon';
 import {
   Component,
@@ -16,7 +17,6 @@ import { Router, NavigationEnd } from '@angular/router';
 import { filter, switchMap } from 'rxjs/operators';
 import { Carpeta } from '../../../../../core/models/documentos/carpeta.model';
 import { CarpetaActualService } from '../../../../../core/services/carpeta-actual.service';
-import { ElementoService } from '../../../../../core/services/elemento.service';
 
 /**
  * Componente que representa el menú desplegable en la barra lateral.
@@ -43,23 +43,19 @@ export class DropdownMenuComponent implements OnInit, OnDestroy {
   @Output() abrirModalCargaCarpetas: EventEmitter<number> =
     new EventEmitter<number>();
 
-  /** Estado del modal de creación de carpeta */
   public isModalCrearCarpetaOpen: boolean = false;
-  /** Carpeta seleccionada para acciones */
   public carpetaSeleccionada: Carpeta | null = null;
-  /** Indica si estamos en la página de documentos */
   private enPaginaDocumentos: boolean = false;
-  /** Indica la ruta actual */
   private rutaActual: string = '';
-  private carpetaRaizId: number | null = null;
+  private carpetaRaiz: Carpeta | null = null;
 
   /** Subject para limpiar suscripciones */
   private destroy$ = new Subject<void>();
 
   // Inyección de servicios
   private carpetaActualService = inject(CarpetaActualService);
-  private elementoService = inject(ElementoService);
   private router = inject(Router);
+  private elementoService = inject(ElementoService);
 
   /** Estado del modal de carga de archivos */
   public isModalCargaArchivosOpen: boolean = false;
@@ -68,43 +64,7 @@ export class DropdownMenuComponent implements OnInit, OnDestroy {
   constructor(private elementRef: ElementRef) {}
 
   ngOnInit(): void {
-    // Suscribirse a los cambios de ruta para detectar si estamos en la página de documentos
-    this.router.events
-      .pipe(
-        filter((event) => event instanceof NavigationEnd),
-        takeUntil(this.destroy$)
-      )
-      .subscribe((event: NavigationEnd) => {
-        this.rutaActual = event.url;
-        // Verificar si estamos en la página de documentos
-        this.enPaginaDocumentos = this.rutaActual.includes('/documentos');
-
-        // Si salimos de la página de documentos, resetear la carpeta actual a null
-        if (!this.enPaginaDocumentos) {
-          this.carpetaActual = null;
-        }
-      });
-
-    // Comprobar la ruta actual durante la inicialización
-    this.rutaActual = this.router.url;
-    this.enPaginaDocumentos = this.rutaActual.includes('/documentos');
-
-    // Obtener la carpeta raíz al inicializar
-    this.obtenerCarpetaRaiz();
-  }
-
-  private obtenerCarpetaRaiz(): void {
-    this.elementoService
-      .obtenerRaiz()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: ({ carpetaRaiz }) => {
-          this.carpetaRaizId = carpetaRaiz.elementoId;
-        },
-        error: (error) => {
-          console.error('Error al obtener la carpeta raíz:', error);
-        },
-      });
+    this.carpetaActualService.obtenerCarpetaActual();
   }
 
   /**
@@ -115,13 +75,11 @@ export class DropdownMenuComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  obtenerIdCarpetaPadreActual(): number {
-    const carpetaActual = this.carpetaActualService.obtenerCarpetaActual();
-    return carpetaActual ? carpetaActual.carpetaPadreId : -1; // o null si prefieres
-  }
-
   onCarpetaCreada(): void {
-    this.carpetaActualService.notificarRecargarContenido(); // Emitir evento para recargar contenido
+    // Emitir evento para recargar contenido
+    this.carpetaActualService.notificarRecargarContenido(
+      this.carpetaRaiz!.elementoId
+    );
     this.isModalCrearCarpetaOpen = false;
     this.toggleDropdown.emit();
   }
@@ -131,15 +89,16 @@ export class DropdownMenuComponent implements OnInit, OnDestroy {
    */
   private obtenerCarpetaPadreId(): number {
     // Si estamos en documentos, usar la carpeta actual
-    if (this.enPaginaDocumentos) {
-      const carpetaActual = this.carpetaActualService.obtenerCarpetaActual();
-      return carpetaActual
-        ? carpetaActual.elementoId
-        : this.carpetaRaizId || -1;
-    }
+    const carpetaActual = this.carpetaActualService.obtenerCarpetaActual();
 
-    // Para otras rutas, usar la carpeta raíz del usuario
-    return this.carpetaRaizId || -1;
+    // Si la carpeta padre de la carpeta actual es 0, estamos en la raíz
+    if (carpetaActual?.carpetaPadreId !== null) {
+      console.log('Carpeta actual:', carpetaActual);
+      return carpetaActual?.carpetaPadreId || 0;
+    } else {
+      console.log('No se obtubo la carpeta actual, cambiando a raíz');
+      return 0;
+    }
   }
 
   /**
@@ -148,30 +107,18 @@ export class DropdownMenuComponent implements OnInit, OnDestroy {
    */
   abrirModalCrearCarpetaHandler(): void {
     const carpetaPadreId = this.obtenerCarpetaPadreId();
-    if (carpetaPadreId === -1) {
-      console.error('No se pudo determinar la carpeta padre');
-      return;
-    }
     this.abrirModalCrearCarpeta.emit(carpetaPadreId);
     this.toggleDropdown.emit();
   }
 
   abrirModalCargaArchivosHandler(): void {
     const carpetaPadreId = this.obtenerCarpetaPadreId();
-    if (carpetaPadreId === -1) {
-      console.error('No se pudo determinar la carpeta padre');
-      return;
-    }
     this.abrirModalCargaArchivos.emit(carpetaPadreId);
     this.toggleDropdown.emit();
   }
 
   abrirModalCargaCarpetasHandler(): void {
     const carpetaPadreId = this.obtenerCarpetaPadreId();
-    if (carpetaPadreId === -1) {
-      console.error('No se pudo determinar la carpeta padre');
-      return;
-    }
     this.abrirModalCargaCarpetas.emit(carpetaPadreId);
     this.toggleDropdown.emit();
   }

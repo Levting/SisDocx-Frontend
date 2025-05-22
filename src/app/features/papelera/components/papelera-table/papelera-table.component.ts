@@ -25,16 +25,18 @@ export class PapeleraTableComponent implements OnInit, OnDestroy {
   public elementosPapeleraOriginales: ElementoPapelera[] = [];
   public cabeceras: string[] = [
     'Nombre',
-    'Fecha Eliminado',
-    'Eliminado',
     'Creado por',
-    'Ubicación',
+    'Eliminado por',
+    'Fecha eliminación',
+    'Equipo de distribución',
+    'Ruta',
   ];
   public columnas: string[] = [
     'nombre',
-    'fechaPapelera',
-    'eliminadoPor',
     'creadoPor',
+    'eliminadoPor',
+    'fechaPapelera',
+    'equipoDistribucion',
     'ruta',
   ];
 

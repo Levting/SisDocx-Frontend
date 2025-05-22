@@ -1,0 +1,145 @@
+<div class="flex flex-col h-full">
+  <div class="flex flex-col my-2 gap-2">
+    <!-- Header Section -->
+    <div
+      class="h-12 w-full rounded-lg flex items-center justify-between transition-all duration-300 ease-in-out transform px-4"
+      [ngClass]="
+        elementosSeleccionados.length > 0
+          ? 'shadow-sm border border-gray-200 bg-white'
+          : ''
+      "
+    >
+      <!-- Mostrar cuando no hay elementos seleccionados -->
+      <ng-container *ngIf="elementosSeleccionados.length === 0">
+        <header>
+          <h2
+            class="font-bold mb-0 text-[22px] text-gray-800 lg:text-2xl 4xl:text-[26px]"
+          >
+            Documentos para {{ carpetaRaiz?.nombre }}
+          </h2>
+        </header>
+      </ng-container>
+
+      <!-- Mostrar cuando se han seleccionado mas de un elemento -->
+      <ng-container *ngIf="elementosSeleccionados.length >= 1">
+        <div class="flex w-full justify-between select-none">
+          <div class="flex flex-row gap-2">
+            <button
+              class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg text-center transition-colors duration-200 flex items-center gap-2"
+              (click)="papeleraSeleccionados()"
+            >
+              <svg-icon
+                src="assets/icons/object.svg"
+                [svgClass]="'h-5 w-5 text-red-500'"
+              />
+              Eliminar
+            </button>
+
+            <!-- <button
+              class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg text-center transition-colors duration-200 flex items-center gap-2"
+              (click)="favoritoSeleccionados()"
+            >
+              <svg-icon
+                src="assets/icons/star.svg"
+                [svgClass]="'h-5 w-5 text-yellow-500'"
+              />
+              Favorito
+            </button> -->
+
+            <button
+              class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg text-center transition-colors duration-200 flex items-center gap-2"
+              (click)="descargarSeleccionados()"
+            >
+              <svg-icon
+                src="assets/icons/object.svg"
+                [svgClass]="'h-5 w-5 text-blue-500'"
+              />
+              Descargar
+            </button>
+
+            <!-- <button
+              class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg text-center transition-colors duration-200 flex items-center gap-2"
+              (click)="moverSeleccionados()"
+            >
+              <svg-icon
+                src="assets/icons/move.svg"
+                [svgClass]="'h-5 w-5 text-green-500'"
+              />
+              Mover
+            </button>
+
+            <button
+              class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg text-center transition-colors duration-200 flex items-center gap-2"
+              (click)="copiarSeleccionados()"
+            >
+              <svg-icon
+                src="assets/icons/copy.svg"
+                [svgClass]="'h-5 w-5 text-purple-500'"
+              />
+              Copiar
+            </button> -->
+          </div>
+
+          <div class="flex flex-row">
+            <button
+              class="text-sm px-4 py-2 text-gray-700 hover:text-gray-900 border border-gray-200 hover:bg-gray-50 font-medium rounded-lg text-center items-center transition-all duration-200 flex gap-2"
+              (click)="limpiarSeleccion()"
+              aria-label="Limpiar selección"
+            >
+              <i class="bi bi-x-lg"></i>
+              <span class="text-sm font-medium">
+                {{ elementosSeleccionados.length }} seleccionado(s)
+              </span>
+            </button>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+
+    <!-- Breadcrumb -->
+    <app-breadcrumb
+      [ruta]="ruta"
+      (navegar)="navegarA($event)"
+      (irRaiz)="cargarRaiz()"
+    />
+  </div>
+
+  <!-- Table Section -->
+  <div
+    class="flex-1 min-h-0 bg-white rounded-lg shadow-sm border border-gray-200"
+  >
+    <app-table
+      [cabeceras]="cabeceras"
+      [columnas]="columnas"
+      [elementosTabla]="elementosTabla"
+      [mostrarDropdown]="true"
+      [dropdownTemplate]="dropdownFavoritosTemplate"
+      [habilitarNavegacion]="true"
+      [isLoading]="isLoading"
+      [isError]="isError"
+      [error]="error"
+      (cambioSeleccion)="onSeleccionCambiada($event)"
+      (dobleClickElemento)="onDobleClickElemento($event)"
+      (toggleFavorito)="onToggleFavorito($event)"
+    />
+  </div>
+
+  <!-- Modals -->
+  <app-documentos-preview-modal
+    *ngIf="isOpenPreviewModal"
+    [elemento]="elementoAPrevisualizar"
+    (cerrar)="onPreviewClose()"
+  />
+
+  <app-documentos-modal-renombrar />
+
+  <!-- Dropdown Template -->
+  <ng-template #dropdownFavoritosTemplate let-elemento="elemento">
+    <app-documentos-dropdown
+      [elemento]="elemento"
+      (onPapelera)="onPapeleraIndividual(elemento)"
+      (onDescargar)="onDescargarIndividual(elemento)"
+      (onRenombrar)="onElementoRenombrado($event)"
+    />
+  </ng-template>
+</div>

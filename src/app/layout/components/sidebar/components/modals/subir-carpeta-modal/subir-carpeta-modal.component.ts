@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { ElementoService } from '../../../../../../core/services/elemento.service';
 import { Carpeta } from '../../../../../../core/models/documentos/carpeta.model';
 import { CarpetaActualService } from '../../../../../../core/services/carpeta-actual.service';
-import { firstValueFrom } from 'rxjs';
-import { Elemento } from '../../../../../../core/models/documentos/elemento.model';
+import { firstValueFrom, Subject, takeUntil } from 'rxjs';
+import { ApiError } from '../../../../../../core/models/errors/api-error.model';
 
 interface FileWithPath extends File {
   webkitRelativePath: string;
@@ -51,10 +51,20 @@ export class SubirCarpetaModalComponent {
   private elementoService = inject(ElementoService);
   private carpetaActualService = inject(CarpetaActualService);
   private archivosSeleccionados: FileWithPath[] = [];
+  private destroy$ = new Subject<void>();
 
   onClose(): void {
+    this.setupSubscriptions();
     this.close.emit();
     this.resetState();
+  }
+
+  private setupSubscriptions(): void {
+    this.carpetaActualService.carpetaActual$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((carpeta) => {
+        this.carpetaActual = carpeta;
+      });
   }
 
   private resetState(): void {
@@ -119,11 +129,16 @@ export class SubirCarpetaModalComponent {
   }
 
   async onSubmit(): Promise<void> {
-    if (
-      !this.carpetaPadreId ||
-      this.carpetas.length === 0 ||
-      this.archivosSeleccionados.length === 0
-    ) {
+    // Usar la carpeta actual o la carpeta padre proporcionada
+    const carpetaPadreId =
+      this.carpetaActual?.elementoId || this.carpetaPadreId;
+
+    if (!carpetaPadreId) {
+      this.errorMessage = 'No se pudo determinar la carpeta destino';
+      return;
+    }
+
+    if (this.carpetas.length === 0 || this.archivosSeleccionados.length === 0) {
       this.errorMessage = 'Por favor, selecciona una carpeta para subir';
       return;
     }
@@ -156,7 +171,7 @@ export class SubirCarpetaModalComponent {
 
         try {
           await this.uploadFolderStructure(
-            this.carpetaPadreId,
+            carpetaPadreId,
             carpetaRaiz,
             filesDeCarpeta
           );
@@ -176,8 +191,32 @@ export class SubirCarpetaModalComponent {
 
       // Si llegamos aquí, todo se subió correctamente
       this.carpetasSubidas.emit();
+
       // Notificar la recarga del contenido
-      this.carpetaActualService.notificarRecargarContenido(this.carpetaPadreId);
+      if (this.carpetaActual) {
+        this.carpetaActualService.notificarRecargarContenido(
+          this.carpetaActual.elementoId
+        );
+      } else {
+        // Si no hay carpeta actual, recargar la raíz
+        this.elementoService
+          .obtenerRaiz()
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: ({ carpetaRaiz }) => {
+              this.carpetaActualService.notificarRecargarContenido(
+                carpetaRaiz.elementoId
+              );
+            },
+            error: (error: ApiError) => {
+              console.error(
+                'Error al obtener carpeta raíz para recarga:',
+                error
+              );
+            },
+          });
+      }
+
       this.onSubidaCompletada.emit();
       this.onClose();
     } catch (error: any) {
@@ -185,8 +224,30 @@ export class SubirCarpetaModalComponent {
         error?.message ||
         'Error al subir las carpetas. Por favor, intenta nuevamente.';
       console.error('Error al subir carpetas:', error);
+
       // Aún así, intentamos recargar el contenido por si algo se subió
-      this.carpetaActualService.notificarRecargarContenido(this.carpetaPadreId);
+      if (this.carpetaActual) {
+        this.carpetaActualService.notificarRecargarContenido(
+          this.carpetaActual.elementoId
+        );
+      } else {
+        this.elementoService
+          .obtenerRaiz()
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: ({ carpetaRaiz }) => {
+              this.carpetaActualService.notificarRecargarContenido(
+                carpetaRaiz.elementoId
+              );
+            },
+            error: (error: ApiError) => {
+              console.error(
+                'Error al obtener carpeta raíz para recarga:',
+                error
+              );
+            },
+          });
+      }
     } finally {
       this.isLoading = false;
     }
@@ -209,8 +270,9 @@ export class SubirCarpetaModalComponent {
     const elementosCreados: { id: number; tipo: 'CARPETA' | 'ARCHIVO' }[] = [];
 
     try {
-      // 1. Crear la carpeta raíz
-      const folderFile = new File([], carpetaRaiz);
+      // 1. Crear la carpeta raíz - Usar solo el nombre de la carpeta, no la ruta completa
+      const nombreCarpetaRaiz = carpetaRaiz.split('/').pop() || carpetaRaiz;
+      const folderFile = new File([], nombreCarpetaRaiz);
       const carpetaResponse = await firstValueFrom(
         this.elementoService.subirElemento({
           carpetaPadreId,

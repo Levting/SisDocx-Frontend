@@ -1,73 +1,108 @@
+import { NgClass } from '@angular/common';
+import { NgIf } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
-import { DocumentosDropdownComponent } from '../documentos-dropdown/documentos-dropdown.component';
-import { NgClass, NgIf } from '@angular/common';
 import { SvgIconComponent } from 'angular-svg-icon';
-import { ElementoService } from '../../../../core/services/elemento.service';
-import { Elemento } from '../../../../core/models/documentos/elemento.model';
-import { TableComponent } from '../../../../shared/components/table/table.component';
-import { ElementoTabla } from '../../../../shared/models/table/elemento-tabla.model';
-import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
+
 import {
   catchError,
-  forkJoin,
-  of,
   filter,
+  forkJoin,
+  map,
+  of,
   switchMap,
   take,
   tap,
-  map,
-  throwError,
 } from 'rxjs';
-import {
-  MarcarElementoFavoritoRequest,
-  RenombrarElementoRequest,
-} from '../../../../core/models/request/elemento-request.model';
-import { ApiError } from '../../../../core/models/errors/api-error.model';
-import { ConfirmModalService } from '../../../../shared/services/confirm-modal.service';
-import { DocumentosModalRenombrarComponent } from '../documentos-modal-renombrar/documentos-modal-renombrar.component';
-import { Carpeta } from '../../../../core/models/documentos/carpeta.model';
-import { TransformacionService } from '../../../../core/services/transformacion.service';
-import { CarpetaActualService } from '../../../../core/services/carpeta-actual.service';
-import { DocumentosPreviewModalComponent } from '../documentos-preview-modal/documentos-preview-modal.component';
-import { DescargarElementoRequest } from '../../../../core/models/documentos/descargar-elemento-request.model';
-import { LoggerService } from '../../../../core/services/logger.service';
-import { AuthService } from '../../../../core/services/auth.service';
+import { TablaEstadoComponent } from '../../../../../../shared/components/tabla-estado/tabla-estado.component';
+import { BreadcrumbComponent } from '../../../../../../shared/components/breadcrumb/breadcrumb.component';
+import { ElementoTabla } from '../../../../../../shared/models/table/elemento-tabla.model';
+import { DocumentosPreviewModalComponent } from '../../../components/documentos-preview-modal/documentos-preview-modal.component';
+import { Elemento } from '../../../../../../core/models/documentos/elemento.model';
+import { ElementoService } from '../../../../../../core/services/elemento.service';
+import { CarpetaActualService } from '../../../../../../core/services/carpeta-actual.service';
+import { LoggerService } from '../../../../../../core/services/logger.service';
+import { TransformacionService } from '../../../../../../core/services/transformacion.service';
+import { ConfirmModalService } from '../../../../../../shared/services/confirm-modal.service';
+import { AuthService } from '../../../../../../core/services/auth.service';
+import { ApiError } from '../../../../../../core/models/errors/api-error.model';
+import { Carpeta } from '../../../../../../core/models/documentos/carpeta.model';
+import { RenombrarElementoRequest } from '../../../../../../core/models/request/elemento-request.model';
+import { DescargarElementoRequest } from '../../../../../../core/models/documentos/descargar-elemento-request.model';
+import { RevisionService } from '../../../../../../core/services/revision.service';
+import { RevisionDesicion } from '../../../../../../core/models/revision/revision-desicion.model';
+import { ElementoRevision } from '../../../../../../core/models/revision/elemento-revision.model';
+
+interface ColumnaConfig {
+  key: string;
+  label: string;
+  type: 'text' | 'badge' | 'status' | 'actions';
+  badgeColor?: string;
+  badgeTextColor?: string;
+  hidden?: boolean;
+}
 
 @Component({
-  selector: 'app-documentos-table',
+  selector: 'app-documentos-tabla-estados',
   standalone: true,
   imports: [
-    DocumentosDropdownComponent,
-    NgClass,
     NgIf,
     SvgIconComponent,
-    TableComponent,
+    TablaEstadoComponent,
+    NgClass,
     BreadcrumbComponent,
-    DocumentosModalRenombrarComponent,
     DocumentosPreviewModalComponent,
   ],
-  templateUrl: './documentos-table.component.html',
+  templateUrl: './documentos-tabla-estados.component.html',
 })
-export class DocumentosTableComponent implements OnInit {
+export class DocumentosTablaEstadosComponent implements OnInit {
   public elementosTabla: ElementoTabla[] = [];
   public elementosOriginales: Elemento[] = [];
-  public cabeceras: string[] = [
-    'Nombre',
-    'Modificado por',
-    'Modificado el',
-    'Tamaño',
-    'Actividad',
-  ];
-  public columnas: string[] = [
-    'nombre',
-    'creadoPor',
-    'creadoEl',
-    'cantidadElementos',
-    'estado',
+
+  public columnasConfig: ColumnaConfig[] = [
+    {
+      key: 'remitente',
+      label: 'Remitente',
+      type: 'text',
+    },
+    {
+      key: 'provincia',
+      label: 'Provincia',
+      type: 'badge',
+      badgeColor: 'bg-blue-100',
+      badgeTextColor: 'text-blue-800',
+    },
+    {
+      key: 'fechaEnvio',
+      label: 'Fecha de envio',
+      type: 'text',
+    },
+    {
+      key: 'equipoDistribucion',
+      label: 'Equipo de distribución',
+      type: 'badge',
+      badgeColor: 'bg-green-300',
+      badgeTextColor: 'text-green-700',
+    },
+    {
+      key: 'tamano',
+      label: 'Tamaño',
+      type: 'text',
+    },
+    {
+      key: 'estadoRevision',
+      label: 'Estado Revisión',
+      type: 'status',
+    },
+    {
+      key: 'acciones',
+      label: 'Acciones',
+      type: 'actions',
+    },
   ];
 
+  public columnas: string[] = this.columnasConfig.map((col) => col.key);
+
   // Inyección de servicios
-  private elementoService: ElementoService = inject(ElementoService);
   private carpetaActualService: CarpetaActualService =
     inject(CarpetaActualService);
   private transformacionService: TransformacionService = inject(
@@ -77,6 +112,8 @@ export class DocumentosTableComponent implements OnInit {
     inject(ConfirmModalService);
   private logger: LoggerService = inject(LoggerService);
   private authService: AuthService = inject(AuthService);
+  private elementoService: ElementoService = inject(ElementoService);
+  private revisionService: RevisionService = inject(RevisionService);
 
   // Propiedades para la selección de elementos
   public elementosSeleccionados: ElementoTabla[] = [];
@@ -102,6 +139,8 @@ export class DocumentosTableComponent implements OnInit {
   private userRole: string | null = null;
   private userProvincia: string | null = null;
 
+  public revisiones: ElementoRevision[] = [];
+
   constructor() {
     // Suscribirse a los cambios del rol y provincia
     this.authService.userRole$.subscribe((role) => {
@@ -115,7 +154,6 @@ export class DocumentosTableComponent implements OnInit {
 
   /* Inicializador del Componente */
   ngOnInit(): void {
-    // Asegurarse de que el usuario esté autenticado antes de cargar el contenido
     this.authService.userLoginOn
       .pipe(
         filter((isLoggedIn) => isLoggedIn === true),
@@ -152,6 +190,8 @@ export class DocumentosTableComponent implements OnInit {
         // Si estamos en una subcarpeta y el ID no coincide, volver a la raíz
         this.cargarRaiz();
       });
+
+    this.cargarRevisionesPendientes();
   }
 
   cargarRaiz(): void {
@@ -161,63 +201,37 @@ export class DocumentosTableComponent implements OnInit {
     this.elementosTabla = [];
     this.ruta = [];
 
-    this.logger.debug('Iniciando carga de contenido raíz');
+    this.logger.debug('Iniciando carga de revisiones pendientes');
 
-    this.elementoService
-      .obtenerRaiz()
-      .pipe(
-        tap(({ carpetaRaiz, contenido }) => {
-          this.logger.debug('Contenido raíz recibido:', contenido);
-          this.elementosOriginales = contenido;
+    this.revisionService.obtenerRevisionesPendientes().subscribe({
+      next: (revisiones) => {
+        if (revisiones.length === 0) {
+          this.isLoading = false;
+          return;
+        }
 
-          // Actualizar la carpeta actual con la carpeta raíz
-          this.carpetaActualService.actualizarCarpetaActual({
-            elementoId: carpetaRaiz.elementoId,
-            nombre: carpetaRaiz.nombre,
-            cantidadElementos: contenido.length,
-            creadoPor: carpetaRaiz.creadoPor,
-            creadoEl: carpetaRaiz.creadoEl,
-            carpetaPadreId: carpetaRaiz.carpetaPadreId,
-            elemento: 'CARPETA',
-            estado: carpetaRaiz.estado,
-            ruta: carpetaRaiz.ruta,
+        this.transformacionService
+          .transformarRevisionesATabla(revisiones)
+          .subscribe({
+            next: (elementosTransformados) => {
+              this.elementosTabla = elementosTransformados;
+              this.isLoading = false;
+            },
+            error: (err: ApiError) => {
+              this.isLoading = false;
+              this.isError = true;
+              this.error = 'Error al transformar los elementos para la tabla';
+              this.logger.error('Error al transformar elementos:', err.message);
+            },
           });
-
-          // Si no hay contenido, terminar aquí
-          if (contenido.length === 0) {
-            this.isLoading = false;
-            return;
-          }
-        }),
-        switchMap(({ carpetaRaiz, contenido }) =>
-          contenido.length > 0
-            ? this.transformacionService
-                .transformarDocumentosATabla(contenido)
-                .pipe(map((filas) => ({ filas, carpetaRaiz })))
-            : of({ filas: [], carpetaRaiz })
-        ),
-        catchError((err: ApiError) => {
-          this.isLoading = false;
-          this.isError = true;
-          this.error = err.message || 'Error al cargar la carpeta raíz';
-          this.logger.error('Error al cargar la carpeta raíz:', err);
-          return throwError(() => err);
-        })
-      )
-      .subscribe({
-        next: ({ filas, carpetaRaiz }) => {
-          this.elementosTabla = filas;
-          this.isLoading = false;
-          this.logger.debug('Contenido raíz cargado exitosamente');
-        },
-        error: () => {
-          // El error ya se maneja en el catchError del pipe
-        },
-        complete: () => {
-          // Asegurarse de que el estado de carga se actualice incluso si hay un error
-          this.isLoading = false;
-        },
-      });
+      },
+      error: (err: ApiError) => {
+        this.isLoading = false;
+        this.isError = true;
+        this.error = 'Error al cargar las revisiones pendientes';
+        this.logger.error('Error al cargar revisiones:', err.message);
+      },
+    });
   }
 
   // Método para manejar el evento de selección de elementos
@@ -245,7 +259,7 @@ export class DocumentosTableComponent implements OnInit {
         switchMap(() => this.elementoService.obtenerContenidoCarpeta(carpetaId))
       )
       .subscribe({
-        next: (elementos: Elemento[]) => {
+        next: (elementos) => {
           if (
             nombre &&
             (this.ruta.length === 0 ||
@@ -430,29 +444,6 @@ export class DocumentosTableComponent implements OnInit {
     });
   }
 
-  favoritoSeleccionados(): void {
-    const requests = this.elementosSeleccionados.map((elemento) => ({
-      elementoId: elemento.columnas['elementoId'],
-      elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
-    }));
-
-    forkJoin(
-      requests.map((request) =>
-        this.elementoService.marcarElementoFavorito(request)
-      )
-    ).subscribe({
-      next: () => {
-        this.limpiarSeleccion();
-        this.cargarContenido(this.ruta[this.ruta.length - 1]?.elementoId || 1);
-      },
-      error: (error) => {
-        this.isError = true;
-        this.error = 'No se pudieron marcar los elementos como favoritos';
-        console.error('Error al marcar favoritos:', error);
-      },
-    });
-  }
-
   descargarSeleccionados(): void {
     if (this.elementosSeleccionados.length === 0) return;
 
@@ -473,16 +464,6 @@ export class DocumentosTableComponent implements OnInit {
         console.error('Error al descargar elementos:', error);
       },
     });
-  }
-
-  moverSeleccionados(): void {
-    // TODO: Implementar lógica de mover elementos
-    console.log('Mover elementos seleccionados:', this.elementosSeleccionados);
-  }
-
-  copiarSeleccionados(): void {
-    // TODO: Implementar lógica de copiar elementos
-    console.log('Copiar elementos seleccionados:', this.elementosSeleccionados);
   }
 
   // Métodos para acciones individuales desde el dropdown
@@ -520,24 +501,6 @@ export class DocumentosTableComponent implements OnInit {
     });
   }
 
-  onFavoritoIndividual(elemento: ElementoTabla): void {
-    const request: MarcarElementoFavoritoRequest = {
-      elementoId: elemento.columnas['elementoId'],
-      elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
-    };
-
-    this.elementoService.marcarElementoFavorito(request).subscribe({
-      next: () => {
-        this.cargarContenido(this.ruta[this.ruta.length - 1]?.elementoId || 1);
-      },
-      error: (error) => {
-        this.isError = true;
-        this.error = 'No se pudo marcar el elemento como favorito';
-        console.error('Error al marcar favorito:', error);
-      },
-    });
-  }
-
   onCambiarNombreIndividual(elemento: ElementoTabla): void {
     const isFile = elemento.columnas['elemento'] === 'ARCHIVO';
     const request: RenombrarElementoRequest = {
@@ -558,53 +521,6 @@ export class DocumentosTableComponent implements OnInit {
     });
   }
 
-  onRenombrarClose(): void {
-    this.isOpenRenombrarModal = false;
-    this.elementoARenombrar = null;
-  }
-
-  onToggleFavorito(elemento: ElementoTabla): void {
-    const request: MarcarElementoFavoritoRequest = {
-      elementoId: elemento.columnas['elementoId'],
-      elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
-    };
-
-    this.elementoService.marcarElementoFavorito(request).subscribe({
-      next: () => {
-        // Actualizar el estado del elemento en la tabla
-        elemento.columnas['estado'] =
-          elemento.columnas['estado'] === 'FAVORITO'
-            ? 'DISPONIBLE'
-            : 'FAVORITO';
-      },
-      error: (error: ApiError) => {
-        console.error('Error al cambiar estado de favorito:', error.message);
-      },
-    });
-  }
-
-  onElementoRenombrado(elemento: ElementoTabla): void {
-    // Actualizar el elemento en la tabla
-    const index = this.elementosTabla.findIndex(
-      (e) => e.columnas['elementoId'] === elemento.columnas['elementoId']
-    );
-
-    if (index !== -1) {
-      this.elementosTabla[index] = { ...elemento };
-      // Forzar la detección de cambios
-      this.elementosTabla = [...this.elementosTabla];
-    }
-
-    // Obtener la carpeta actual
-    const carpetaActual = this.carpetaActualService.obtenerCarpetaActual();
-    if (carpetaActual) {
-      // Notificar al servicio para recargar el contenido
-      this.carpetaActualService.notificarRecargarContenido(
-        carpetaActual.elementoId
-      );
-    }
-  }
-
   onDescargarIndividual(elemento: ElementoTabla): void {
     const request: DescargarElementoRequest = {
       elementoId: elemento.columnas['elementoId'],
@@ -622,5 +538,130 @@ export class DocumentosTableComponent implements OnInit {
         console.error('Error al descargar elemento:', error.message);
       },
     });
+  }
+
+  // Métodos para manejar la aprobación y rechazo de documentos
+  onAprobar(elemento: ElementoTabla): void {
+    const config = {
+      title: 'Aprobar revisión',
+      message: `¿Estás seguro de que deseas aprobar la revisión de "${elemento.columnas['nombre']}"?`,
+      confirmText: 'Aprobar',
+      cancelText: 'Cancelar',
+      type: 'warning' as const,
+    };
+
+    this.confirmModalService.open(config, () => {
+      const request: RevisionDesicion = {
+        revisionId: elemento.columnas['id'],
+        decision: 'APROBADO',
+        observaciones: elemento.columnas['observaciones'],
+      };
+
+      this.revisionService.revisar(request).subscribe({
+        next: () => {
+          this.logger.info('Aprobando revisión:', elemento.columnas['nombre']);
+          this.cargarRevisionesPendientes();
+        },
+        error: (error) => {
+          this.isError = true;
+          this.error = 'Error al aprobar la revisión';
+          this.logger.error('Error al aprobar revisión:', error);
+        },
+      });
+    });
+  }
+
+  onRechazar(elemento: ElementoTabla): void {
+    const config = {
+      title: 'Rechazar revisión',
+      message: `¿Estás seguro de que deseas rechazar la revisión de "${elemento.columnas['nombre']}"?`,
+      confirmText: 'Rechazar',
+      cancelText: 'Cancelar',
+    };
+
+    this.confirmModalService.open(config, () => {
+      const request: RevisionDesicion = {
+        revisionId: elemento.columnas['id'],
+        decision: 'RECHAZADO',
+        observaciones: elemento.columnas['observaciones'],
+      };
+
+      this.revisionService.revisar(request).subscribe({
+        next: () => {
+          this.cargarRevisionesPendientes();
+        },
+        error: (error) => {
+          this.isError = true;
+          this.error = 'Error al rechazar la revisión';
+          this.logger.error('Error al rechazar revisión:', error);
+        },
+      });
+    });
+  }
+
+  onAprobarSeleccionados(elementos: ElementoTabla[]): void {
+    const config = {
+      title: 'Aprobar documentos',
+      message: `¿Estás seguro de que deseas aprobar ${elementos.length} documento(s)?`,
+      confirmText: 'Aprobar',
+      cancelText: 'Cancelar',
+      type: 'warning' as const,
+    };
+
+    this.confirmModalService.open(config, () => {
+      // Aquí iría la llamada al servicio para aprobar los documentos
+      console.log('Aprobando documentos:', elementos);
+      // Actualizar el estado de los documentos
+      elementos.forEach((elemento) => {
+        elemento.columnas['estado'] = 'Aprobado';
+      });
+      // Recargar la tabla
+      this.cargarContenido(this.ruta[this.ruta.length - 1]?.elementoId || 1);
+    });
+  }
+
+  onRechazarSeleccionados(elementos: ElementoTabla[]): void {
+    const config = {
+      title: 'Rechazar documentos',
+      message: `¿Estás seguro de que deseas rechazar ${elementos.length} documento(s)?`,
+      confirmText: 'Rechazar',
+      cancelText: 'Cancelar',
+    };
+
+    this.confirmModalService.open(config, () => {
+      // Aquí iría la llamada al servicio para rechazar los documentos
+      console.log('Rechazando documentos:', elementos);
+      // Actualizar el estado de los documentos
+      elementos.forEach((elemento) => {
+        elemento.columnas['estado'] = 'Rechazado';
+      });
+      // Recargar la tabla
+      this.cargarContenido(this.ruta[this.ruta.length - 1]?.elementoId || 1);
+    });
+  }
+
+  cargarRevisionesPendientes(): void {
+    this.isLoading = true;
+    this.isError = false;
+    this.error = null;
+
+    this.revisionService.obtenerRevisionesPendientes().subscribe({
+      next: (revisiones) => {
+        this.revisiones = revisiones;
+        this.transformacionService.transformarRevisionesATabla(revisiones);
+        this.isLoading = false;
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.isError = true;
+        this.error = 'Error al cargar las revisiones pendientes';
+        this.logger.error('Error al cargar revisiones:', err);
+      },
+    });
+  }
+
+  onEnviarSolicitud(elemento: ElementoTabla): void {
+    // Implementar la lógica para enviar solicitud
+    console.log('Enviando solicitud para:', elemento);
   }
 }

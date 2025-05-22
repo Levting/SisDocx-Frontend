@@ -42,7 +42,7 @@ export class CarpetaActualService {
    * Notifica que se debe recargar el contenido de una carpeta específica
    * @param carpetaId El ID de la carpeta a recargar. Si es null, se recarga la carpeta actual
    */
-  notificarRecargarContenido(carpetaId: number | null = null): void {
+  notificarRecargarContenido(carpetaId: number): void {
     this.recargarContenidoSubject.next(carpetaId);
   }
 

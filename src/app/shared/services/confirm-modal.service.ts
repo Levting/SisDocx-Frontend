@@ -6,6 +6,7 @@ export interface ConfirmModalConfig {
   message: string;
   confirmText?: string;
   cancelText?: string;
+  type?: 'danger' | 'warning' | 'info' | 'success';
 }
 
 @Injectable({

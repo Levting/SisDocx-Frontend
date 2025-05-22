@@ -1,0 +1,21 @@
+<div class="flex flex-col h-full">
+  <app-tabs
+    [tabs]="tabs"
+    (tabChange)="onTabChange($event)"
+    class="flex flex-col h-full"
+  >
+    <ng-container
+      *ngIf="activeTab === 'documentos'"
+      (click)="onReload()"
+      class="h-full"
+    >
+      <app-documentos-table />
+    </ng-container>
+    <ng-container *ngIf="activeTab === 'documentos-por-usuario'" class="h-full">
+      <app-documentos-aprobados />
+    </ng-container>
+  </app-tabs>
+
+  <!-- Modal de confirmación -->
+  <app-confirm-modal />
+</div>

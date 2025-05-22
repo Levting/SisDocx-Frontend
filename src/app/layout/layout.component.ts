@@ -1,13 +1,13 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { TokenService } from '../core/services/token.service';
-import { Router, NavigationEnd } from '@angular/router';
-import { filter, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { CarpetaActualService } from '../core/services/carpeta-actual.service';
-
+import { ElementoService } from '../core/services/elemento.service';
+import { Carpeta } from '../core/models/documentos/carpeta.model';
+import { filter, takeUntil } from 'rxjs/operators';
 /**
  * Componente principal de layout que organiza la estructura de la aplicación.
  * Incluye la barra lateral, la barra de navegación superior y el contenido principal.
@@ -23,6 +23,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
   private tokenService = inject(TokenService);
   private router = inject(Router);
   private carpetaActualService = inject(CarpetaActualService);
+  private elementoService: ElementoService = inject(ElementoService);
 
   // Subject para limpieza de suscripciones
   private destroy$ = new Subject<void>();
@@ -36,18 +37,33 @@ export class LayoutComponent implements OnInit, OnDestroy {
       this.router.navigate(['/auth/iniciar-sesion']);
     }
 
-    // Escuchar cambios de ruta para reiniciar la carpeta actual cuando se sale de documentos
+    // Obtener la carpeta raíz al iniciar
+    this.obtenerCarpetaRaiz();
+
+    // Suscribirse a los cambios de ruta
     this.router.events
       .pipe(
-        filter(event => event instanceof NavigationEnd),
+        filter((event) => event instanceof NavigationEnd),
         takeUntil(this.destroy$)
       )
-      .subscribe((event: NavigationEnd) => {
-        // Si la ruta NO incluye 'documentos', reiniciar la carpeta actual
-        if (!event.url.includes('/documentos')) {
-          this.carpetaActualService.reiniciarCarpetaActual();
+      .subscribe((event: any) => {
+        if (event.url === '/documentos') {
+          this.obtenerCarpetaRaiz();
         }
       });
+  }
+
+  private obtenerCarpetaRaiz(): void {
+    this.elementoService.obtenerRaiz().subscribe({
+      next: (carpetaRaiz) => {
+        this.carpetaActualService.actualizarCarpetaActual(
+          carpetaRaiz.carpetaRaiz as Carpeta
+        );
+      },
+      error: (error) => {
+        console.error('Error al obtener carpeta raíz:', error);
+      },
+    });
   }
 
   /**

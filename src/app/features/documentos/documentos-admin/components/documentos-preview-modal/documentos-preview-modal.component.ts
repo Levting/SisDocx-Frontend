@@ -8,16 +8,16 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ElementoTabla } from '../../../../shared/models/table/elemento-tabla.model';
-import { ElementoService } from '../../../../core/services/elemento.service';
-import { PrevisualizarArchivoRequest } from '../../../../core/models/documentos/previsualizar-archivo.model';
 import {
   DomSanitizer,
   SafeResourceUrl,
   SafeHtml,
 } from '@angular/platform-browser';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { ApiError } from '../../../../core/models/errors/api-error.model';
+import { ElementoTabla } from '../../../../../shared/models/table/elemento-tabla.model';
+import { ElementoService } from '../../../../../core/services/elemento.service';
+import { PrevisualizarArchivoRequest } from '../../../../../core/models/documentos/previsualizar-archivo.model';
+import { ApiError } from '../../../../../core/models/errors/api-error.model';
 
 @Component({
   selector: 'app-documentos-preview-modal',

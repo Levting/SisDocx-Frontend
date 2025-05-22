@@ -14,10 +14,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { finalize } from 'rxjs/operators';
-import { ElementoTabla } from '../../../../shared/models/table/elemento-tabla.model';
-import { ElementoService } from '../../../../core/services/elemento.service';
-import { ApiError } from '../../../../core/models/errors/api-error.model';
-import { RenombrarElementoRequest } from '../../../../core/models/request/elemento-request.model';
+import { ElementoService } from '../../../../../core/services/elemento.service';
+import { ElementoTabla } from '../../../../../shared/models/table/elemento-tabla.model';
+import { RenombrarElementoRequest } from '../../../../../core/models/request/elemento-request.model';
+import { ApiError } from '../../../../../core/models/errors/api-error.model';
+
 
 @Component({
   selector: 'app-documentos-modal-renombrar',

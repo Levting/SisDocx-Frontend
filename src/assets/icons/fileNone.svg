@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 56 56">
+  <path fill="#A0A0A0" d="M14.336 0h18.742l15.866 16.545v32.174c0 4.017-3.263 7.281-7.292 7.281H14.336a7.286 7.286 0 0 1-7.281-7.281V7.28A7.286 7.286 0 0 1 14.336 0Z"/>
+  <path fill="#fff" fill-rule="evenodd" d="M33.059 0v16.416h15.887L33.06 0Z" clip-rule="evenodd" opacity="0.3"/>
+  <text x="28" y="38" text-anchor="middle" fill="#FFFFFF" font-size="14" font-family="Arial, sans-serif" font-weight="bold">FILE</text>
+</svg>

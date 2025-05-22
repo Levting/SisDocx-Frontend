@@ -61,12 +61,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.isOpenSubirArchivoModal = false;
     this.isOpenSubirCarpetaModal = false;
 
-    // Suscribirse a la carpeta actual para obtener su ID
-    this.carpetaActualService.carpetaActual$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((carpeta: Carpeta | null): void => {
-        this.carpetaPadreId = carpeta?.carpetaPadreId || 0;
-      });
+    // Suscribirse a los cambios de la carpeta actual
+    this.carpetaActualService.carpetaActual$.subscribe((carpeta) => {
+      if (carpeta) {
+        this.carpetaPadreId = carpeta.elementoId;
+      }
+    });
   }
 
   /**
@@ -89,47 +89,51 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   // Modal de creación de carpeta
   abrirModalCrearCarpeta(carpetaPadreId: number): void {
-    this.carpetaPadreId = carpetaPadreId; // Asignar el ID de la carpeta padre
-    console.log('Crear carpeta en carpeta padre con ID:', carpetaPadreId);
+    // Asegurarse de que siempre tengamos un ID válido
+    console.log('Abriendo modal crear carpeta abierto en ', carpetaPadreId);
     this.isOpenCrearCarpetaModal = true;
   }
 
   // Modal de subida de archivo
   abrirModalCargaArchivos(carpetaPadreId: number): void {
+    // Asegurarse de que siempre tengamos un ID válido
     this.carpetaPadreId = carpetaPadreId;
-    console.log('Subir archivo en carpeta padre con ID:', carpetaPadreId);
+    console.log(
+      'Abriendo modal subir archivos en carpeta padre:',
+      this.carpetaPadreId
+    );
     this.isOpenSubirArchivoModal = true;
   }
 
   // Modal de subida de carpeta
   abrirModalCargaCarpetas(carpetaPadreId: number): void {
+    // Asegurarse de que siempre tengamos un ID válido
     this.carpetaPadreId = carpetaPadreId;
-    console.log('Subir carpeta en carpeta padre con ID:', carpetaPadreId);
+    console.log(
+      'Abriendo modal subir carpetas en carpeta padre:',
+      this.carpetaPadreId
+    );
     this.isOpenSubirCarpetaModal = true;
   }
 
   // Cerrar modal de creación de carpeta
   cerrarModalCrearCarpeta(): void {
     this.isOpenCrearCarpetaModal = false;
-    this.carpetaPadreId = 0;
   }
 
   // Cerrar modal de subida de archivo
   cerrarModalSubirArchivo(): void {
     this.isOpenSubirArchivoModal = false;
-    this.carpetaPadreId = 0;
   }
 
   // Cerrar modal de subida de carpeta
   cerrarModalSubirCarpeta(): void {
     this.isOpenSubirCarpetaModal = false;
-    this.carpetaPadreId = 0;
   }
 
   // Evento de subida de carpeta
   onCarpetaCreada(): void {
     this.isOpenCrearCarpetaModal = false;
-    this.carpetaPadreId = 0;
   }
 
   // Evento de subida de archivo
@@ -144,14 +148,15 @@ export class SidebarComponent implements OnInit, OnDestroy {
     // Recargar el contenido de la carpeta actual
     const carpetaActual = this.carpetaActualService.obtenerCarpetaActual();
     if (carpetaActual) {
-      this.carpetaActualService.notificarRecargarContenido();
+      this.carpetaActualService.notificarRecargarContenido(
+        carpetaActual.elementoId
+      );
     }
   }
 
   // Evento de subida de carpeta
   onCarpetasSubidas(): void {
     this.isOpenSubirCarpetaModal = false;
-    this.carpetaPadreId = 0;
   }
 
   /**
