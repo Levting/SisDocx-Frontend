@@ -69,8 +69,8 @@ export class CrearCarpetaModalComponent implements OnInit, OnDestroy {
           this.carpetaRaiz = carpetaRaiz;
         },
         error: (error: ApiError) => {
-          console.error('Error al obtener carpeta raíz:', error);
-          this.errorMessage = 'Error al obtener la carpeta raíz';
+          console.error('Error al obtener carpeta raíz:', error.message);
+          this.errorMessage = error.message;
         },
       });
   }
@@ -206,8 +206,14 @@ export class CrearCarpetaModalComponent implements OnInit, OnDestroy {
           this.onClose();
         },
         error: (error: ApiError) => {
-          console.error('Error al crear la carpeta:', error.message);
-          this.errorMessage = this.obtenerMensajeError(error);
+          this.toastService.show({
+            type: 'error',
+            message: error.message,
+            duration: 3000,
+          });
+
+          console.error('Error al crear la carpeta:', error);
+          this.errorMessage = error.message
         },
       });
   }

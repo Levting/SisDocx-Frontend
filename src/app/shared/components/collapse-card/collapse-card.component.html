@@ -8,7 +8,9 @@
     <div class="flex gap-2 sm:items-center md:gap-4">
       <!-- Logo -->
       <div class="relative aspect-square w-10">
-        <ng-container *ngIf="elementosRevision.elemento === 'CARPETA'">
+        <ng-container
+          *ngIf="elementosRevision.columnas['elemento'] === 'CARPETA'"
+        >
           <svg-icon
             src="assets/icons/folder.svg"
             class="h-10 w-10"
@@ -16,12 +18,48 @@
           />
         </ng-container>
 
-        <ng-container *ngIf="elementosRevision.elemento === 'ARCHIVO'">
-          <svg-icon
-            src="assets/icons/file.svg"
-            class="h-10 w-10"
-            [svgClass]="'fill-current text-gray-800'"
-          />
+        <ng-container
+          *ngIf="elementosRevision.columnas['elemento'] === 'ARCHIVO'"
+        >
+          <ng-container
+            [ngSwitch]="elementosRevision.columnas['extension']?.toLowerCase()"
+          >
+            <ng-container *ngSwitchCase="'pdf'">
+              <svg-icon src="assets/icons/filePdf.svg" class="h-10 w-10" />
+            </ng-container>
+
+            <ng-container *ngSwitchCase="'docx'">
+              <svg-icon src="assets/icons/fileDocx.svg" class="w-8 h-8" />
+            </ng-container>
+
+            <ng-container *ngSwitchCase="'doc'">
+              <svg-icon src="assets/icons/fileDocx.svg" class="w-8 h-8" />
+            </ng-container>
+
+            <ng-container *ngSwitchCase="'xls'">
+              <svg-icon src="assets/icons/fileExcel.svg" class="w-8 h-8" />
+            </ng-container>
+
+            <ng-container *ngSwitchCase="'xlsx'">
+              <svg-icon src="assets/icons/fileExcel.svg" class="w-8 h-8" />
+            </ng-container>
+
+            <ng-container *ngSwitchCase="'jpg'">
+              <svg-icon src="assets/icons/fileImage.svg" class="w-8 h-8" />
+            </ng-container>
+
+            <ng-container *ngSwitchCase="'jpeg'">
+              <svg-icon src="assets/icons/fileImage.svg" class="w-8 h-8" />
+            </ng-container>
+
+            <ng-container *ngSwitchCase="'png'">
+              <svg-icon src="assets/icons/fileImage.svg" class="w-8 h-8" />
+            </ng-container>
+
+            <ng-container *ngSwitchDefault>
+              <svg-icon src="assets/icons/fileNone.svg" class="w-8 h-8" />
+            </ng-container>
+          </ng-container>
         </ng-container>
       </div>
 
@@ -33,53 +71,60 @@
           Business
         </span> -->
         <h5 class="text-lg font-semibold text-gray-900">
-          {{ elementosRevision.remitente }}
+          {{ elementosRevision.columnas["nombre"] }}
         </h5>
         <ul class="flex items-center divide-x text-sm text-gray-600">
-          <li class="px-1.5 first:pl-0">{{ elementosRevision.provincia }}</li>
-          <li class="px-1.5">{{ elementosRevision.fechaEnvio }}</li>
+          <li class="px-1.5 first:pl-0">
+            {{ elementosRevision.columnas["remitente"] }}
+          </li>
+          <li class="px-1.5">{{ elementosRevision.columnas["provincia"] }}</li>
+          <li class="px-1.5">{{ elementosRevision.columnas["fechaEnvio"] }}</li>
         </ul>
       </div>
     </div>
 
-
     <div class="flex items-center gap-3">
-
       <!-- Revisor si existe -->
-      <ng-container *ngIf="elementosRevision.revisor">
+      <ng-container *ngIf="elementosRevision.columnas['revisor']">
         <div class="flex flex-col items-end gap-0">
           <span class="px-1.5 text-sm font-semibold first:pl-0">
-            {{ elementosRevision.revisor }}
+            {{ elementosRevision.columnas["revisor"] }}
           </span>
           <span class="px-1.5 text-sm font-semibold">
-            {{ elementosRevision.fechaRevision }}
+            {{ elementosRevision.columnas["fechaRevision"] }}
           </span>
         </div>
       </ng-container>
 
       <!-- Estado de la revisión -->
       <div>
-        <ng-container *ngIf="elementosRevision.estadoRevision === 'APROBADO'">
+        <ng-container
+          *ngIf="elementosRevision.columnas['estadoRevision'] === 'APROBADO'"
+        >
           <span
             class="text-xs bg-green-100 text-green-800 font-semibold px-3.5 py-1 rounded-md"
           >
-            {{ elementosRevision.estadoRevision }}
+            {{ elementosRevision.columnas["estadoRevision"] }}
           </span>
         </ng-container>
 
-        <ng-container *ngIf="elementosRevision.estadoRevision === 'PENDIENTE'">
+        <ng-container
+          *ngIf="elementosRevision.columnas['estadoRevision'] === 'PENDIENTE'"
+        >
           <span
             class="text-xs bg-yellow-100 text-yellow-800 font-semibold px-3.5 py-1 rounded-md"
           >
-            {{ elementosRevision.estadoRevision }}
+            {{ elementosRevision.columnas["estadoRevision"] }}
           </span>
         </ng-container>
 
-        <ng-container *ngIf="elementosRevision.estadoRevision === 'RECHAZADO'">
+        <ng-container
+          *ngIf="elementosRevision.columnas['estadoRevision'] === 'RECHAZADO'"
+        >
           <span
             class="text-xs bg-red-100 text-red-800 font-semibold px-3.5 py-1 rounded-md"
           >
-            {{ elementosRevision.estadoRevision }}
+            {{ elementosRevision.columnas["estadoRevision"] }}
           </span>
         </ng-container>
       </div>
@@ -109,6 +154,8 @@
     </div>
     <!-- Aquí va todo el contenido interno que ya tienes (vuelos, horarios, etc.) -->
     <!-- Puedes pegar directamente ese contenido acá -->
+
+    <div class="p-5"></div>
   </div>
 
   <!-- Footer -->
@@ -116,7 +163,7 @@
     class="flex flex-wrap justify-between gap-4 border-t border-dashed border-gray-300 p-5"
   >
     <div class="text-gray-700 text-md font-semibold">
-      {{ elementosRevision.observaciones }}
+      {{ elementosRevision.columnas["observaciones"] }}
     </div>
     <div class="flex gap-4">
       <button

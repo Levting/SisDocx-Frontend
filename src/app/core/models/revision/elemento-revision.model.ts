@@ -1,6 +1,6 @@
 import { Elemento } from '../documentos/elemento.model';
 
-export interface ElementoRevision extends Elemento {
+export interface Revision extends Elemento {
   id: number;
   remitenteId: number;
   remitente: string;

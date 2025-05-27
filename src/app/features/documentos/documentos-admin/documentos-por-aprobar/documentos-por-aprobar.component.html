@@ -1,5 +1,5 @@
 <div class="flex flex-col h-full">
-  <header>
+  <!--   <header>
     <h2
       class="font-bold mb-0 text-[22px] text-gray-800 lg:text-2xl 4xl:text-[26px]"
     >
@@ -8,11 +8,46 @@
   </header>
 
   <div class="mt-5 flex flex-col gap-7">
-    @for (revision of revisiones; track revision.id) {
-      <app-collapse-card [elementosRevision]="revision" />
-    }
-  </div>
+    <app-tabla-desplegable
+      [elementosRevision]="revisiones"
+      (verArchivo)="onVerArchivo($event)"
+      (aprobarRevision)="onAprobarRevision($event)"
+      (rechazarRevision)="onRechazarRevision($event)"
+    />
+  </div> -->
+
+  <app-tabs
+    [tabs]="tabs"
+    (tabChange)="onTabChange($event)"
+    class="flex flex-col h-full"
+  >
+    <ng-container
+      *ngIf="activeTab === 'por-aprobar'"
+      (click)="onReload()"
+      class="h-full"
+    >
+      <app-tabla-desplegable
+        [elementosRevision]="revisionesPorAprobar"
+        (verArchivo)="onVerArchivo($event)"
+        (aprobarRevision)="onAprobarRevision($event)"
+        (rechazarRevision)="onRechazarRevision($event)"
+      />
+    </ng-container>
+    <ng-container *ngIf="activeTab === 'rechazadas'" class="h-full">
+      <app-tabla-desplegable
+        [elementosRevision]="revisionesRechazadas"
+        (verArchivo)="onVerArchivo($event)"
+      />
+    </ng-container>
+  </app-tabs>
 </div>
+
+<!-- Modals -->
+<app-documentos-preview-modal
+  *ngIf="isOpenPreviewModal"
+  [elemento]="elementoAPrevisualizar"
+  (cerrar)="onPreviewClose()"
+/>
 
 <!-- Modal de confirmación -->
 <app-confirm-modal />

@@ -6,7 +6,7 @@
   class="fixed inset-0 z-50 flex items-center justify-center w-full h-full bg-black bg-opacity-50"
   [class.hidden]="!isOpen"
   role="dialog"
-  aria-modal="true"
+  [attr.aria-hidden]="!isOpen"
   aria-labelledby="modal-title"
 >
   <div class="relative w-full max-w-md max-h-[90vh] mx-4">

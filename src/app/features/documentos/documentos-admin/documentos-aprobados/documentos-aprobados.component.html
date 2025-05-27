@@ -1,3 +1,208 @@
-<div class="mt-5 flex flex-col gap-7">
-  <app-collapse-card />
+<form class="flex flex-wrap gap-4 items-end mb-6">
+  <!-- Nombre -->
+  <div>
+    <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre</label>
+    <input
+      type="text"
+      [(ngModel)]="filtros.nombre"
+      (ngModelChange)="onNombreChange($event)"
+      name="nombre"
+      placeholder="Buscar por nombre"
+      class="border rounded px-3 py-2 w-48 focus:outline-none focus:ring focus:border-blue-300"
+    />
+  </div>
+
+  <!-- Elemento -->
+  <div>
+    <label class="block text-xs font-semibold text-gray-600 mb-1"
+      >Tipo de Elemento</label
+    >
+    <select
+      [(ngModel)]="filtros.elemento"
+      (ngModelChange)="onSelectChange()"
+      name="elemento"
+      class="border rounded px-3 py-2 w-40 focus:outline-none focus:ring focus:border-blue-300"
+    >
+      <option [ngValue]="null">Todos</option>
+      <option value="CARPETA">Carpeta</option>
+      <option value="ARCHIVO">Archivo</option>
+    </select>
+  </div>
+
+  <!-- Provincia -->
+  <div>
+    <label class="block text-xs font-semibold text-gray-600 mb-1"
+      >Provincia</label
+    >
+    <select
+      [(ngModel)]="filtros.provinciaId"
+      (ngModelChange)="onSelectChange()"
+      name="provinciaId"
+      class="border rounded px-3 py-2 w-40 focus:outline-none focus:ring focus:border-blue-300"
+    >
+      <option [ngValue]="null">Todas</option>
+      <option *ngFor="let provincia of provincias" [value]="provincia.id">
+        {{ provincia.nombre }}
+      </option>
+    </select>
+  </div>
+
+  <!-- Equipo de Distribución -->
+  <div>
+    <label class="block text-xs font-semibold text-gray-600 mb-1"
+      >Equipo de Distribución</label
+    >
+    <select
+      [(ngModel)]="filtros.equipoDistribucion"
+      (ngModelChange)="onSelectChange()"
+      name="equipoDistribucion"
+      class="border rounded px-3 py-2 w-48 focus:outline-none focus:ring focus:border-blue-300"
+    >
+      <option [ngValue]="null">Todos</option>
+      <option *ngFor="let equipo of equiposDistribucion" [value]="equipo">
+        {{ equipo }}
+      </option>
+    </select>
+  </div>
+</form>
+
+<!-- Loading State -->
+<div *ngIf="isLoading" class="flex justify-center items-center min-h-[200px]">
+  <div
+    class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"
+  ></div>
+</div>
+
+<!-- Error State -->
+<div
+  *ngIf="isError"
+  class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+  role="alert"
+>
+  <strong class="font-bold">Error!</strong>
+  <span class="block sm:inline">{{ error }}</span>
+</div>
+
+<!-- Main Content -->
+<div
+  *ngIf="!isLoading && !isError && elementos.length > 0"
+  class="overflow-x-auto"
+>
+  <table class="min-w-full bg-white border border-gray-200">
+    <thead class="bg-gray-50">
+      <tr>
+        <th
+          class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+        >
+          Nombre
+        </th>
+        <th
+          class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+        >
+          Tipo
+        </th>
+        <th
+          class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+        >
+          Creado Por
+        </th>
+        <th
+          class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+        >
+          Fecha
+        </th>
+        <th
+          class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+        >
+          Detalles
+        </th>
+      </tr>
+    </thead>
+    <tbody class="bg-white divide-y divide-gray-200">
+      <tr *ngFor="let elemento of elementos" class="hover:bg-gray-50">
+        <td class="px-6 py-4 whitespace-nowrap">
+          <div class="flex items-center">
+            <!-- Icon based on type -->
+            <div class="flex-shrink-0 h-10 w-10">
+              <svg
+                *ngIf="elemento.elemento === 'CARPETA'"
+                class="h-10 w-10 text-yellow-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+                ></path>
+              </svg>
+              <svg
+                *ngIf="elemento.elemento === 'ARCHIVO'"
+                class="h-10 w-10 text-blue-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                ></path>
+              </svg>
+            </div>
+            <div class="ml-4">
+              <div class="text-sm font-medium text-gray-900">
+                {{ elemento.nombre }}
+              </div>
+              <div class="text-sm text-gray-500">
+                {{ elemento.carpetaPadre }}
+              </div>
+            </div>
+          </div>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap">
+          <span
+            [ngClass]="{
+              'px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800':
+                elemento.elemento === 'CARPETA',
+              'px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800':
+                elemento.elemento === 'ARCHIVO'
+            }"
+          >
+            {{ elemento.elemento }}
+          </span>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+          {{ elemento.creadoPor }}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+          {{ elemento.creadoEl | date : "short" }}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+          <ng-container *ngIf="elemento.elemento === 'CARPETA'">
+            <span class="text-sm text-gray-600">
+              {{ getCarpetaDetalles(elemento) }}
+            </span>
+          </ng-container>
+          <ng-container *ngIf="elemento.elemento === 'ARCHIVO'">
+            <span class="text-sm text-gray-600">
+              {{ getArchivoExtension(elemento) }} -
+              {{ getArchivoDetalles(elemento) | fileSize }}
+            </span>
+          </ng-container>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- No Data State -->
+<div
+  *ngIf="!isLoading && !isError && elementos.length === 0"
+  class="text-center py-4"
+>
+  <p class="text-gray-500">No hay documentos aprobados para mostrar.</p>
 </div>

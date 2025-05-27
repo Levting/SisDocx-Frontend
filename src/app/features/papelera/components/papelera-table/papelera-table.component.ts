@@ -141,36 +141,38 @@ export class PapeleraTableComponent implements OnInit, OnDestroy {
       cancelText: 'Cancelar',
     };
 
-    this.confirmModalService.open(config, () => {
-      const requests = this.elementosTablaPapelera.map((elemento) => ({
-        elementoId: elemento.columnas['elementoId'],
-        elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
-      }));
+    this.confirmModalService.open(config).subscribe((result) => {
+      if (result.confirmed) {
+        const requests = this.elementosTablaPapelera.map((elemento) => ({
+          elementoId: elemento.columnas['elementoId'],
+          elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
+        }));
 
-      forkJoin(
-        requests.map((request) =>
-          this.elementoService.eliminarElemento(request).pipe(
-            catchError((error: ApiError) => {
-              this.logger.error(
-                `Error al eliminar elemento ${request.elementoId}:`,
-                error
-              );
-              return of(null);
-            })
+        forkJoin(
+          requests.map((request) =>
+            this.elementoService.eliminarElemento(request).pipe(
+              catchError((error: ApiError) => {
+                this.logger.error(
+                  `Error al eliminar elemento ${request.elementoId}:`,
+                  error
+                );
+                return of(null);
+              })
+            )
           )
-        )
-      ).subscribe({
-        next: () => {
-          this.limpiarSeleccion();
-          this.cargarPapelera();
-          this.logger.debug('Papelera vaciada correctamente');
-        },
-        error: (error: ApiError) => {
-          this.isError = true;
-          this.error = error.message || 'No se pudo vaciar la papelera';
-          this.logger.error('Error al vaciar papelera:', error);
-        },
-      });
+        ).subscribe({
+          next: () => {
+            this.limpiarSeleccion();
+            this.cargarPapelera();
+            this.logger.debug('Papelera vaciada correctamente');
+          },
+          error: (error: ApiError) => {
+            this.isError = true;
+            this.error = error.message || 'No se pudo vaciar la papelera';
+            this.logger.error('Error al vaciar papelera:', error);
+          },
+        });
+      }
     });
   }
 
@@ -190,35 +192,37 @@ export class PapeleraTableComponent implements OnInit, OnDestroy {
       cancelText: 'Cancelar',
     };
 
-    this.confirmModalService.open(config, () => {
-      const requests = this.elementosSeleccionados.map((elemento) => ({
-        elementoId: elemento.columnas['elementoId'],
-        elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
-      }));
+    this.confirmModalService.open(config).subscribe((result) => {
+      if (result.confirmed) {
+        const requests = this.elementosSeleccionados.map((elemento) => ({
+          elementoId: elemento.columnas['elementoId'],
+          elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
+        }));
 
-      forkJoin(
-        requests.map((request) =>
-          this.elementoService.eliminarElemento(request).pipe(
-            catchError((error) => {
-              console.error(
-                `Error al eliminar elemento ${request.elementoId}:`,
-                error
-              );
-              return of(null);
-            })
+        forkJoin(
+          requests.map((request) =>
+            this.elementoService.eliminarElemento(request).pipe(
+              catchError((error) => {
+                console.error(
+                  `Error al eliminar elemento ${request.elementoId}:`,
+                  error
+                );
+                return of(null);
+              })
+            )
           )
-        )
-      ).subscribe({
-        next: () => {
-          this.limpiarSeleccion();
-          this.cargarPapelera();
-        },
-        error: (error) => {
-          this.isError = true;
-          this.error = 'No se pudieron eliminar los elementos';
-          console.error('Error al eliminar elementos:', error);
-        },
-      });
+        ).subscribe({
+          next: () => {
+            this.limpiarSeleccion();
+            this.cargarPapelera();
+          },
+          error: (error) => {
+            this.isError = true;
+            this.error = 'No se pudieron eliminar los elementos';
+            console.error('Error al eliminar elementos:', error);
+          },
+        });
+      }
     });
   }
 

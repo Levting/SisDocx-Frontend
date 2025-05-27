@@ -370,56 +370,58 @@ export class DocumentosTableComponent implements OnInit, OnDestroy {
       cancelText: 'Cancelar',
     };
 
-    this.confirmModalService.open(config, () => {
-      const requests = this.elementosSeleccionados.map((elemento) => ({
-        elementoId: elemento.columnas['elementoId'],
-        elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
-      }));
+    this.confirmModalService.open(config).subscribe((result) => {
+      if (result.confirmed) {
+        const requests = this.elementosSeleccionados.map((elemento) => ({
+          elementoId: elemento.columnas['elementoId'],
+          elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
+        }));
 
-      forkJoin(
-        requests.map((request) =>
-          this.elementoService.moverElementoPapelera(request).pipe(
-            catchError((error) => {
-              console.error(
-                `Error al mover elemento ${request.elementoId} a papelera:`,
-                error
-              );
-              return of(null);
-            })
-          )
-        )
-      ).subscribe({
-        next: () => {
-          this.limpiarSeleccion();
-          // Obtener la carpeta actual
-          const carpetaActual =
-            this.carpetaActualService.obtenerCarpetaActual();
-          if (carpetaActual) {
-            // Recargar el contenido de la carpeta actual
-            this.cargarContenido(carpetaActual.elementoId);
-          } else {
-            // Si no hay carpeta actual, obtener la raíz
-            this.elementoService.obtenerRaiz().subscribe({
-              next: ({ carpetaRaiz }) => {
-                this.carpetaActualService.actualizarCarpetaActual(
-                  carpetaRaiz as Carpeta
+        forkJoin(
+          requests.map((request) =>
+            this.elementoService.moverElementoPapelera(request).pipe(
+              catchError((error) => {
+                console.error(
+                  `Error al mover elemento ${request.elementoId} a papelera:`,
+                  error
                 );
-                this.cargarContenido(carpetaRaiz.elementoId);
-              },
-              error: (error: ApiError) => {
-                this.isError = true;
-                this.error = 'Error al cargar la carpeta raíz';
-                console.error('Error al cargar carpeta raíz:', error);
-              },
-            });
-          }
-        },
-        error: (error) => {
-          this.isError = true;
-          this.error = 'No se pudieron mover los elementos a la papelera';
-          console.error('Error al mover elementos a papelera:', error);
-        },
-      });
+                return of(null);
+              })
+            )
+          )
+        ).subscribe({
+          next: () => {
+            this.limpiarSeleccion();
+            // Obtener la carpeta actual
+            const carpetaActual =
+              this.carpetaActualService.obtenerCarpetaActual();
+            if (carpetaActual) {
+              // Recargar el contenido de la carpeta actual
+              this.cargarContenido(carpetaActual.elementoId);
+            } else {
+              // Si no hay carpeta actual, obtener la raíz
+              this.elementoService.obtenerRaiz().subscribe({
+                next: ({ carpetaRaiz }) => {
+                  this.carpetaActualService.actualizarCarpetaActual(
+                    carpetaRaiz as Carpeta
+                  );
+                  this.cargarContenido(carpetaRaiz.elementoId);
+                },
+                error: (error: ApiError) => {
+                  this.isError = true;
+                  this.error = 'Error al cargar la carpeta raíz';
+                  console.error('Error al cargar carpeta raíz:', error);
+                },
+              });
+            }
+          },
+          error: (error) => {
+            this.isError = true;
+            this.error = 'No se pudieron mover los elementos a la papelera';
+            console.error('Error al mover elementos a papelera:', error);
+          },
+        });
+      }
     });
   }
 
@@ -507,44 +509,46 @@ export class DocumentosTableComponent implements OnInit, OnDestroy {
       cancelText: 'Cancelar',
     };
 
-    this.confirmModalService.open(config, () => {
-      const request = {
-        elementoId: elemento.columnas['elementoId'],
-        elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
-      };
+    this.confirmModalService.open(config).subscribe((result) => {
+      if (result.confirmed) {
+        const request = {
+          elementoId: elemento.columnas['elementoId'],
+          elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
+        };
 
-      this.elementoService.moverElementoPapelera(request).subscribe({
-        next: () => {
-          // Obtener la carpeta actual
-          const carpetaActual =
-            this.carpetaActualService.obtenerCarpetaActual();
-          if (carpetaActual) {
-            // Recargar el contenido de la carpeta actual
-            this.cargarContenido(carpetaActual.elementoId);
-          } else {
-            // Si no hay carpeta actual, obtener la raíz
-            this.elementoService.obtenerRaiz().subscribe({
-              next: ({ carpetaRaiz }) => {
-                this.carpetaActualService.actualizarCarpetaActual(
-                  carpetaRaiz as Carpeta
-                );
-                this.cargarContenido(carpetaRaiz.elementoId);
-              },
-              error: (error: ApiError) => {
-                this.isError = true;
-                this.error = 'Error al cargar la carpeta raíz';
-                console.error('Error al cargar carpeta raíz:', error);
-              },
-            });
-          }
-        },
-        error: (error: ApiError) => {
-          this.isError = true;
-          this.error =
-            error.message || 'No se pudo mover el elemento a la papelera';
-          console.error('Error al mover a papelera:', error);
-        },
-      });
+        this.elementoService.moverElementoPapelera(request).subscribe({
+          next: () => {
+            // Obtener la carpeta actual
+            const carpetaActual =
+              this.carpetaActualService.obtenerCarpetaActual();
+            if (carpetaActual) {
+              // Recargar el contenido de la carpeta actual
+              this.cargarContenido(carpetaActual.elementoId);
+            } else {
+              // Si no hay carpeta actual, obtener la raíz
+              this.elementoService.obtenerRaiz().subscribe({
+                next: ({ carpetaRaiz }) => {
+                  this.carpetaActualService.actualizarCarpetaActual(
+                    carpetaRaiz as Carpeta
+                  );
+                  this.cargarContenido(carpetaRaiz.elementoId);
+                },
+                error: (error: ApiError) => {
+                  this.isError = true;
+                  this.error = 'Error al cargar la carpeta raíz';
+                  console.error('Error al cargar carpeta raíz:', error);
+                },
+              });
+            }
+          },
+          error: (error: ApiError) => {
+            this.isError = true;
+            this.error =
+              error.message || 'No se pudo mover el elemento a la papelera';
+            console.error('Error al mover a papelera:', error);
+          },
+        });
+      }
     });
   }
 

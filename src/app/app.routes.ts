@@ -11,6 +11,7 @@ import { CampanaMedicionComponent } from './features/campana-medicion/campana-me
 import { FusionComponent } from './features/fusion/fusion.component';
 import { DocumentosPorAprobarComponent } from './features/documentos/documentos-admin/documentos-por-aprobar/documentos-por-aprobar.component';
 import { DocumentosPersonalComponent } from './features/documentos/documentos-personal/documentos-personal.component';
+import { DocumentosSituacionComponent } from './features/documentos-situacion/documentos-situacion.component';
 
 export const routes: Routes = [
   {
@@ -29,19 +30,23 @@ export const routes: Routes = [
         data: { roles: ['Administrador'] },
       },
       {
-        path: 'documentos-personal',
-        component: DocumentosPersonalComponent,
-        canActivate: [RoleGuard],
-        data: { roles: ['Personal'] },
-      },
-
-      {
         path: 'documentos-por-aprobar',
         component: DocumentosPorAprobarComponent,
         canActivate: [RoleGuard],
         data: { roles: ['Administrador'] },
       },
-
+      {
+        path: 'documentos-personal',
+        component: DocumentosPersonalComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['Personal'] },
+      },
+      {
+        path: 'documentos-situacion',
+        component: DocumentosSituacionComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['Personal'] },
+      },
       {
         path: 'papelera',
         component: PapeleraComponent,

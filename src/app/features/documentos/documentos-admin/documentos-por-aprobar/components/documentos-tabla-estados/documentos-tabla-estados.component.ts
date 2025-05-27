@@ -30,7 +30,7 @@ import { RenombrarElementoRequest } from '../../../../../../core/models/request/
 import { DescargarElementoRequest } from '../../../../../../core/models/documentos/descargar-elemento-request.model';
 import { RevisionService } from '../../../../../../core/services/revision.service';
 import { RevisionDesicion } from '../../../../../../core/models/revision/revision-desicion.model';
-import { ElementoRevision } from '../../../../../../core/models/revision/elemento-revision.model';
+import { Revision } from '../../../../../../core/models/revision/elemento-revision.model';
 
 interface ColumnaConfig {
   key: string;
@@ -139,7 +139,7 @@ export class DocumentosTablaEstadosComponent implements OnInit {
   private userRole: string | null = null;
   private userProvincia: string | null = null;
 
-  public revisiones: ElementoRevision[] = [];
+  public revisiones: Revision[] = [];
 
   constructor() {
     // Suscribirse a los cambios del rol y provincia

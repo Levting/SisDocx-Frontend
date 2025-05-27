@@ -10,7 +10,7 @@ import { LoggerService } from './logger.service';
 import { Observable } from 'rxjs';
 import { SolicitarRevisionRequest } from '../models/revision/revision-request.model';
 import { RevisionDesicion } from '../models/revision/revision-desicion.model';
-import { ElementoRevision } from '../models/revision/elemento-revision.model';
+import { Revision } from '../models/revision/elemento-revision.model';
 
 @Injectable({
   providedIn: 'root',
@@ -33,23 +33,30 @@ export class RevisionService {
     );
   }
 
-  obtenerRevisiones(): Observable<ElementoRevision[]> {
+  obtenerRevisiones(): Observable<Revision[]> {
     const url = `${this.API_URL}`;
-    return this.waitForAuth(this.http.get<ElementoRevision[]>(url));
+    return this.waitForAuth(this.http.get<Revision[]>(url));
   }
 
-  obtenerRevisionesPendientes(): Observable<ElementoRevision[]> {
+  obtenerRevisionesRechazadas(): Observable<Revision[]> {
+    const url = `${this.API_URL}/rechazadas`;
+    return this.waitForAuth(this.http.get<Revision[]>(url));
+  }
+
+  obtenerRevisionesPendientes(): Observable<Revision[]> {
     const url = `${this.API_URL}/pendientes`;
-    return this.waitForAuth(this.http.get<ElementoRevision[]>(url));
+    return this.waitForAuth(this.http.get<Revision[]>(url));
   }
 
-  solicitarRevision(request: SolicitarRevisionRequest): Observable<ElementoRevision> {
-    const url = `${this.API_URL}/solicitar`;
-    return this.waitForAuth(this.http.post<ElementoRevision>(url, request));
+  solicitarRevision(
+    request: SolicitarRevisionRequest
+  ): Observable<Revision> {
+    const url = `${this.API_URL}/solicitar?elemento=${request.elemento}`;
+    return this.waitForAuth(this.http.post<Revision>(url, request));
   }
 
-  revisar(request: RevisionDesicion): Observable<ElementoRevision> {
+  revisar(request: RevisionDesicion): Observable<Revision> {
     const url = `${this.API_URL}/revisar`;
-    return this.waitForAuth(this.http.post<ElementoRevision>(url, request));
+    return this.waitForAuth(this.http.post<Revision>(url, request));
   }
 }

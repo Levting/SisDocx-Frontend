@@ -1,5 +1,5 @@
 export interface RevisionDesicion {
   revisionId: number;
-  decision: 'APROBADO' | 'RECHAZADO';
+  estadoRevision: 'APROBADO' | 'RECHAZADO';
   observaciones: string;
 }

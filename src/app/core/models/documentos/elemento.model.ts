@@ -10,5 +10,5 @@ export interface Elemento {
   estado: string; // Estado del elemento (ACTIVO, ELIMINADO, ARCHIVADO)
   ruta: number[]; // Array de IDs que representa la ruta del elemento
   equipoDistribucion?: string;
-  visibleParaAdmin?: boolean;
+  estadoVisibilidadAdmin?: string;
 }

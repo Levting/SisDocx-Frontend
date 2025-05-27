@@ -2,8 +2,18 @@ import { NgClass } from '@angular/common';
 import { NgIf } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { SvgIconComponent } from 'angular-svg-icon';
+import { ColumnaConfig } from '../../../../../shared/components/tabla-estado/tabla-estado.component';
 
-import { catchError, filter, forkJoin, of, switchMap, take } from 'rxjs';
+import {
+  catchError,
+  filter,
+  forkJoin,
+  of,
+  Subject,
+  switchMap,
+  take,
+  takeUntil,
+} from 'rxjs';
 import { BreadcrumbComponent } from '../../../../../shared/components/breadcrumb/breadcrumb.component';
 import { DocumentosPreviewModalComponent } from '../../../documentos-admin/components/documentos-preview-modal/documentos-preview-modal.component';
 import { ElementoTabla } from '../../../../../shared/models/table/elemento-tabla.model';
@@ -16,10 +26,19 @@ import { AuthService } from '../../../../../core/services/auth.service';
 import { TransformacionService } from '../../../../../core/services/transformacion.service';
 import { ApiError } from '../../../../../core/models/errors/api-error.model';
 import { Carpeta } from '../../../../../core/models/documentos/carpeta.model';
-import { RenombrarElementoRequest } from '../../../../../core/models/request/elemento-request.model';
+import {
+  MarcarElementoFavoritoRequest,
+  RenombrarElementoRequest,
+} from '../../../../../core/models/request/elemento-request.model';
 import { DescargarElementoRequest } from '../../../../../core/models/documentos/descargar-elemento-request.model';
 import { TableComponent } from '../../../../../shared/components/table/table.component';
 import { RevisionService } from '../../../../../core/services/revision.service';
+import { TablaEstadoComponent } from '../../../../../shared/components/tabla-estado/tabla-estado.component';
+import { DocumentosModalRenombrarComponent } from '../../../documentos-admin/components/documentos-modal-renombrar/documentos-modal-renombrar.component';
+import { DocumentosDropdownComponent } from '../../../documentos-admin/components/documentos-dropdown/documentos-dropdown.component';
+import { DocumentosTablaEstadosDropdownComponent } from '../documentos-tabla-estados-dropdown/documentos-tabla-estados-dropdown.component';
+import { SolicitarRevisionRequest } from '../../../../../core/models/revision/revision-request.model';
+import { ToastService } from '../../../../../shared/services/toast.service';
 
 @Component({
   selector: 'app-documentos-tabla-estados-personal',
@@ -30,7 +49,9 @@ import { RevisionService } from '../../../../../core/services/revision.service';
     NgClass,
     BreadcrumbComponent,
     DocumentosPreviewModalComponent,
-    TableComponent,
+    TablaEstadoComponent,
+    DocumentosModalRenombrarComponent,
+    DocumentosTablaEstadosDropdownComponent,
   ],
   templateUrl: './documentos-tabla-estados-personal.component.html',
 })
@@ -41,25 +62,57 @@ export class DocumentosTablaEstadosPersonalComponent {
 
   public elementosTabla: ElementoTabla[] = [];
 
-  public cabeceras: string[] = [
-    'Nombre',
-    'Creado por',
-    'Modificado por',
-    'Creado el',
-    'Última modificación',
-    'Equipo de distribución',
-    'Tamano',
-    'Visible para Admin',
-  ];
-  public columnas: string[] = [
-    'nombre',
-    'creadoPor',
-    'modificadoPor',
-    'creadoEl',
-    'modificadoEl',
-    'equipoDistribucion',
-    'tamano',
-    'visibleParaAdmin',
+  public columnasConfig: ColumnaConfig[] = [
+    {
+      key: 'nombre',
+      label: 'Nombre',
+      type: 'text',
+      width: '300px',
+    },
+    {
+      key: 'creadoPor',
+      label: 'Creado por',
+      type: 'text',
+      width: '150px',
+    },
+    {
+      key: 'modificadoPor',
+      label: 'Modificado por',
+      type: 'text',
+      width: '150px',
+    },
+    /* {
+      key: 'creadoEl',
+      label: 'Creado el',
+      type: 'text',
+      width: '120px',
+    }, */
+    {
+      key: 'modificadoEl',
+      label: 'Última modificación',
+      type: 'text',
+      width: '120px',
+    },
+    {
+      key: 'equipoDistribucion',
+      label: 'Equipo de distribución',
+      type: 'badge',
+      badgeColor: 'bg-purple-100',
+      badgeTextColor: 'text-purple-800',
+      width: '180px',
+    },
+    {
+      key: 'tamano',
+      label: 'Tamaño',
+      type: 'text',
+      width: '100px',
+    },
+    {
+      key: 'estadoVisibilidadAdmin',
+      label: 'Visible para Admin',
+      type: 'status-dot',
+      width: '120px',
+    },
   ];
 
   // Inyección de servicios
@@ -74,6 +127,7 @@ export class DocumentosTablaEstadosPersonalComponent {
   private logger: LoggerService = inject(LoggerService);
   private authService: AuthService = inject(AuthService);
   private revisionService: RevisionService = inject(RevisionService);
+  private toastService: ToastService = inject(ToastService);
 
   // Propiedades para la selección de elementos
   public elementosSeleccionados: ElementoTabla[] = [];
@@ -99,83 +153,41 @@ export class DocumentosTablaEstadosPersonalComponent {
   private userRole: string | null = null;
   private userProvincia: string | null = null;
 
+  private destroy$ = new Subject<void>();
+
   constructor() {
-    // Suscribirse a los cambios del rol
+    // Suscribirse a los cambios del rol y provincia
     this.authService.userRole$.subscribe((role) => {
       this.userRole = role;
     });
 
-    // Suscribirse a los cambios de la provincia
     this.authService.userProvincia$.subscribe((provincia) => {
       this.userProvincia = provincia;
     });
   }
 
   ngOnInit(): void {
-    // Inicializar la carga de la raiz
+    // Cargar contenido, si no hay contenido cargar la carpeta raíz
     this.cargarRaiz();
-  }
 
-  cargarRaiz(): void {
-    // Inicializar los indicadores de estado
-    this.isLoading = true;
-    this.isError = false;
-    this.error = null;
-    this.elementosTabla = [];
-    this.ruta = [];
-
-    // Obtener la raiz usando el servicio de elementos
-    this.elementoService.obtenerRaiz().subscribe({
-      next: (response) => {
-        this.carpetaRaiz = response.carpetaRaiz as Carpeta;
-        this.contenidoCarpetaRaiz = response.contenido;
-
-        // Si no hay contenido, no hacer nada
-        if (response.contenido.length === 0) {
-          this.isLoading = false;
-          return;
+    // Suscribirse a las notificaciones de recarga de contenido
+    this.carpetaActualService.recargarContenido$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((carpetaId) => {
+        if (carpetaId) {
+          this.cargarContenido(carpetaId);
+        } else {
+          this.cargarRaiz();
         }
-
-        // Transformar los datos para la tabla
-        this.transformacionService
-          .transformarDocumentosATabla(response.contenido)
-          .subscribe({
-            next: (filas) => {
-              this.elementosTabla = filas;
-              this.isLoading = false;
-            },
-            error: (err: ApiError) => {
-              this.isLoading = false;
-              this.isError = true;
-              this.error = 'Error al transformar los elementos para la tabla';
-              this.logger.error('Error al transformar elementos:', err.message);
-            },
-          });
-      },
-      error: (err: ApiError) => {
-        this.isLoading = false;
-        this.isError = true;
-        this.error = 'Error al cargar el contenido raíz';
-        this.logger.error('Error al cargar contenido raíz:', err.message);
-      },
-    });
+      });
   }
 
-  // Método para manejar el evento de selección de elementos
-  onSeleccionCambiada(seleccionados: ElementoTabla[]): void {
-    this.elementosSeleccionados = seleccionados;
-  }
-
-  limpiarSeleccion(): void {
-    this.elementosSeleccionados = [];
-    this.elementosTabla.forEach((elemento) => {
-      elemento.seleccionado = false; // Limpiar la selección de cada elemento
-    });
-  }
-
-  // Método para cargar el contenido de una carpeta
+  /**
+   * Carga el contenido de una carpeta basado en el ID de la carpeta
+   * @param carpetaId - El ID de la carpeta a cargar
+   * @param nombre - El nombre de la carpeta a cargar
+   */
   cargarContenido(carpetaId: number, nombre?: string): void {
-    // Inicializar los indicadores de estado
     this.isLoading = true;
     this.isError = false;
     this.error = null;
@@ -245,6 +257,63 @@ export class DocumentosTablaEstadosPersonalComponent {
       });
   }
 
+  /**
+   * Carga el contenido de la carpeta raíz
+   * @returns void
+   */
+  cargarRaiz(): void {
+    // Inicializar los indicadores de estado
+    this.isLoading = true;
+    this.isError = false;
+    this.error = null;
+    this.elementosTabla = [];
+    this.ruta = [];
+
+    // Obtener la raiz usando el servicio de elementos
+    this.elementoService.obtenerRaiz().subscribe({
+      next: (response) => {
+        this.carpetaRaiz = response.carpetaRaiz as Carpeta;
+        this.contenidoCarpetaRaiz = response.contenido;
+
+        // Actualizar la carpeta actual a la raíz
+        this.carpetaActualService.actualizarCarpetaActual(this.carpetaRaiz);
+
+        // Si no hay contenido, no hacer nada
+        if (response.contenido.length === 0) {
+          this.isLoading = false;
+          return;
+        }
+
+        // Transformar los datos para la tabla
+        this.transformacionService
+          .transformarDocumentosATabla(response.contenido)
+          .subscribe({
+            next: (filas) => {
+              this.elementosTabla = filas;
+              this.isLoading = false;
+            },
+            error: (err: ApiError) => {
+              this.isLoading = false;
+              this.isError = true;
+              this.error = 'Error al transformar los elementos para la tabla';
+              this.logger.error('Error al transformar elementos:', err.message);
+            },
+          });
+      },
+      error: (err: ApiError) => {
+        this.isLoading = false;
+        this.isError = true;
+        this.error = 'Error al cargar el contenido raíz';
+        this.logger.error('Error al cargar contenido raíz:', err.message);
+      },
+    });
+  }
+
+  /**
+   * Navega a una carpeta específica
+   * @param index - El índice de la carpeta a la que se navegará
+   * @returns void
+   */
   navegarA(index: number): void {
     // Si el índice es mayor o igual que la longitud de la ruta, no hacer nada
     if (index >= this.ruta.length) {
@@ -286,6 +355,18 @@ export class DocumentosTablaEstadosPersonalComponent {
       });
   }
 
+  // Método para manejar el evento de selección de elementos
+  onSeleccionCambiada(seleccionados: ElementoTabla[]): void {
+    this.elementosSeleccionados = seleccionados;
+  }
+
+  limpiarSeleccion(): void {
+    this.elementosSeleccionados = [];
+    this.elementosTabla.forEach((elemento) => {
+      elemento.seleccionado = false; // Limpiar la selección de cada elemento
+    });
+  }
+
   onDobleClickElemento(elemento: ElementoTabla): void {
     if (elemento.columnas['elemento'] === 'CARPETA') {
       console.log('Doble clic en carpeta:', elemento.columnas);
@@ -323,7 +404,6 @@ export class DocumentosTablaEstadosPersonalComponent {
     }
   }
 
-  // Método para cerrar el modal de previsualización
   onPreviewClose(): void {
     this.isOpenPreviewModal = false;
     this.elementoAPrevisualizar = null;
@@ -331,7 +411,11 @@ export class DocumentosTablaEstadosPersonalComponent {
 
   /* Operaciones con Elementos */
   papeleraSeleccionados(): void {
-    if (this.elementosSeleccionados.length === 0) return;
+    if (
+      this.elementosSeleccionados.length === 0 ||
+      this.hasDisabledSelectedElements()
+    )
+      return;
 
     const config = {
       title: 'Mover a papelera',
@@ -340,35 +424,81 @@ export class DocumentosTablaEstadosPersonalComponent {
       cancelText: 'Cancelar',
     };
 
-    this.confirmModalService.open(config, () => {
-      const requests = this.elementosSeleccionados.map((elemento) => ({
-        elementoId: elemento.columnas['elementoId'],
-        elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
-      }));
+    this.confirmModalService.open(config).subscribe((result) => {
+      if (result.confirmed) {
+        const requests = this.elementosSeleccionados.map((elemento) => ({
+          elementoId: elemento.columnas['elementoId'],
+          elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
+        }));
 
-      forkJoin(
-        requests.map((request) =>
-          this.elementoService.moverElementoPapelera(request).pipe(
-            catchError((error) => {
-              console.error(
-                `Error al mover elemento ${request.elementoId} a papelera:`,
-                error
-              );
-              return of(null);
-            })
+        forkJoin(
+          requests.map((request) =>
+            this.elementoService.moverElementoPapelera(request).pipe(
+              catchError((error) => {
+                console.error(
+                  `Error al mover elemento ${request.elementoId} a papelera:`,
+                  error
+                );
+                return of(null);
+              })
+            )
           )
-        )
-      ).subscribe({
-        next: () => {
-          this.limpiarSeleccion();
-          this.cargarContenido(this.ruta[this.ruta.length - 1]?.elementoId);
-        },
-        error: (error) => {
-          this.isError = true;
-          this.error = 'No se pudieron mover los elementos a la papelera';
-          console.error('Error al mover elementos a papelera:', error);
-        },
-      });
+        ).subscribe({
+          next: () => {
+            this.limpiarSeleccion();
+            // Obtener la carpeta actual
+            const carpetaActual =
+              this.carpetaActualService.obtenerCarpetaActual();
+            if (carpetaActual) {
+              // Recargar el contenido de la carpeta actual
+              this.cargarContenido(carpetaActual.elementoId);
+            } else {
+              // Si no hay carpeta actual, obtener la raíz
+              this.elementoService.obtenerRaiz().subscribe({
+                next: ({ carpetaRaiz }) => {
+                  this.carpetaActualService.actualizarCarpetaActual(
+                    carpetaRaiz as Carpeta
+                  );
+                  this.cargarContenido(carpetaRaiz.elementoId);
+                },
+                error: (error: ApiError) => {
+                  this.isError = true;
+                  this.error = 'Error al cargar la carpeta raíz';
+                  console.error('Error al cargar carpeta raíz:', error);
+                },
+              });
+            }
+          },
+          error: (error) => {
+            this.isError = true;
+            this.error = 'No se pudieron mover los elementos a la papelera';
+            console.error('Error al mover elementos a papelera:', error);
+          },
+        });
+      }
+    });
+  }
+
+  favoritoSeleccionados(): void {
+    const requests = this.elementosSeleccionados.map((elemento) => ({
+      elementoId: elemento.columnas['elementoId'],
+      elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
+    }));
+
+    forkJoin(
+      requests.map((request) =>
+        this.elementoService.marcarElementoFavorito(request)
+      )
+    ).subscribe({
+      next: () => {
+        this.limpiarSeleccion();
+        this.cargarContenido(this.ruta[this.ruta.length - 1]?.elementoId || 1);
+      },
+      error: (error) => {
+        this.isError = true;
+        this.error = 'No se pudieron marcar los elementos como favoritos';
+        console.error('Error al marcar favoritos:', error);
+      },
     });
   }
 
@@ -384,7 +514,27 @@ export class DocumentosTablaEstadosPersonalComponent {
       next: () => {
         // La descarga se maneja automáticamente en el servicio
         this.limpiarSeleccion();
-        this.cargarContenido(this.ruta[this.ruta.length - 1]?.elementoId);
+        // Obtener la carpeta actual
+        const carpetaActual = this.carpetaActualService.obtenerCarpetaActual();
+        if (carpetaActual) {
+          // Recargar el contenido de la carpeta actual
+          this.cargarContenido(carpetaActual.elementoId);
+        } else {
+          // Si no hay carpeta actual, obtener la raíz
+          this.elementoService.obtenerRaiz().subscribe({
+            next: ({ carpetaRaiz }) => {
+              this.carpetaActualService.actualizarCarpetaActual(
+                carpetaRaiz as Carpeta
+              );
+              this.cargarContenido(carpetaRaiz.elementoId);
+            },
+            error: (error: ApiError) => {
+              this.isError = true;
+              this.error = 'Error al cargar la carpeta raíz';
+              console.error('Error al cargar carpeta raíz:', error);
+            },
+          });
+        }
       },
       error: (error) => {
         this.isError = true;
@@ -394,50 +544,123 @@ export class DocumentosTablaEstadosPersonalComponent {
     });
   }
 
-  enviarSolicitudSeleccionados(): void {
+  // Método para actualizar el contenido de la carpeta actual
+  private actualizarContenidoActual(): void {
+    const carpetaActual = this.carpetaActualService.obtenerCarpetaActual();
+    if (carpetaActual) {
+      this.cargarContenido(carpetaActual.elementoId);
+    } else {
+      this.cargarRaiz();
+    }
+  }
+
+  onEnviarRevision(elemento: ElementoTabla): void {
+    if (this.elementosSeleccionados.length === 0) return;
+
+    const config = {
+      title: 'Enviar revisión',
+      message: `¿Estás seguro de que deseas enviar la revisión de ${this.elementosSeleccionados.length} elemento(s)?`,
+      confirmText: 'Enviar revisión',
+      cancelText: 'Cancelar',
+    };
+
+    this.confirmModalService.open(config).subscribe((result) => {
+      if (result.confirmed) {
+        const requests = this.elementosSeleccionados.map((elemento) => ({
+          elementoId: elemento.columnas['elementoId'],
+          elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
+        }));
+
+        forkJoin(
+          requests.map((request) =>
+            this.revisionService.solicitarRevision(request).pipe(
+              catchError((error: ApiError) => {
+                console.log('Error al enviar revisión:', error.message);
+                console.error('Error al enviar revisión:', error);
+
+                this.isError = true;
+                this.error = error.message;
+
+                this.toastService.show({
+                  message: 'No se pudo enviar la revisión',
+                  type: 'error',
+                });
+
+                return of(null);
+              })
+            )
+          )
+        ).subscribe({
+          next: () => {
+            this.limpiarSeleccion();
+            this.actualizarContenidoActual();
+          },
+          error: (error) => {
+            this.isError = true;
+            this.error = 'No se pudo enviar la revisión';
+            console.error('Error al enviar revisión:', error);
+          },
+        });
+      }
+    });
+  }
+
+  moverSeleccionados(): void {
+    // TODO: Implementar lógica de mover elementos
+    console.log('Mover elementos seleccionados:', this.elementosSeleccionados);
+  }
+
+  copiarSeleccionados(): void {
+    // TODO: Implementar lógica de copiar elementos
+    console.log('Copiar elementos seleccionados:', this.elementosSeleccionados);
+  }
+
+  solicitudSeleccionados(): void {
     if (this.elementosSeleccionados.length === 0) return;
 
     const config = {
       title: 'Solicitar revisión',
-      message: `¿Estás seguro de que deseas solicitar una revisión para ${this.elementosSeleccionados.length} elemento(s)?`,
+      message: `¿Estás seguro de que deseas solicitar la revisión de "${this.elementosSeleccionados[0].columnas['nombre']}"?`,
       confirmText: 'Solicitar revisión',
       cancelText: 'Cancelar',
     };
 
-    this.confirmModalService.open(config, () => {
-      const requests = this.elementosSeleccionados.map((elemento) => ({
-        elementoId: elemento.columnas['elementoId'],
-        elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
-      }));
+    this.confirmModalService.open(config).subscribe((result) => {
+      if (result.confirmed) {
+        const requests: SolicitarRevisionRequest[] =
+          this.elementosSeleccionados.map((elemento) => ({
+            elementoId: elemento.columnas['elementoId'],
+            elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
+          }));
 
-      forkJoin(
-        requests.map((request) =>
-          this.revisionService.solicitarRevision(request).pipe(
-            catchError((error) => {
-              console.error(
-                `Error al solicitar revisión para elemento ${request.elementoId}:`,
-                error
-              );
-              return of(null);
-            })
+        forkJoin(
+          requests.map((request) =>
+            this.revisionService.solicitarRevision(request).pipe(
+              catchError((error) => {
+                console.error('Error al enviar revisión:', error);
+                return of(null);
+              })
+            )
           )
-        )
-      ).subscribe({
-        next: () => {
-          this.limpiarSeleccion();
-          this.cargarContenido(this.ruta[this.ruta.length - 1]?.elementoId);
-        },
-        error: (error: ApiError) => {
-          this.isError = true;
-          this.error = 'No se pudo enviar la solicitud';
-          console.error('Error al enviar solicitud:', error);
-        },
-      });
+        ).subscribe({
+          next: () => {
+            this.limpiarSeleccion();
+            this.actualizarContenidoActual();
+          },
+          error: (error: ApiError) => {
+            this.isError = true;
+            this.error = 'No se pudo solicitar la revisión';
+            console.error('Error al solicitar revisión:', error);
+          },
+        });
+      }
     });
   }
 
   // Métodos para acciones individuales desde el dropdown
   onPapeleraIndividual(elemento: ElementoTabla): void {
+    if (this.isElementoDisabled(elemento)) return;
+
     const config = {
       title: 'Mover a papelera',
       message: `¿Estás seguro de que deseas mover "${elemento.columnas['nombre']}" a la papelera?`,
@@ -445,33 +668,72 @@ export class DocumentosTablaEstadosPersonalComponent {
       cancelText: 'Cancelar',
     };
 
-    this.confirmModalService.open(config, () => {
-      const request = {
-        elementoId: elemento.columnas['elementoId'],
-        elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
-      };
+    this.confirmModalService.open(config).subscribe((result) => {
+      if (result.confirmed) {
+        const request = {
+          elementoId: elemento.columnas['elementoId'],
+          elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
+        };
 
-      this.elementoService.moverElementoPapelera(request).subscribe({
-        next: () => {
-          const carpetaActual =
-            this.carpetaActualService.obtenerCarpetaActual();
-          if (carpetaActual) {
-            this.carpetaActualService.notificarRecargarContenido(
-              carpetaActual.elementoId
-            );
-          }
-        },
-        error: (error: ApiError) => {
-          this.isError = true;
-          this.error =
-            error.message || 'No se pudo mover el elemento a la papelera';
-          console.error('Error al mover a papelera:', error);
-        },
-      });
+        this.elementoService.moverElementoPapelera(request).subscribe({
+          next: () => {
+            // Obtener la carpeta actual
+            const carpetaActual =
+              this.carpetaActualService.obtenerCarpetaActual();
+            if (carpetaActual) {
+              // Recargar el contenido de la carpeta actual
+              this.cargarContenido(carpetaActual.elementoId);
+            } else {
+              // Si no hay carpeta actual, obtener la raíz
+              this.elementoService.obtenerRaiz().subscribe({
+                next: ({ carpetaRaiz }) => {
+                  this.carpetaActualService.actualizarCarpetaActual(
+                    carpetaRaiz as Carpeta
+                  );
+                  this.cargarContenido(carpetaRaiz.elementoId);
+                },
+                error: (error: ApiError) => {
+                  this.isError = true;
+                  this.error = 'Error al cargar la carpeta raíz';
+                  console.error('Error al cargar carpeta raíz:', error);
+                },
+              });
+            }
+          },
+          error: (error: ApiError) => {
+            this.isError = true;
+            this.error =
+              error.message || 'No se pudo mover el elemento a la papelera';
+            console.error('Error al mover a papelera:', error);
+          },
+        });
+      }
+    });
+  }
+
+  onFavoritoIndividual(elemento: ElementoTabla): void {
+    if (this.isElementoDisabled(elemento)) return;
+
+    const request: MarcarElementoFavoritoRequest = {
+      elementoId: elemento.columnas['elementoId'],
+      elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
+    };
+
+    this.elementoService.marcarElementoFavorito(request).subscribe({
+      next: () => {
+        this.cargarContenido(this.ruta[this.ruta.length - 1]?.elementoId || 1);
+      },
+      error: (error) => {
+        this.isError = true;
+        this.error = 'No se pudo marcar el elemento como favorito';
+        console.error('Error al marcar favorito:', error);
+      },
     });
   }
 
   onCambiarNombreIndividual(elemento: ElementoTabla): void {
+    if (this.isElementoDisabled(elemento)) return;
+
     const isFile = elemento.columnas['elemento'] === 'ARCHIVO';
     const request: RenombrarElementoRequest = {
       elementoId: elemento.columnas['elementoId'],
@@ -491,7 +753,87 @@ export class DocumentosTablaEstadosPersonalComponent {
     });
   }
 
+  onSolicitudIndividual(elemento: ElementoTabla): void {
+    const config = {
+      title: 'Solicitar revisión',
+      message: `¿Estás seguro de que deseas solicitar la revisión de "${elemento.columnas['nombre']}"?`,
+      confirmText: 'Solicitar revisión',
+      cancelText: 'Cancelar',
+    };
+
+    this.confirmModalService.open(config).subscribe((result) => {
+      if (result.confirmed) {
+        const request: SolicitarRevisionRequest = {
+          elementoId: elemento.columnas['elementoId'],
+          elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
+        };
+
+        this.revisionService.solicitarRevision(request).subscribe({
+          next: () => {
+            this.actualizarContenidoActual();
+          },
+          error: (error: ApiError) => {
+            this.isError = true;
+            this.error = error.message || 'No se pudo solicitar la revisión';
+            console.error('Error al solicitar revisión:', error);
+          },
+        });
+      }
+    });
+  }
+
+  onRenombrarClose(): void {
+    this.isOpenRenombrarModal = false;
+    this.elementoARenombrar = null;
+  }
+
+  onToggleFavorito(elemento: ElementoTabla): void {
+    if (this.isElementoDisabled(elemento)) return;
+
+    const request: MarcarElementoFavoritoRequest = {
+      elementoId: elemento.columnas['elementoId'],
+      elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
+    };
+
+    this.elementoService.marcarElementoFavorito(request).subscribe({
+      next: () => {
+        // Actualizar el estado del elemento en la tabla
+        elemento.columnas['estado'] =
+          elemento.columnas['estado'] === 'FAVORITO'
+            ? 'DISPONIBLE'
+            : 'FAVORITO';
+      },
+      error: (error: ApiError) => {
+        console.error('Error al cambiar estado de favorito:', error.message);
+      },
+    });
+  }
+
+  onElementoRenombrado(elemento: ElementoTabla): void {
+    // Actualizar el elemento en la tabla
+    const index = this.elementosTabla.findIndex(
+      (e) => e.columnas['elementoId'] === elemento.columnas['elementoId']
+    );
+
+    if (index !== -1) {
+      this.elementosTabla[index] = { ...elemento };
+      // Forzar la detección de cambios
+      this.elementosTabla = [...this.elementosTabla];
+    }
+
+    // Obtener la carpeta actual
+    const carpetaActual = this.carpetaActualService.obtenerCarpetaActual();
+    if (carpetaActual) {
+      // Notificar al servicio para recargar el contenido
+      this.carpetaActualService.notificarRecargarContenido(
+        carpetaActual.elementoId
+      );
+    }
+  }
+
   onDescargarIndividual(elemento: ElementoTabla): void {
+    if (this.isElementoDisabled(elemento)) return;
+
     const request: DescargarElementoRequest = {
       elementoId: elemento.columnas['elementoId'],
       elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
@@ -500,7 +842,27 @@ export class DocumentosTablaEstadosPersonalComponent {
     this.elementoService.descargarElementos([request]).subscribe({
       next: () => {
         // La descarga se maneja automáticamente en el servicio
-        this.cargarContenido(this.ruta[this.ruta.length - 1]?.elementoId || 1);
+        // Obtener la carpeta actual
+        const carpetaActual = this.carpetaActualService.obtenerCarpetaActual();
+        if (carpetaActual) {
+          // Recargar el contenido de la carpeta actual
+          this.cargarContenido(carpetaActual.elementoId);
+        } else {
+          // Si no hay carpeta actual, obtener la raíz
+          this.elementoService.obtenerRaiz().subscribe({
+            next: ({ carpetaRaiz }) => {
+              this.carpetaActualService.actualizarCarpetaActual(
+                carpetaRaiz as Carpeta
+              );
+              this.cargarContenido(carpetaRaiz.elementoId);
+            },
+            error: (error: ApiError) => {
+              this.isError = true;
+              this.error = 'Error al cargar la carpeta raíz';
+              console.error('Error al cargar carpeta raíz:', error);
+            },
+          });
+        }
       },
       error: (error: ApiError) => {
         this.isError = true;
@@ -510,36 +872,18 @@ export class DocumentosTablaEstadosPersonalComponent {
     });
   }
 
-  onEnviarSolicitudIndividual(elemento: ElementoTabla): void {
-    const config = {
-      title: 'Solicitar revisión',
-      message: `¿Estás seguro de que deseas solicitar una revisión para "${elemento.columnas['nombre']}"?`,
-      confirmText: 'Solicitar revisión',
-      cancelText: 'Cancelar',
-    };
+  // Método para verificar si un elemento está deshabilitado
+  public isElementoDisabled(elemento: ElementoTabla): boolean {
+    const estadoVisibilidad = elemento.columnas['estadoVisibilidadAdmin']
+      ?.toString()
+      .toUpperCase();
+    return estadoVisibilidad === 'PENDIENTE';
+  }
 
-    this.confirmModalService.open(config, () => {
-      const request = {
-        elementoId: elemento.columnas['elementoId'],
-        elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
-      };
-
-      this.revisionService.solicitarRevision(request).subscribe({
-        next: () => {
-          const carpetaActual =
-            this.carpetaActualService.obtenerCarpetaActual();
-          if (carpetaActual) {
-            this.carpetaActualService.notificarRecargarContenido(
-              carpetaActual.elementoId
-            );
-          }
-        },
-        error: (error: ApiError) => {
-          this.isError = true;
-          this.error = error.message || 'No se pudo enviar la solicitud';
-          console.error('Error al enviar solicitud:', error);
-        },
-      });
-    });
+  // Método para verificar si hay elementos seleccionados deshabilitados
+  public hasDisabledSelectedElements(): boolean {
+    return this.elementosSeleccionados.some((elemento) =>
+      this.isElementoDisabled(elemento)
+    );
   }
 }

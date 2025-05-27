@@ -1,0 +1,616 @@
+<table class="min-w-full border-collapse">
+  <thead
+    class="bg-gray-100 sticky top-0 z-10 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider"
+  >
+    <tr class="">
+      <th class="p-3" colspan="1" style="width: 60px">
+        <div class="flex items-center"></div>
+      </th>
+      <th class="group" colspan="1" style="width: 120px">
+        <div class="flex items-center">Envío ID</div>
+      </th>
+      <th class="group" colspan="1" style="width: 150px">
+        <div class="flex items-center">Remitente</div>
+      </th>
+      <th class="group" colspan="1" style="width: 150px">
+        <div class="flex items-center">Provincia</div>
+      </th>
+      <th class="group" colspan="1" style="width: 150px">
+        <div class="flex items-center">Fecha de envío</div>
+      </th>
+      <th class="group" colspan="1" style="width: 200px">
+        <div class="flex items-center">Estado de revisión</div>
+      </th>
+
+      <th class="group" colspan="1" style="width: 140px">
+        <div class="flex items-center">Acciones</div>
+      </th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <ng-container *ngFor="let revision of elementosRevision">
+      <tr class="hover:bg-gray-50 border-b last:border-b-0">
+        <!-- Botón expandir -->
+        <td class="ml-2 px-3 py-4 text-sm font-medium text-gray-700">
+          <button
+            (click)="expandirFila(revision.columnas['id'])"
+            class="size-8 border border-gray-300 rounded-full flex items-center justify-center hover:border-blue-500 hover:text-blue-500 transition"
+          >
+            <svg
+              [class.rotate-180]="filaExpandida === revision.columnas['id']"
+              class="size-4 transition-transform duration-300"
+              fill="currentColor"
+              viewBox="0 0 256 256"
+            >
+              <path
+                d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"
+              />
+            </svg>
+          </button>
+        </td>
+
+        <td class="px-3 py-4 text-sm text-gray-700">
+          {{ revision.columnas["id"] }}
+        </td>
+        <td class="px-3 py-4 text-sm text-gray-700">
+          {{ revision.columnas["remitente"] }}
+        </td>
+        <td class="px-3 py-4 text-sm text-gray-700">
+          {{ revision.columnas["provincia"] }}
+        </td>
+        <td class="px-3 py-4 text-sm text-gray-700">
+          {{ revision.columnas["fechaEnvio"] }}
+        </td>
+
+        <td>
+          <div class="flex items-center gap-2 justify-center">
+            <span
+              class="w-2 h-2 rounded-full"
+              [ngClass]="statusColor(revision.columnas['estadoRevision'])"
+            ></span>
+            <p
+              class="capitalize font-medium"
+              [ngClass]="statusText(revision.columnas['estadoRevision'])"
+            >
+              {{ revision.columnas["estadoRevision"] }}
+            </p>
+          </div>
+        </td>
+
+        <!-- Si el estado de la revision es 'APROBADO' o 'PENDIENTE', desabilitar los botones -->
+        <ng-container *ngIf="revision.columnas['revisor'] === null">
+          <td class="mx-4">
+            <div
+              class="flex w-full flex-row justify-end items-center gap-3 pe-3"
+            >
+              <button
+                (click)="handleAprobarRevision(revision.columnas['id'])"
+                class="bg-green-600 hover:bg-green-700 text-white text-xs font-medium px-4 py-2 rounded-md"
+              >
+                Aprobar
+              </button>
+              <button
+                (click)="handleRechazarRevision(revision.columnas['id'])"
+                class="bg-red-600 hover:bg-red-700 text-white text-xs font-medium px-4 py-2 rounded-md"
+              >
+                Rechazar
+              </button>
+            </div>
+          </td>
+        </ng-container>
+      </tr>
+
+      <!-- Fila expandida con contenido completo -->
+      <tr
+        *ngIf="filaExpandida === revision.columnas['id']"
+        class="bg-gray-50 px-5 py-3 text-sm border-b transition-all duration-300 overflow-hidden"
+      >
+        <td colspan="9" class="px-6 py-4 text-sm text-gray-600">
+          <!-- Si existe la descripcion, mostrarla -->
+          <ng-container *ngIf="revision.columnas['observaciones']">
+            <p class="text-gray-600 py-6">
+              {{ revision.columnas["observaciones"] }}
+            </p>
+          </ng-container>
+
+          <!-- Si es una carpeta, mostrar su jerarquia desde la carpeta raíz y sus hijos -->
+          <ng-container *ngIf="carpetaRaiz || archivoRaiz">
+            <div class="col-span-2 select-none">
+              <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                <div class="p-4">
+                  <div class="space-y-1">
+                    <div
+                      class="flex items-center p-2 hover:bg-gray-50 rounded-md cursor-pointer"
+                      (dblclick)="
+                        carpetaRaiz &&
+                        carpetaRaiz.columnas['elemento'] === 'CARPETA'
+                          ? expandirCarpeta(carpetaRaiz)
+                          : handleVerArchivo(archivoRaiz!)
+                      "
+                    >
+                      <div class="flex items-center">
+                        <button
+                          *ngIf="
+                            carpetaRaiz &&
+                            carpetaRaiz.columnas['elemento'] === 'CARPETA'
+                          "
+                          (click)="expandirCarpeta(carpetaRaiz)"
+                          class="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-700"
+                        >
+                          <svg
+                            [class.rotate-90]="carpetaRaiz.expandido"
+                            class="w-4 h-4 transition-transform duration-200"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M9 5l7 7-7 7"
+                            />
+                          </svg>
+                        </button>
+
+                        <div
+                          *ngIf="
+                            archivoRaiz &&
+                            archivoRaiz.columnas['elemento'] === 'ARCHIVO'
+                          "
+                          class="w-6"
+                        ></div>
+                      </div>
+                      <div class="w-8 h-8 mr-3">
+                        <ng-container *ngIf="carpetaRaiz; else archivoIcono">
+                          <svg-icon
+                            src="assets/icons/folder.svg"
+                            class="w-8 h-8"
+                            [svgClass]="'fill-current text-gray-600'"
+                          />
+                        </ng-container>
+                        <ng-template #archivoIcono>
+                          <ng-container
+                            [ngSwitch]="
+                              archivoRaiz!.columnas['extension']?.toLowerCase()
+                            "
+                          >
+                            <svg-icon
+                              *ngSwitchCase="'pdf'"
+                              src="assets/icons/filePdf.svg"
+                              class="w-8 h-8"
+                            />
+                            <svg-icon
+                              *ngSwitchCase="'docx'"
+                              src="assets/icons/fileDocx.svg"
+                              class="w-8 h-8"
+                            />
+                            <svg-icon
+                              *ngSwitchCase="'doc'"
+                              src="assets/icons/fileDocx.svg"
+                              class="w-8 h-8"
+                            />
+                            <svg-icon
+                              *ngSwitchCase="'xls'"
+                              src="assets/icons/fileExcel.svg"
+                              class="w-8 h-8"
+                            />
+                            <svg-icon
+                              *ngSwitchCase="'xlsx'"
+                              src="assets/icons/fileExcel.svg"
+                              class="w-8 h-8"
+                            />
+                            <svg-icon
+                              *ngSwitchCase="'jpg'"
+                              src="assets/icons/fileImage.svg"
+                              class="w-8 h-8"
+                            />
+                            <svg-icon
+                              *ngSwitchCase="'jpeg'"
+                              src="assets/icons/fileImage.svg"
+                              class="w-8 h-8"
+                            />
+                            <svg-icon
+                              *ngSwitchCase="'png'"
+                              src="assets/icons/fileImage.svg"
+                              class="w-8 h-8"
+                            />
+                            <svg-icon
+                              *ngSwitchDefault
+                              src="assets/icons/fileNone.svg"
+                              class="w-8 h-8"
+                            />
+                          </ng-container>
+                        </ng-template>
+                      </div>
+
+                      <div class="flex-1">
+                        <div class="text-sm font-medium text-gray-900">
+                          {{
+                            carpetaRaiz
+                              ? carpetaRaiz.columnas["nombre"]
+                              : archivoRaiz!.columnas["nombre"]
+                          }}
+                        </div>
+                        <div class="text-xs text-gray-500">
+                          {{
+                            carpetaRaiz
+                              ? carpetaRaiz.columnas["elemento"]
+                              : archivoRaiz!.columnas["elemento"]
+                          }}
+                          <span
+                            *ngIf="
+                              archivoRaiz &&
+                              archivoRaiz.columnas['elemento'] === 'ARCHIVO'
+                            "
+                          >
+                            ({{ archivoRaiz.columnas["extension"] }})
+                          </span>
+                        </div>
+                      </div>
+                      <div
+                        *ngIf="carpetaRaiz && carpetaRaiz.cargando"
+                        class="ml-2"
+                      >
+                        <svg
+                          class="animate-spin h-5 w-5 text-gray-500"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            class="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            stroke-width="4"
+                          ></circle>
+                          <path
+                            class="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Hijos de la carpeta raíz, solo si está expandida -->
+                  <div
+                    class="ml-6 space-y-1"
+                    *ngIf="carpetaRaiz && carpetaRaiz.expandido"
+                  >
+                    <ng-container
+                      *ngIf="
+                        !carpetaRaiz.cargando &&
+                        carpetaRaiz.hijos &&
+                        carpetaRaiz.hijos.length > 0
+                      "
+                    >
+                      <ng-container *ngFor="let hijo of carpetaRaiz.hijos">
+                        <div
+                          class="flex items-center p-2 hover:bg-gray-50 rounded-md cursor-pointer"
+                          (dblclick)="
+                            hijo.columnas['elemento'] === 'ARCHIVO'
+                              ? handleVerArchivo(hijo)
+                              : expandirCarpeta(hijo)
+                          "
+                        >
+                          <div class="flex items-center">
+                            <button
+                              *ngIf="hijo.columnas['elemento'] === 'CARPETA'"
+                              (click)="expandirCarpeta(hijo)"
+                              class="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-700"
+                            >
+                              <svg
+                                [class.rotate-90]="hijo.expandido"
+                                class="w-4 h-4 transition-transform duration-200"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M9 5l7 7-7 7"
+                                />
+                              </svg>
+                            </button>
+                            <div
+                              *ngIf="hijo.columnas['elemento'] === 'ARCHIVO'"
+                              class="w-6"
+                            ></div>
+                          </div>
+
+                          <div class="w-8 h-8 mr-3">
+                            <ng-container
+                              *ngIf="
+                                hijo.columnas['elemento'] === 'CARPETA';
+                                else archivoIcono
+                              "
+                            >
+                              <svg-icon
+                                src="assets/icons/folder.svg"
+                                class="w-8 h-8"
+                                [svgClass]="'fill-current text-gray-600'"
+                              />
+                            </ng-container>
+                            <ng-template #archivoIcono>
+                              <ng-container
+                                [ngSwitch]="
+                                  hijo.columnas['extension']?.toLowerCase()
+                                "
+                              >
+                                <svg-icon
+                                  *ngSwitchCase="'pdf'"
+                                  src="assets/icons/filePdf.svg"
+                                  class="w-8 h-8"
+                                />
+                                <svg-icon
+                                  *ngSwitchCase="'docx'"
+                                  src="assets/icons/fileDocx.svg"
+                                  class="w-8 h-8"
+                                />
+                                <svg-icon
+                                  *ngSwitchCase="'doc'"
+                                  src="assets/icons/fileDocx.svg"
+                                  class="w-8 h-8"
+                                />
+                                <svg-icon
+                                  *ngSwitchCase="'xls'"
+                                  src="assets/icons/fileExcel.svg"
+                                  class="w-8 h-8"
+                                />
+                                <svg-icon
+                                  *ngSwitchCase="'xlsx'"
+                                  src="assets/icons/fileExcel.svg"
+                                  class="w-8 h-8"
+                                />
+                                <svg-icon
+                                  *ngSwitchCase="'jpg'"
+                                  src="assets/icons/fileImage.svg"
+                                  class="w-8 h-8"
+                                />
+                                <svg-icon
+                                  *ngSwitchCase="'jpeg'"
+                                  src="assets/icons/fileImage.svg"
+                                  class="w-8 h-8"
+                                />
+                                <svg-icon
+                                  *ngSwitchCase="'png'"
+                                  src="assets/icons/fileImage.svg"
+                                  class="w-8 h-8"
+                                />
+                                <svg-icon
+                                  *ngSwitchDefault
+                                  src="assets/icons/fileNone.svg"
+                                  class="w-8 h-8"
+                                />
+                              </ng-container>
+                            </ng-template>
+                          </div>
+
+                          <div class="flex-1">
+                            <div class="text-sm font-medium text-gray-900">
+                              {{ hijo.columnas["nombre"] }}
+                            </div>
+                            <div class="text-sm font-medium text-gray-500">
+                              {{ hijo.columnas["elemento"] }}
+                              <span
+                                *ngIf="hijo.columnas['elemento'] === 'ARCHIVO'"
+                                >({{ hijo.columnas["extension"] }})</span
+                              >
+                            </div>
+                          </div>
+
+                          <div *ngIf="hijo.cargando" class="ml-2">
+                            <svg
+                              class="animate-spin h-5 w-5 text-gray-500"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                class="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                stroke-width="4"
+                              ></circle>
+                              <path
+                                class="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              ></path>
+                            </svg>
+                          </div>
+                        </div>
+
+                        <!-- Subcarpetas -->
+                        <div
+                          *ngIf="
+                            hijo.expandido &&
+                            hijo.hijos &&
+                            hijo.hijos.length > 0
+                          "
+                          class="ml-6 space-y-1"
+                        >
+                          <ng-container *ngFor="let sub of hijo.hijos">
+                            <div
+                              class="flex items-center p-2 hover:bg-gray-50 rounded-md cursor-pointer"
+                              (dblclick)="
+                                sub.columnas['elemento'] === 'ARCHIVO'
+                                  ? handleVerArchivo(sub)
+                                  : expandirCarpeta(sub)
+                              "
+                            >
+                              <div class="flex items-center">
+                                <button
+                                  *ngIf="sub.columnas['elemento'] === 'CARPETA'"
+                                  (click)="expandirCarpeta(sub)"
+                                  class="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-700"
+                                >
+                                  <svg
+                                    [class.rotate-90]="sub.expandido"
+                                    class="w-4 h-4 transition-transform duration-200"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      d="M9 5l7 7-7 7"
+                                    />
+                                  </svg>
+                                </button>
+                                <div
+                                  *ngIf="sub.columnas['elemento'] === 'ARCHIVO'"
+                                  class="w-6"
+                                ></div>
+                              </div>
+
+                              <div class="w-8 h-8 mr-3">
+                                <ng-container
+                                  *ngIf="
+                                    sub.columnas['elemento'] === 'CARPETA';
+                                    else archivoIcono
+                                  "
+                                >
+                                  <svg-icon
+                                    src="assets/icons/folder.svg"
+                                    class="w-8 h-8"
+                                    [svgClass]="'fill-current text-gray-600'"
+                                  />
+                                </ng-container>
+
+                                <ng-template #archivoIcono>
+                                  <ng-container
+                                    [ngSwitch]="
+                                      sub.columnas['extension']?.toLowerCase()
+                                    "
+                                  >
+                                    <svg-icon
+                                      *ngSwitchCase="'pdf'"
+                                      src="assets/icons/filePdf.svg"
+                                      class="w-8 h-8"
+                                    />
+                                    <svg-icon
+                                      *ngSwitchCase="'docx'"
+                                      src="assets/icons/fileDocx.svg"
+                                      class="w-8 h-8"
+                                    />
+                                    <svg-icon
+                                      *ngSwitchCase="'doc'"
+                                      src="assets/icons/fileDocx.svg"
+                                      class="w-8 h-8"
+                                    />
+                                    <svg-icon
+                                      *ngSwitchCase="'xls'"
+                                      src="assets/icons/fileExcel.svg"
+                                      class="w-8 h-8"
+                                    />
+                                    <svg-icon
+                                      *ngSwitchCase="'xlsx'"
+                                      src="assets/icons/fileExcel.svg"
+                                      class="w-8 h-8"
+                                    />
+                                    <svg-icon
+                                      *ngSwitchCase="'jpg'"
+                                      src="assets/icons/fileImage.svg"
+                                      class="w-8 h-8"
+                                    />
+                                    <svg-icon
+                                      *ngSwitchCase="'jpeg'"
+                                      src="assets/icons/fileImage.svg"
+                                      class="w-8 h-8"
+                                    />
+                                    <svg-icon
+                                      *ngSwitchCase="'png'"
+                                      src="assets/icons/fileImage.svg"
+                                      class="w-8 h-8"
+                                    />
+                                    <svg-icon
+                                      *ngSwitchDefault
+                                      src="assets/icons/fileNone.svg"
+                                      class="w-8 h-8"
+                                    />
+                                  </ng-container>
+                                </ng-template>
+                              </div>
+
+                              <div class="flex-1">
+                                <div class="text-sm font-medium text-gray-900">
+                                  {{ sub.columnas["nombre"] }}
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                  {{ sub.columnas["elemento"] }}
+                                  <span
+                                    *ngIf="
+                                      sub.columnas['elemento'] === 'ARCHIVO'
+                                    "
+                                    >({{ sub.columnas["extension"] }})</span
+                                  >
+                                </div>
+                              </div>
+
+                              <div *ngIf="sub.cargando" class="ml-2">
+                                <svg
+                                  class="animate-spin h-5 w-5 text-gray-500"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <circle
+                                    class="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    stroke-width="4"
+                                  ></circle>
+                                  <path
+                                    class="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                  ></path>
+                                </svg>
+                              </div>
+                            </div>
+                          </ng-container>
+                        </div>
+                      </ng-container>
+                    </ng-container>
+                    <div
+                      *ngIf="
+                        carpetaRaiz &&
+                        !carpetaRaiz.cargando &&
+                        (!carpetaRaiz.hijos || carpetaRaiz.hijos.length === 0)
+                      "
+                      class="text-center py-4 text-gray-500"
+                    >
+                      No hay elementos en esta carpeta
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+        </td>
+      </tr>
+    </ng-container>
+
+    <ng-container *ngIf="elementosRevision.length === 0">
+      <tr>
+        <td colspan="9" class="text-center py-4 text-gray-500">
+          No hay elementos en esta carpeta
+        </td>
+      </tr>
+    </ng-container>
+  </tbody>
+</table>

@@ -1,30 +1,27 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ConfirmModalService } from '../../services/confirm-modal.service';
-import { Observable } from 'rxjs';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-confirm-modal',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './confirm-modal.component.html',
 })
-export class ConfirmModalComponent implements OnInit {
-  isOpen$: Observable<boolean>;
-  config$: Observable<any>;
-
-  constructor(private confirmModalService: ConfirmModalService) {
-    this.isOpen$ = this.confirmModalService.isOpen$;
-    this.config$ = this.confirmModalService.config$;
-  }
-
-  ngOnInit(): void {}
+export class ConfirmModalComponent {
+  private confirmModalService = inject(ConfirmModalService);
+  public isOpen$ = this.confirmModalService.isOpen$;
+  public config$ = this.confirmModalService.config$;
+  public observaciones: string = '';
 
   onConfirm(): void {
-    this.confirmModalService.confirm();
+    this.confirmModalService.confirm(this.observaciones);
+    this.observaciones = '';
   }
 
   onCancel(): void {
-    this.confirmModalService.close();
+    this.confirmModalService.cancel();
+    this.observaciones = '';
   }
 }

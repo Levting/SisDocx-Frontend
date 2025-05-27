@@ -6,6 +6,7 @@ import {
   EventEmitter,
   OnInit,
   inject,
+  input,
 } from '@angular/core';
 import { ElementoTabla } from '../../models/table/elemento-tabla.model';
 import { CommonModule, NgIf } from '@angular/common';
@@ -13,13 +14,16 @@ import { SvgIconComponent } from 'angular-svg-icon';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 
-interface ColumnaConfig {
+export interface ColumnaConfig {
   key: string;
   label: string;
-  type: 'text' | 'badge' | 'status' | 'actions';
+  type: 'text' | 'badge' | 'status' | 'status-dot' | 'actions';
   badgeColor?: string;
   badgeTextColor?: string;
   hidden?: boolean;
+  width?: string;
+  minWidth?: string;
+  maxWidth?: string;
 }
 
 @Component({
@@ -29,15 +33,16 @@ interface ColumnaConfig {
   templateUrl: './tabla-estado.component.html',
 })
 export class TablaEstadoComponent implements OnInit {
-  @Input() cabeceras: string[] = [];
-  @Input() columnas: string[] = [];
+  @Input() columnasConfig: ColumnaConfig[] = [];
   @Input() elementosTabla: ElementoTabla[] = [];
-
   @Input() mostrarDropdown: boolean = false;
+  @Input() dropdownTemplate: TemplateRef<any> | null = null;
   @Input() habilitarNavegacion: boolean = false;
   @Input() isLoading: boolean = false;
   @Input() isError: boolean = false;
   @Input() error: string | null = null;
+  @Input() isElementoDisabled: ((elemento: ElementoTabla) => boolean) | null =
+    null;
 
   @Output() cambioSeleccion = new EventEmitter<ElementoTabla[]>();
   @Output() dobleClickElemento = new EventEmitter<ElementoTabla>();
@@ -80,14 +85,17 @@ export class TablaEstadoComponent implements OnInit {
     );
   }
 
-  enfocarFila(elemento: ElementoTabla): void {
-    this.elementoEnfocado = elemento;
+  estaDeshabilitado(elemento: ElementoTabla): boolean {
+    return this.isElementoDisabled ? this.isElementoDisabled(elemento) : false;
+  }
 
-    // Solo selecciona el elemento enfocado y deselecciona los demás
+  enfocarFila(elemento: ElementoTabla): void {
+    if (this.estaDeshabilitado(elemento)) return;
+
+    this.elementoEnfocado = elemento;
     this.elementosTabla.forEach((e) => {
       e.seleccionado = e === elemento;
     });
-
     this.emitirCambioSeleccion();
   }
 
@@ -96,13 +104,19 @@ export class TablaEstadoComponent implements OnInit {
   }
 
   toggleSeleccion(elementoTabla: ElementoTabla): void {
+    if (this.estaDeshabilitado(elementoTabla)) return;
+
     elementoTabla.seleccionado = !elementoTabla.seleccionado;
     this.emitirCambioSeleccion();
   }
 
   toggleSeleccionTodos(): void {
     const seleccionar = !this.todosSeleccionados;
-    this.elementosTabla.forEach((e) => (e.seleccionado = seleccionar));
+    this.elementosTabla.forEach((e) => {
+      if (!this.estaDeshabilitado(e)) {
+        e.seleccionado = seleccionar;
+      }
+    });
     this.emitirCambioSeleccion();
   }
 
@@ -111,9 +125,23 @@ export class TablaEstadoComponent implements OnInit {
   }
 
   abrirCarpeta(elementoTabla: ElementoTabla): void {
-    if (this.habilitarNavegacion) {
+    // Permitir navegación en carpetas incluso si están deshabilitadas
+    if (
+      this.habilitarNavegacion &&
+      elementoTabla.columnas['elemento'] === 'CARPETA'
+    ) {
+      this.dobleClickElemento.emit(elementoTabla);
+    } else if (
+      this.habilitarNavegacion &&
+      !this.estaDeshabilitado(elementoTabla)
+    ) {
       this.dobleClickElemento.emit(elementoTabla);
     }
+  }
+
+  // Método para verificar si se debe mostrar el dropdown
+  mostrarDropdownParaElemento(elemento: ElementoTabla): boolean {
+    return this.mostrarDropdown && !this.estaDeshabilitado(elemento);
   }
 
   onAprobar(elemento: ElementoTabla): void {
@@ -154,30 +182,120 @@ export class TablaEstadoComponent implements OnInit {
     return extensionMap[extension?.toLowerCase()] || 'assets/icons/folder.svg';
   }
 
-  getAllColumnKeys(elementoTabla: ElementoTabla): string[] {
-    return Object.keys(elementoTabla.columnas);
+  getColumnasFiltradas(): ColumnaConfig[] {
+    return (
+      this.columnasConfig?.filter(
+        (col) => !col.hidden && col.key !== 'nombre'
+      ) || []
+    );
+  }
+
+  getNombreColumn(): ColumnaConfig | undefined {
+    return this.columnasConfig?.find((col) => col.key === 'nombre');
+  }
+
+  getColumnStyle(columna: ColumnaConfig): string {
+    const styles: string[] = [];
+
+    if (columna.width) {
+      styles.push(`width: ${columna.width}`);
+    }
+    if (columna.minWidth) {
+      styles.push(`min-width: ${columna.minWidth}`);
+    }
+    if (columna.maxWidth) {
+      styles.push(`max-width: ${columna.maxWidth}`);
+    }
+
+    return styles.join('; ');
   }
 
   getBadgeClasses(columna: ColumnaConfig): string {
     if (columna.type !== 'badge') return '';
-    return `items-center justify-center font-semibold text-xs ${
-      columna.badgeColor || 'bg-green-300'
-    } ${
-      columna.badgeTextColor || 'text-green-700'
-    } rounded-md hidden px-2 py-1 sm:block`;
+
+    const baseClasses = 'px-2.5 py-0.5 rounded-full text-xs font-medium';
+    const colorClasses = `${columna.badgeColor || 'bg-gray-100'} ${
+      columna.badgeTextColor || 'text-gray-800'
+    }`;
+
+    return `${baseClasses} ${colorClasses}`;
   }
 
-  getStatusClasses(elemento: ElementoTabla): string {
-    const estado = elemento.columnas['estadoRevision'];
-    switch (estado) {
-      case 'APROBADO':
-        return 'bg-green-500';
-      case 'RECHAZADO':
-        return 'bg-red-500';
-      case 'PENDIENTE':
-        return 'bg-yellow-500';
-      default:
-        return 'bg-gray-500';
+  getStatusClasses(elemento: ElementoTabla, columna: ColumnaConfig): string {
+    if (columna.type !== 'status' && columna.type !== 'status-dot') return '';
+
+    const valor = elemento.columnas[columna.key];
+
+    // Manejo especial para estadoVisibilidadAdmin
+    if (columna.key === 'estadoVisibilidadAdmin') {
+      if (columna.type === 'status-dot') {
+        return 'flex flex-row justify-start items-center gap-2 w-auto';
+      }
+      return valor === 'true'
+        ? 'bg-green-100 text-green-800 px-2.5 py-0.5 rounded-full text-xs font-medium'
+        : 'bg-gray-100 text-gray-800 px-2.5 py-0.5 rounded-full text-xs font-medium';
     }
+
+    // Manejo para estadoRevision
+    if (columna.key === 'estadoRevision') {
+      switch (valor) {
+        case 'aprobado':
+          return 'bg-green-100 text-green-800 px-2.5 py-0.5 rounded-full text-xs font-medium';
+        case 'pendiente':
+          return 'bg-yellow-100 text-yellow-800 px-2.5 py-0.5 rounded-full text-xs font-medium';
+        case 'rechazado':
+          return 'bg-red-100 text-red-800 px-2.5 py-0.5 rounded-full text-xs font-medium';
+        default:
+          return 'bg-gray-100 text-gray-800 px-2.5 py-0.5 rounded-full text-xs font-medium';
+      }
+    }
+
+    // Estado por defecto
+    return 'bg-gray-100 text-gray-800 px-2.5 py-0.5 rounded-full text-xs font-medium';
+  }
+
+  getStatusDotClasses(elemento: ElementoTabla, columna: ColumnaConfig): string {
+    if (columna.type !== 'status-dot') return '';
+
+    const valor = elemento.columnas[columna.key]?.toString().toUpperCase();
+
+    if (columna.key === 'estadoVisibilidadAdmin') {
+      switch (valor) {
+        case 'VISIBLE':
+          return 'inline-flex items-center justify-center font-semibold leading-none w-2 h-2 text-white rounded-full bg-green-600';
+        case 'PENDIENTE':
+          return 'inline-flex items-center justify-center font-semibold leading-none w-2 h-2 text-white rounded-full bg-yellow-500';
+        case 'OCULTO':
+          return 'inline-flex items-center justify-center font-semibold leading-none w-2 h-2 text-white rounded-full bg-red-600';
+        default:
+          return 'inline-flex items-center justify-center font-semibold leading-none w-2 h-2 text-white rounded-full bg-gray-500';
+      }
+    }
+
+    return 'inline-flex items-center justify-center font-semibold leading-none w-2 h-2 text-white rounded-full bg-gray-500';
+  }
+
+  getStatusTextClasses(
+    elemento: ElementoTabla,
+    columna: ColumnaConfig
+  ): string {
+    if (columna.type !== 'status-dot') return '';
+
+    const valor = elemento.columnas[columna.key]?.toString().toUpperCase();
+
+    if (columna.key === 'estadoVisibilidadAdmin') {
+      switch (valor) {
+        case 'VISIBLE':
+          return 'text-sm font-medium capitalize text-green-700';
+        case 'PENDIENTE':
+          return 'text-sm font-medium capitalize text-yellow-700';
+        case 'OCULTO':
+          return 'text-sm font-medium capitalize text-red-700';
+        default:
+          return 'text-sm font-medium capitalize text-gray-700';
+      }
+    }
+
+    return 'text-sm font-medium capitalize text-gray-700';
   }
 }

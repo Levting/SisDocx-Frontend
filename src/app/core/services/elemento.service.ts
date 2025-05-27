@@ -19,6 +19,8 @@ import { SubirElementoRequest } from '../models/documentos/subir-elemento-reques
 import { DescargarElementoRequest } from '../models/documentos/descargar-elemento-request.model';
 import { AuthService } from './auth.service';
 import { LoggerService } from './logger.service';
+import { TokenService } from './token.service';
+import { ElementoFiltrado } from '../models/documentos/elemento-filtrado.model';
 
 /**
  * Servicio para gestionar las operaciones relacionadas con los elementos (carpetas y archivos).
@@ -31,13 +33,19 @@ export class ElementoService {
   private http: HttpClient = inject(HttpClient);
   private authService: AuthService = inject(AuthService);
   private logger: LoggerService = inject(LoggerService);
+  private tokenService: TokenService = inject(TokenService);
 
   private waitForAuth<T>(request: Observable<T>): Observable<T> {
     return this.authService.userLoginOn.pipe(
       switchMap((isLoggedIn) => {
+        /* console.log('isLoggedIn', isLoggedIn); */
+        /* const token = this.tokenService.getToken(); */
+
         if (!isLoggedIn) {
-          // this.logger.warn('No autenticado');
-          // return throwError(() => new Error('No autenticado'));
+          // Obtener el token de autenticación
+
+          this.logger.warn('No autenticado');
+          return throwError(() => new Error('No autenticado'));
         }
         return request;
       })
@@ -49,16 +57,20 @@ export class ElementoService {
     return this.waitForAuth(
       this.http.get<{ carpetaRaiz: Elemento; contenido: Elemento[] }>(url).pipe(
         tap((response) => {
-          this.logger.debug('Contenido raíz obtenido:', response);
+          /* this.logger.debug('Contenido raíz obtenido:', response); */
         }),
         catchError((error: ApiError) => {
-          this.logger.error('Error al obtener contenido raíz:', error);
           return throwError(
             () => new Error(error.message || 'Error al obtener contenido raíz')
           );
         })
       )
     );
+  }
+
+  obtenerElementosFiltrados(request: ElementoFiltrado): Observable<Elemento[]> {
+    const url = `${this.API_URL}/filtrar`;
+    return this.waitForAuth(this.http.post<Elemento[]>(url, request));
   }
 
   obtenerContenidoCarpeta(carpetaId: number): Observable<Elemento[]> {
@@ -76,7 +88,7 @@ export class ElementoService {
         catchError((error) => {
           this.logger.error('Error al obtener detalles del elemento:', error);
           return throwError(
-            () => new Error('No se pudo obtener los detalles del elemento')
+            () => new Error('No se pudo obtener los detalles del elemento') 
           );
         })
       )
@@ -125,7 +137,6 @@ export class ElementoService {
 
     return this.http.post<Elemento>(url, formData).pipe(
       catchError((error: ApiError) => {
-        console.error('Error al subir elemento:', error.error);
         console.error('Error al subir elemento:', error.message);
         return throwError(
           () => new Error(error.message || 'No se pudo subir el elemento')
@@ -308,14 +319,4 @@ export class ElementoService {
       throw new Error('No se pudo iniciar la descarga del archivo');
     }
   }
-
-  /**
-   * Obtiene los documentos agrupados por usuario
-   * @returns Observable con la lista de elementos
-   */
-  /* obtenerDocumentosPorUsuario(): Observable<Elemento[]> {
-    return this.http
-      .get<Elemento[]>(`${this.API_URL}/por-usuario`)
-      .pipe(catchError(this.handleError));
-  } */
 }

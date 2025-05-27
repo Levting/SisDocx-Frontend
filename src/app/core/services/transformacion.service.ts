@@ -8,7 +8,7 @@ import { FechaUtilsService } from '../utils/fecha-utils.service';
 import { Observable, forkJoin, map, of } from 'rxjs';
 import { Archivo } from '../models/documentos/archivo.model';
 import { Carpeta } from '../models/documentos/carpeta.model';
-import { ElementoRevision } from '../models/revision/elemento-revision.model';
+import { Revision } from '../models/revision/elemento-revision.model';
 
 @Injectable({
   providedIn: 'root',
@@ -43,7 +43,7 @@ export class TransformacionService {
           estado: elemento.estado || 'N/A',
           equipoDistribucion: elemento.equipoDistribucion || 'N/A',
           ruta: elemento.ruta.join(' / ') || 'N/A',
-          visibleParaAdmin: elemento.visibleParaAdmin,
+          estadoVisibilidadAdmin: elemento.estadoVisibilidadAdmin || 'N/A',
         };
 
         // Agregar propiedades específicas según el tipo de elemento
@@ -133,7 +133,7 @@ export class TransformacionService {
           estado: elemento.estado,
           equipoDistribucion: elemento.equipoDistribucion,
           ruta: elemento.ruta.join(' / '),
-          visibleParaAdmin: elemento.visibleParaAdmin,
+          estadoVisibilidadAdmin: elemento.estadoVisibilidadAdmin || 'N/A',
           fechaPapelera: elemento.fechaPapelera
             ? this.fechaUtils.formatear(elemento.fechaPapelera)
             : 'N/A',
@@ -203,6 +203,7 @@ export class TransformacionService {
                 tamano: (elemento as Archivo).tamano,
               }
             : {}),
+          estadoVisibilidadAdmin: elemento.estadoVisibilidadAdmin || 'N/A',
         },
         seleccionado: false,
       }))
@@ -210,14 +211,14 @@ export class TransformacionService {
   }
 
   transformarRevisionesATabla(
-    elementos: ElementoRevision[]
+    elementos: Revision[]
   ): Observable<ElementoTabla[]> {
     return of(
       elementos.map((elemento) => this.transformarATablaRevision(elemento))
     );
   }
 
-  transformarATablaRevision(elemento: ElementoRevision): ElementoTabla {
+  transformarATablaRevision(elemento: Revision): ElementoTabla {
     return {
       columnas: {
         id: elemento.id,

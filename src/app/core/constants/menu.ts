@@ -22,6 +22,11 @@ export class Menu {
           route: '/documentos-personal',
         },
         {
+          icon: 'assets/icons/document.svg',
+          label: 'Situación Revisión',
+          route: '/documentos-situacion',
+        },
+        {
           icon: 'assets/icons/object.svg',
           label: 'Por Aprobar',
           route: '/documentos-por-aprobar',

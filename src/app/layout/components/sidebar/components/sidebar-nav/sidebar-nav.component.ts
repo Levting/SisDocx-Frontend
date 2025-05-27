@@ -100,6 +100,13 @@ export class SidebarNavComponent implements OnInit {
             roles: ['Personal'],
           },
           {
+            label: 'Situación Revisión',
+            route: '/documentos-situacion',
+            icon: 'assets/icons/document.svg',
+            active: false,
+            roles: ['Personal'],
+          },
+          {
             label: 'Por Aprobar',
             route: '/documentos-por-aprobar',
             icon: 'assets/icons/object.svg',

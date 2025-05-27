@@ -1,0 +1,9 @@
+<app-dropdown [items]="items" />
+
+<app-documentos-modal-renombrar
+  [isOpen]="isModalRenombrarOpen"
+  [elemento]="elemento"
+  [isFile]="elemento.columnas['tipo'] === 'ARCHIVO'"
+  (close)="onModalRenombrarClose()"
+  (elementoRenombrado)="onElementoRenombrado($event)"
+/>
