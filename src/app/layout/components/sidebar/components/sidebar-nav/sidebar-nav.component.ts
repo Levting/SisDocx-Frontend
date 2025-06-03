@@ -102,14 +102,14 @@ export class SidebarNavComponent implements OnInit {
           {
             label: 'Situación Revisión',
             route: '/documentos-situacion',
-            icon: 'assets/icons/document.svg',
+            icon: 'assets/icons/see.svg',
             active: false,
             roles: ['Personal'],
           },
           {
             label: 'Por Aprobar',
             route: '/documentos-por-aprobar',
-            icon: 'assets/icons/object.svg',
+            icon: 'assets/icons/see.svg',
             active: false,
             roles: ['Administrador'],
           },
@@ -123,7 +123,7 @@ export class SidebarNavComponent implements OnInit {
           {
             label: 'Papelera',
             route: '/papelera',
-            icon: 'assets/icons/object.svg',
+            icon: 'assets/icons/trash.svg',
             active: false,
             roles: ['Administrador', 'Personal'],
           },
@@ -135,14 +135,14 @@ export class SidebarNavComponent implements OnInit {
           {
             label: 'Campaña de Medición',
             route: '/campana-medicion',
-            icon: 'assets/icons/object.svg',
+            icon: 'assets/icons/campaña.svg',
             active: false,
             roles: ['Administrador'],
           },
           {
             label: 'Fusión de Archivos',
             route: '/fusion',
-            icon: 'assets/icons/object.svg',
+            icon: 'assets/icons/merge.svg',
             active: false,
             roles: ['Administrador'],
           },

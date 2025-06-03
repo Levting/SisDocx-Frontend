@@ -3,10 +3,25 @@
   <div class="bg-white rounded-lg shadow p-6">
     <h2 class="text-xl font-semibold text-gray-800 mb-4">Documentos</h2>
     <div class="h-64">
-      <!-- Aquí irá el chart de documentos -->
-      <div class="flex items-center justify-center h-full text-gray-500">
-        Gráfico de Documentos
+      <div *ngIf="isLoading" class="flex items-center justify-center h-full">
+        <div
+          class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
+        ></div>
       </div>
+      <div
+        *ngIf="!isLoading && error"
+        class="flex items-center justify-center h-full text-red-500"
+      >
+        {{ error }}
+      </div>
+      <canvas
+        *ngIf="!isLoading && !error"
+        baseChart
+        [data]="documentosChartData"
+        [options]="documentosChartOptions"
+        [type]="documentosChartType"
+      >
+      </canvas>
     </div>
   </div>
 
@@ -14,10 +29,25 @@
   <div class="bg-white rounded-lg shadow p-6">
     <h2 class="text-xl font-semibold text-gray-800 mb-4">Usuarios</h2>
     <div class="h-64">
-      <!-- Aquí irá el chart de usuarios -->
-      <div class="flex items-center justify-center h-full text-gray-500">
-        Gráfico de Usuarios
+      <div *ngIf="isLoading" class="flex items-center justify-center h-full">
+        <div
+          class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
+        ></div>
       </div>
+      <div
+        *ngIf="!isLoading && error"
+        class="flex items-center justify-center h-full text-red-500"
+      >
+        {{ error }}
+      </div>
+      <canvas
+        *ngIf="!isLoading && !error"
+        baseChart
+        [data]="usuariosChartData"
+        [options]="usuariosChartOptions"
+        [type]="usuariosChartType"
+      >
+      </canvas>
     </div>
   </div>
 
@@ -25,10 +55,25 @@
   <div class="bg-white rounded-lg shadow p-6">
     <h2 class="text-xl font-semibold text-gray-800 mb-4">Actividad</h2>
     <div class="h-64">
-      <!-- Aquí irá el chart de actividad -->
-      <div class="flex items-center justify-center h-full text-gray-500">
-        Gráfico de Actividad
+      <div *ngIf="isLoading" class="flex items-center justify-center h-full">
+        <div
+          class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
+        ></div>
       </div>
+      <div
+        *ngIf="!isLoading && error"
+        class="flex items-center justify-center h-full text-red-500"
+      >
+        {{ error }}
+      </div>
+      <canvas
+        *ngIf="!isLoading && !error"
+        baseChart
+        [data]="actividadChartData"
+        [options]="actividadChartOptions"
+        [type]="actividadChartType"
+      >
+      </canvas>
     </div>
   </div>
 </div>

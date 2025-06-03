@@ -13,6 +13,7 @@ import { Carpeta } from '../../../../../../core/models/documentos/carpeta.model'
 import { CarpetaActualService } from '../../../../../../core/services/carpeta-actual.service';
 import { firstValueFrom, Subject, takeUntil } from 'rxjs';
 import { ApiError } from '../../../../../../core/models/errors/api-error.model';
+import { ToastService } from '../../../../../../core/services/toast.service';
 
 interface FileWithPath extends File {
   webkitRelativePath: string;
@@ -58,11 +59,18 @@ export class SubirCarpetaModalComponent implements OnInit, OnDestroy {
 
   private elementoService = inject(ElementoService);
   private carpetaActualService = inject(CarpetaActualService);
+  private toastService = inject(ToastService);
   private archivosSeleccionados: FileWithPath[] = [];
   private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
     this.setupSubscriptions();
+    if (this.carpetaActual && this.isCarpetaDisabled(this.carpetaActual)) {
+      this.toastService.showWarning(
+        'No se pueden subir carpetas en una carpeta pendiente o visible'
+      );
+      this.onClose();
+    }
   }
 
   private setupSubscriptions(): void {
@@ -71,6 +79,14 @@ export class SubirCarpetaModalComponent implements OnInit, OnDestroy {
       .subscribe((carpeta) => {
         this.carpetaActual = carpeta;
       });
+  }
+
+  private isCarpetaDisabled(carpeta: Carpeta): boolean {
+    const estadoVisibilidad = carpeta.estadoVisibilidadAdmin
+      ?.toString()
+      .toUpperCase();
+    if (!estadoVisibilidad) return false;
+    return estadoVisibilidad === 'PENDIENTE' || estadoVisibilidad === 'VISIBLE';
   }
 
   ngOnDestroy(): void {
@@ -146,6 +162,14 @@ export class SubirCarpetaModalComponent implements OnInit, OnDestroy {
 
   async onSubmit(): Promise<void> {
     if (this.isLoading || this.carpetas.length === 0) return;
+
+    if (this.carpetaActual && this.isCarpetaDisabled(this.carpetaActual)) {
+      this.toastService.showWarning(
+        'No se pueden subir carpetas en una carpeta pendiente o visible'
+      );
+      this.onClose();
+      return;
+    }
 
     this.isLoading = true;
     this.errorMessage = null;

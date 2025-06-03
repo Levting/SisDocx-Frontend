@@ -21,16 +21,42 @@
             </div>
           </th>
           <!-- Columna de nombre -->
-          <th *ngIf="getNombreColumn()" class="px-6 py-3 min-w-[300px]">
-            {{ getNombreColumn()?.label }}
+          <th
+            *ngIf="getNombreColumn()"
+            class="px-6 py-3 min-w-[300px]"
+            [class.cursor-pointer]="getNombreColumn()?.sortable"
+            [class.hover:bg-gray-100]="getNombreColumn()?.sortable"
+            (click)="
+              getNombreColumn()?.sortable &&
+                ordenarPorColumna(getNombreColumn()!)
+            "
+          >
+            <div class="flex items-center gap-2">
+              {{ getNombreColumn()?.label }}
+              <i
+                *ngIf="getNombreColumn()?.sortable"
+                class="bi"
+                [ngClass]="obtenerIconoOrdenamiento(getNombreColumn()!)"
+              ></i>
+            </div>
           </th>
           <!-- Resto de columnas -->
           <th
             *ngFor="let col of getColumnasFiltradas()"
             class="px-6 py-3"
             [style]="getColumnStyle(col)"
+            [class.cursor-pointer]="col.sortable"
+            [class.hover:bg-gray-100]="col.sortable"
+            (click)="col.sortable && ordenarPorColumna(col)"
           >
-            {{ col.label }}
+            <div class="flex items-center gap-2">
+              {{ col.label }}
+              <i
+                *ngIf="col.sortable"
+                class="bi"
+                [ngClass]="obtenerIconoOrdenamiento(col)"
+              ></i>
+            </div>
           </th>
         </tr>
       </thead>

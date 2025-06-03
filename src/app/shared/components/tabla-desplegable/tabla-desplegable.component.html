@@ -1,45 +1,34 @@
 <table class="min-w-full border-collapse">
   <thead
-    class="bg-gray-100 sticky top-0 z-10 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider"
+    class="bg-gray-100 sticky top-0 z-10 text-left font-semibold text-gray-500 uppercase tracking-wider"
   >
-    <tr class="">
-      <th class="p-3" colspan="1" style="width: 60px">
-        <div class="flex items-center"></div>
-      </th>
-      <th class="group" colspan="1" style="width: 120px">
-        <div class="flex items-center">Envío ID</div>
-      </th>
-      <th class="group" colspan="1" style="width: 150px">
-        <div class="flex items-center">Remitente</div>
-      </th>
-      <th class="group" colspan="1" style="width: 150px">
-        <div class="flex items-center">Provincia</div>
-      </th>
-      <th class="group" colspan="1" style="width: 150px">
-        <div class="flex items-center">Fecha de envío</div>
-      </th>
-      <th class="group" colspan="1" style="width: 200px">
-        <div class="flex items-center">Estado de revisión</div>
-      </th>
-
-      <th class="group" colspan="1" style="width: 140px">
-        <div class="flex items-center">Acciones</div>
-      </th>
+    <tr>
+      <th class="p-3" style="width: 60px"></th>
+      <th style="width: 120px">Envío ID</th>
+      <th style="width: 150px">Remitente</th>
+      <th style="width: 150px">Provincia</th>
+      <th style="width: 150px">Fecha de envío</th>
+      <th style="width: 200px">Estado de revisión</th>
+      <th style="width: 140px">Acciones</th>
     </tr>
   </thead>
 
   <tbody>
-    <ng-container *ngFor="let revision of elementosRevision">
+    <ng-container
+      *ngFor="let revision of elementosRevision; trackBy: trackById"
+    >
       <tr class="hover:bg-gray-50 border-b last:border-b-0">
         <!-- Botón expandir -->
-        <td class="ml-2 px-3 py-4 text-sm font-medium text-gray-700">
+        <td class="px-3 py-4 text-gray-700">
           <button
-            (click)="expandirFila(revision.columnas['id'])"
+            type="button"
             class="size-8 border border-gray-300 rounded-full flex items-center justify-center hover:border-blue-500 hover:text-blue-500 transition"
+            (click)="expandirFila(revision.columnas['id'])"
+            [attr.aria-expanded]="filaExpandida === revision.columnas['id']"
           >
             <svg
-              [class.rotate-180]="filaExpandida === revision.columnas['id']"
               class="size-4 transition-transform duration-300"
+              [class.rotate-180]="filaExpandida === revision.columnas['id']"
               fill="currentColor"
               viewBox="0 0 256 256"
             >
@@ -50,69 +39,63 @@
           </button>
         </td>
 
-        <td class="px-3 py-4 text-sm text-gray-700">
-          {{ revision.columnas["id"] }}
-        </td>
-        <td class="px-3 py-4 text-sm text-gray-700">
-          {{ revision.columnas["remitente"] }}
-        </td>
-        <td class="px-3 py-4 text-sm text-gray-700">
-          {{ revision.columnas["provincia"] }}
-        </td>
-        <td class="px-3 py-4 text-sm text-gray-700">
-          {{ revision.columnas["fechaEnvio"] }}
-        </td>
+        <!-- Datos principales -->
+        <td class="px-3 py-4">{{ revision.columnas["id"] }}</td>
+        <td class="px-3 py-4">{{ revision.columnas["remitente"] }}</td>
+        <td class="px-3 py-4">{{ revision.columnas["provincia"] }}</td>
+        <td class="px-3 py-4">{{ revision.columnas["fechaEnvio"] }}</td>
 
-        <td>
-          <div class="flex items-center gap-2 justify-center">
+        <!-- Estado -->
+        <td class="px-3 py-4">
+          <div class="flex items-center gap-2">
             <span
               class="w-2 h-2 rounded-full"
               [ngClass]="statusColor(revision.columnas['estadoRevision'])"
             ></span>
-            <p
+            <span
               class="capitalize font-medium"
               [ngClass]="statusText(revision.columnas['estadoRevision'])"
             >
               {{ revision.columnas["estadoRevision"] }}
-            </p>
+            </span>
           </div>
         </td>
 
-        <!-- Si el estado de la revision es 'APROBADO' o 'PENDIENTE', desabilitar los botones -->
-        <ng-container *ngIf="revision.columnas['revisor'] === null">
-          <td class="mx-4">
-            <div
-              class="flex w-full flex-row justify-end items-center gap-3 pe-3"
+        <!-- Acciones -->
+        <td class="px-3 py-4 text-right">
+          <div
+            class="flex justify-end gap-2"
+            *ngIf="revision.columnas['revisor'] === null"
+          >
+            <button
+              (click)="handleAprobarRevision(revision.columnas['id'])"
+              class="bg-green-600 hover:bg-green-700 text-white text-xs font-medium px-4 py-2 rounded-md"
             >
-              <button
-                (click)="handleAprobarRevision(revision.columnas['id'])"
-                class="bg-green-600 hover:bg-green-700 text-white text-xs font-medium px-4 py-2 rounded-md"
-              >
-                Aprobar
-              </button>
-              <button
-                (click)="handleRechazarRevision(revision.columnas['id'])"
-                class="bg-red-600 hover:bg-red-700 text-white text-xs font-medium px-4 py-2 rounded-md"
-              >
-                Rechazar
-              </button>
-            </div>
-          </td>
-        </ng-container>
+              Aprobar
+            </button>
+            <button
+              (click)="handleRechazarRevision(revision.columnas['id'])"
+              class="bg-red-600 hover:bg-red-700 text-white text-xs font-medium px-4 py-2 rounded-md"
+            >
+              Rechazar
+            </button>
+          </div>
+        </td>
       </tr>
 
       <!-- Fila expandida con contenido completo -->
       <tr
         *ngIf="filaExpandida === revision.columnas['id']"
-        class="bg-gray-50 px-5 py-3 text-sm border-b transition-all duration-300 overflow-hidden"
+        class="bg-gray-50 border-b"
       >
-        <td colspan="9" class="px-6 py-4 text-sm text-gray-600">
+        <td colspan="7" class="px-6 py-4">
           <!-- Si existe la descripcion, mostrarla -->
-          <ng-container *ngIf="revision.columnas['observaciones']">
-            <p class="text-gray-600 py-6">
-              {{ revision.columnas["observaciones"] }}
-            </p>
-          </ng-container>
+          <p
+            *ngIf="revision.columnas['observaciones']"
+            class="text-gray-600 mb-4"
+          >
+            {{ revision.columnas["observaciones"] }}
+          </p>
 
           <!-- Si es una carpeta, mostrar su jerarquia desde la carpeta raíz y sus hijos -->
           <ng-container *ngIf="carpetaRaiz || archivoRaiz">
@@ -605,12 +588,14 @@
       </tr>
     </ng-container>
 
-    <ng-container *ngIf="elementosRevision.length === 0">
-      <tr>
-        <td colspan="9" class="text-center py-4 text-gray-500">
-          No hay elementos en esta carpeta
-        </td>
-      </tr>
-    </ng-container>
+    <!-- Sin resultados -->
+    <tr *ngIf="elementosRevision.length === 0">
+      <td
+        colspan="7"
+        class="text-center py-6 text-gray-500 bg-gray-50 rounded-md"
+      >
+        No hay elementos para revisar.
+      </td>
+    </tr>
   </tbody>
 </table>

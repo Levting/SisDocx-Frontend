@@ -9,69 +9,56 @@ import { Observable, forkJoin, map, of } from 'rxjs';
 import { Archivo } from '../models/documentos/archivo.model';
 import { Carpeta } from '../models/documentos/carpeta.model';
 import { Revision } from '../models/revision/elemento-revision.model';
-
+import { CampanaMedicion } from '../models/documentos/campana-medicion.model';
 @Injectable({
   providedIn: 'root',
 })
 export class TransformacionService {
   // Inyectar el servicio de usuario y el servicio de fecha
-  private userService = inject(UserService);
   private fechaUtils = inject(FechaUtilsService);
 
   transformarDocumentosATabla(
     elementos: Elemento[]
   ): Observable<ElementoTabla[]> {
-    return forkJoin(
+    return of(
       elementos.map((elemento) => this.transformarDocumentoATabla(elemento))
     );
   }
 
-  transformarDocumentoATabla(elemento: Elemento): Observable<ElementoTabla> {
-    return this.userService.obtenerUsuarioId(elemento.creadoPorId).pipe(
-      map((usuario) => {
-        const baseColumnas = {
-          elementoId: elemento.elementoId || 'N/A',
-          elemento: elemento.elemento || 'N/A',
-          nombre: elemento.nombre || 'N/A',
-          carpetaPadreId: elemento.carpetaPadreId || 'N/A',
-          carpetaPadre: elemento.carpetaPadre || 'N/A',
-          creadoPorId: elemento.creadoPorId || 'N/A',
-          creadoPor: usuario ? `${usuario.nombre} ${usuario.apellido}` : 'N/A',
-          creadoEl: elemento.creadoEl
-            ? this.fechaUtils.formatear(elemento.creadoEl)
-            : 'N/A',
-          estado: elemento.estado || 'N/A',
-          equipoDistribucion: elemento.equipoDistribucion || 'N/A',
-          ruta: elemento.ruta.join(' / ') || 'N/A',
-          estadoVisibilidadAdmin: elemento.estadoVisibilidadAdmin || 'N/A',
-        };
+  transformarDocumentoATabla(elemento: Elemento): ElementoTabla {
+    return {
+      columnas: {
+        elementoId: elemento.elementoId,
+        elemento: elemento.elemento,
+        nombre: elemento.nombre,
+        carpetaPadreId: elemento.carpetaPadreId,
+        carpetaPadre: elemento.carpetaPadre,
+        creadoPorId: elemento.creadoPorId,
+        creadoPor: elemento.creadoPor,
+        creadoEl: elemento.creadoEl
+          ? this.fechaUtils.formatear(elemento.creadoEl)
+          : 'N/A',
+        estado: elemento.estado,
+        equipoDistribucion: elemento.equipoDistribucion,
+        ruta: elemento.ruta.join(' / '),
+        estadoVisibilidadAdmin: elemento.estadoVisibilidadAdmin,
 
-        // Agregar propiedades específicas según el tipo de elemento
-        if (elemento.elemento === 'CARPETA') {
-          return {
-            columnas: {
-              ...baseColumnas,
-              tamano: (elemento as Carpeta).cantidadElementos || 'N/A',
-            },
-            seleccionado: false,
-          };
-        } else if (elemento.elemento === 'ARCHIVO') {
-          return {
-            columnas: {
-              ...baseColumnas,
-              extension: (elemento as Archivo).extension || 'N/A',
-              tamano: this.formatearTamano((elemento as Archivo).tamano) || 'N/A',
-            },
-            seleccionado: false,
-          };
-        }
-
-        return {
-          columnas: baseColumnas,
-          seleccionado: false,
-        };
-      })
-    );
+        ...(elemento.elemento === 'CARPETA'
+          ? {
+              tamano: (elemento as unknown as Carpeta).cantidadElementos,
+            }
+          : {}),
+        ...(elemento.elemento === 'ARCHIVO'
+          ? {
+              extension: (elemento as unknown as Archivo).extension,
+              tamano: this.formatearTamano(
+                (elemento as unknown as Archivo).tamano
+              ),
+            }
+          : {}),
+      },
+      seleccionado: false,
+    };
   }
 
   transformarFavoritosATabla(elementos: ElementoFavorito[]): ElementoTabla[] {
@@ -86,7 +73,8 @@ export class TransformacionService {
         elementoId: elemento.elementoId,
         elemento: elemento.elemento,
         nombre: elemento.nombre,
-        fechaFavorito: this.fechaUtils.formatear(elemento.fechaFavorito) || 'N/A',
+        fechaFavorito:
+          this.fechaUtils.formatear(elemento.fechaFavorito) || 'N/A',
         carpetaPadreId: elemento.carpetaPadreId,
         estado: elemento.estado,
         ...(elemento.elemento === 'CARPETA'
@@ -109,66 +97,51 @@ export class TransformacionService {
   transformarPapelerasATabla(
     elementos: ElementoPapelera[]
   ): Observable<ElementoTabla[]> {
-    return forkJoin(
+    return of(
       elementos.map((elemento) => this.transformarATablaPapelera(elemento))
     );
   }
 
-  transformarATablaPapelera(
-    elemento: ElementoPapelera
-  ): Observable<ElementoTabla> {
-    return this.userService.obtenerUsuarioId(elemento.creadoPorId).pipe(
-      map((usuario) => {
-        const baseColumnas = {
-          elementoId: elemento.elementoId,
-          elemento: elemento.elemento,
-          nombre: elemento.nombre,
-          carpetaPadreId: elemento.carpetaPadreId,
-          carpetaPadre: elemento.carpetaPadre,
-          creadoPorId: elemento.creadoPorId,
-          creadoPor: usuario ? `${usuario.nombre} ${usuario.apellido}` : 'N/A',
-          creadoEl: elemento.creadoEl
-            ? this.fechaUtils.formatear(elemento.creadoEl)
-            : 'N/A',
-          estado: elemento.estado,
-          equipoDistribucion: elemento.equipoDistribucion,
-          ruta: elemento.ruta.join(' / '),
-          estadoVisibilidadAdmin: elemento.estadoVisibilidadAdmin || 'N/A',
-          fechaPapelera: elemento.fechaPapelera
-            ? this.fechaUtils.formatear(elemento.fechaPapelera)
-            : 'N/A',
-          eliminadoPorId: elemento.eliminadoPorId,
-          eliminadoPor: elemento.eliminadoPor,
-        };
+  transformarATablaPapelera(elemento: ElementoPapelera): ElementoTabla {
+    return {
+      columnas: {
+        elementoId: elemento.elementoId,
+        elemento: elemento.elemento,
+        nombre: elemento.nombre,
+        carpetaPadreId: elemento.carpetaPadreId,
+        carpetaPadre: elemento.carpetaPadre,
+        creadoPorId: elemento.creadoPorId,
+        creadoPor: elemento.creadoPor,
+        creadoEl: elemento.creadoEl
+          ? this.fechaUtils.formatear(elemento.creadoEl)
+          : 'N/A',
+        estado: elemento.estado,
+        equipoDistribucion: elemento.equipoDistribucion,
+        ruta: elemento.ruta.join(' / '),
+        estadoVisibilidadAdmin: elemento.estadoVisibilidadAdmin || 'N/A',
 
-        // Agregar propiedades específicas según el tipo de elemento
-        if (elemento.elemento === 'CARPETA') {
-          return {
-            columnas: {
-              ...baseColumnas,
+        ...(elemento.elemento === 'CARPETA'
+          ? {
               tamano: (elemento as unknown as Carpeta).cantidadElementos,
-            },
-            seleccionado: false,
-          };
-        } else if (elemento.elemento === 'ARCHIVO') {
-          return {
-            columnas: {
-              ...baseColumnas,
+            }
+          : {}),
+        ...(elemento.elemento === 'ARCHIVO'
+          ? {
               extension: (elemento as unknown as Archivo).extension,
               tamano: this.formatearTamano(
                 (elemento as unknown as Archivo).tamano
               ),
-            },
-            seleccionado: false,
-          };
-        }
+            }
+          : {}),
 
-        return {
-          columnas: baseColumnas,
-          seleccionado: false,
-        };
-      })
-    );
+        fechaPapelera: elemento.fechaPapelera
+          ? this.fechaUtils.formatear(elemento.fechaPapelera)
+          : 'N/A',
+        eliminadoPorId: elemento.eliminadoPorId,
+        eliminadoPor: elemento.eliminadoPor,
+      },
+      seleccionado: false,
+    };
   }
 
   transformarDocumentosPersonalATabla(
@@ -181,33 +154,29 @@ export class TransformacionService {
     );
   }
 
-  transformarDocumentoPersonalATabla(
-    elemento: Elemento
-  ): Observable<ElementoTabla> {
-    return this.userService.obtenerUsuarioId(elemento.creadoPorId).pipe(
-      map((usuario) => ({
-        columnas: {
-          elementoId: elemento.elementoId,
-          elemento: elemento.elemento,
-          nombre: elemento.nombre,
-          creadoPor: `${usuario.nombre} ${usuario.apellido}`,
-          creadoEl: this.fechaUtils.formatear(elemento.creadoEl) || 'N/A',
-          estado: elemento.estado,
-          ruta: elemento.ruta.join(' / '),
-          ...(elemento.elemento === 'CARPETA'
-            ? { cantidadElementos: (elemento as Carpeta).cantidadElementos }
-            : {}),
-          ...(elemento.elemento === 'ARCHIVO'
-            ? {
-                extension: (elemento as Archivo).extension,
-                tamano: (elemento as Archivo).tamano,
-              }
-            : {}),
-          estadoVisibilidadAdmin: elemento.estadoVisibilidadAdmin || 'N/A',
-        },
-        seleccionado: false,
-      }))
-    );
+  transformarDocumentoPersonalATabla(elemento: Elemento): ElementoTabla {
+    return {
+      columnas: {
+        elementoId: elemento.elementoId,
+        elemento: elemento.elemento,
+        nombre: elemento.nombre,
+        creadoPor: elemento.creadoPor,
+        creadoEl: this.fechaUtils.formatear(elemento.creadoEl) || 'N/A',
+        estado: elemento.estado,
+        ruta: elemento.ruta.join(' / '),
+        estadoVisibilidadAdmin: elemento.estadoVisibilidadAdmin || 'N/A',
+        ...(elemento.elemento === 'CARPETA'
+          ? { cantidadElementos: (elemento as Carpeta).cantidadElementos }
+          : {}),
+        ...(elemento.elemento === 'ARCHIVO'
+          ? {
+              extension: (elemento as Archivo).extension,
+              tamano: this.formatearTamano((elemento as Archivo).tamano),
+            }
+          : {}),
+      },
+      seleccionado: false,
+    };
   }
 
   transformarRevisionesATabla(
@@ -253,6 +222,56 @@ export class TransformacionService {
           : {}),
         estadoRevision: elemento.estadoRevision,
         observaciones: elemento.observaciones,
+      },
+      seleccionado: false,
+    };
+  }
+
+
+  transformarCampanasMedicionATabla(
+    elementos: CampanaMedicion[]
+  ): Observable<ElementoTabla[]> {
+    return of(
+      elementos.map((elemento) => this.transformarCampanaMedicionATabla(elemento))
+    );
+  }
+
+  transformarCampanaMedicionATabla(elemento: CampanaMedicion): ElementoTabla {
+    return {
+      columnas: {
+        campanaMedicionId: elemento.campanaMedicionId,
+        anio: elemento.anio,
+        estadoProcesamiento: elemento.estadoProcesamiento,
+        fechaInicioProcesamiento: elemento.fechaInicioProcesamiento
+          ? this.fechaUtils.formatear(elemento.fechaInicioProcesamiento)
+          : 'N/A',
+        mensajeError: elemento.mensajeError,
+        vigencia: elemento.vigencia,
+
+        elementoId: elemento.elementoId,
+        elemento: elemento.elemento,
+        nombre: elemento.nombre,
+
+
+        creadoPorId: elemento.creadoPorId,
+        creadoPor: elemento.creadoPor,
+        creadoEl: elemento.creadoEl
+          ? this.fechaUtils.formatear(elemento.creadoEl)
+          : 'N/A',
+        estado: elemento.estado,
+
+        ruta: elemento.ruta.join(' / '),
+        estadoVisibilidadAdmin: elemento.estadoVisibilidadAdmin,
+
+
+        ...(elemento.elemento === 'ARCHIVO'
+          ? {
+              extension: (elemento as unknown as Archivo).extension,
+              tamano: this.formatearTamano(
+                (elemento as unknown as Archivo).tamano
+              ),
+            }
+          : {}),
       },
       seleccionado: false,
     };

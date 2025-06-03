@@ -33,9 +33,9 @@
         (rechazarRevision)="onRechazarRevision($event)"
       />
     </ng-container>
-    <ng-container *ngIf="activeTab === 'rechazadas'" class="h-full">
+    <ng-container *ngIf="activeTab === 'todas-revisiones'" class="h-full">
       <app-tabla-desplegable
-        [elementosRevision]="revisionesRechazadas"
+        [elementosRevision]="revisiones"
         (verArchivo)="onVerArchivo($event)"
       />
     </ng-container>

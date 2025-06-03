@@ -12,6 +12,7 @@ import {
   Tab,
   TabsComponent,
 } from '../../../../shared/components/tabs/tabs.component';
+import { ToastService } from '../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-documentos-por-aprobar',
@@ -29,20 +30,25 @@ export class DocumentosPorAprobarComponent implements OnInit {
   // Variables
   public revisionesPorAprobar: ElementoTabla[] = [];
   public revisionesRechazadas: ElementoTabla[] = [];
+  public revisiones: ElementoTabla[] = [];
   public isOpenPreviewModal: boolean = false;
   public elementoAPrevisualizar: ElementoTabla | null = null;
   public observacionesRechazo: string = '';
 
   // Inyección de servicios
-  private revisionService = inject(RevisionService);
-  private transformacionService = inject(TransformacionService);
-  private confirmModalService = inject(ConfirmModalService);
+  private revisionService: RevisionService = inject(RevisionService);
+  private transformacionService: TransformacionService = inject(
+    TransformacionService
+  );
+  private confirmModalService: ConfirmModalService =
+    inject(ConfirmModalService);
+  private toastService: ToastService = inject(ToastService);
 
   // Tabs
 
   public tabs: Tab[] = [
     { id: 'por-aprobar', label: 'Por Aprobar', active: true },
-      { id: 'rechazadas', label: 'Rechazadas' },
+    { id: 'todas-revisiones', label: 'Todas las revisiones' },
   ];
 
   public activeTab: string = this.tabs[0].id;
@@ -65,8 +71,16 @@ export class DocumentosPorAprobarComponent implements OnInit {
       });
 
     // Cargar las revisiones todas
-    this.revisionService.obtenerRevisionesRechazadas().subscribe((revisiones) => {
-      this.revisionesRechazadas = revisiones.map((revision) =>
+    this.revisionService
+      .obtenerRevisionesRechazadas()
+      .subscribe((revisiones) => {
+        this.revisionesRechazadas = revisiones.map((revision) =>
+          this.transformacionService.transformarATablaRevision(revision)
+        );
+      });
+
+    this.revisionService.obtenerRevisiones().subscribe((revisiones) => {
+      this.revisiones = revisiones.map((revision) =>
         this.transformacionService.transformarATablaRevision(revision)
       );
     });
@@ -106,7 +120,7 @@ export class DocumentosPorAprobarComponent implements OnInit {
             next: () => {
               // Actualizar la lista de revisiones
               this.revisionService
-                .obtenerRevisiones()
+                .obtenerRevisionesPendientes()
                 .subscribe((revisiones) => {
                   this.revisionesPorAprobar = revisiones.map((revision) =>
                     this.transformacionService.transformarATablaRevision(
@@ -114,9 +128,12 @@ export class DocumentosPorAprobarComponent implements OnInit {
                     )
                   );
                 });
+
+              this.toastService.showSuccess('Revisión a sido aprobada');
             },
             error: (error) => {
               console.error('Error al aprobar la revisión:', error);
+              this.toastService.showError('Error al aprobar la revisión');
             },
           });
         }
@@ -147,7 +164,7 @@ export class DocumentosPorAprobarComponent implements OnInit {
             next: () => {
               // Actualizar la lista de revisiones
               this.revisionService
-                .obtenerRevisiones()
+                .obtenerRevisionesPendientes()
                 .subscribe((revisiones) => {
                   this.revisionesPorAprobar = revisiones.map((revision) =>
                     this.transformacionService.transformarATablaRevision(
@@ -155,9 +172,12 @@ export class DocumentosPorAprobarComponent implements OnInit {
                     )
                   );
                 });
+
+              this.toastService.showInfo('Revisión a sido rechazada');
             },
             error: (error) => {
               console.error('Error al rechazar la revisión:', error);
+              this.toastService.showError('Error al rechazar la revisión');
             },
           });
         }

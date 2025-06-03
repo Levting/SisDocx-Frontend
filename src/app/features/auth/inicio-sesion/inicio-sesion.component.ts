@@ -5,6 +5,7 @@ import { NgClass, NgIf } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
 import { InicioSesionRequest } from '../../../core/models/auth/inicio-sesion-request.model';
 import { ApiError } from '../../../core/models/errors/api-error.model';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-inicio-sesion',
@@ -13,12 +14,15 @@ import { ApiError } from '../../../core/models/errors/api-error.model';
   templateUrl: './inicio-sesion.component.html',
 })
 export class InicioSesionComponent {
-  public loginError: string = '';
   public isLoading: boolean = false;
   public showPassword: boolean = false;
   private formBuilder: FormBuilder = inject(FormBuilder);
 
-  constructor(private router: Router, private authService: AuthService) {}
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+    private toastService: ToastService
+  ) {}
 
   loginForm = this.formBuilder.group({
     correo: ['', [Validators.required, Validators.email]],
@@ -39,9 +43,6 @@ export class InicioSesionComponent {
   }
 
   iniciarSesion() {
-    // Limpiamos cualquier error previo
-    this.loginError = '';
-
     if (this.loginForm.valid) {
       this.isLoading = true;
 
@@ -49,22 +50,24 @@ export class InicioSesionComponent {
         .iniciarSesion(this.loginForm.value as InicioSesionRequest)
         .subscribe({
           next: () => {
+            this.toastService.showSuccess('Inicio de sesión exitoso');
             this.router.navigate(['/']);
           },
           error: (error: ApiError) => {
             this.contrasena.setValue('');
-            this.loginError = error.message;
+            this.toastService.showError(error.message);
             this.isLoading = false;
           },
           complete: () => {
             this.isLoading = false;
-            this.router.navigate(['/']);
             this.loginForm.reset();
           },
         });
     } else {
       // Si el formulario no es válido, mostramos mensaje genérico
-      this.loginError = 'Por favor complete todos los campos correctamente';
+      this.toastService.showWarning(
+        'Por favor complete todos los campos correctamente'
+      );
       this.loginForm.markAllAsTouched();
     }
   }

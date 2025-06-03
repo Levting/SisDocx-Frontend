@@ -319,8 +319,6 @@ export class DocumentosTableComponent implements OnInit, OnDestroy {
 
   onDobleClickElemento(elemento: ElementoTabla): void {
     if (elemento.columnas['elemento'] === 'CARPETA') {
-      console.log('Doble clic en carpeta:', elemento.columnas);
-
       // Limpiar selección al cambiar de carpeta
       this.limpiarSeleccion();
 
@@ -341,7 +339,6 @@ export class DocumentosTableComponent implements OnInit, OnDestroy {
             );
           },
           error: (error) => {
-            console.error('Error al obtener detalles de la carpeta:', error);
             this.isError = true;
             this.error = 'No se pudo cargar la carpeta';
           },

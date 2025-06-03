@@ -75,7 +75,7 @@
   <div
     class="flex-1 min-h-0 bg-white rounded-lg shadow-sm border border-gray-200"
   >
-    <app-tabla-estado
+    <!-- <app-tabla-estado
       [elementosTabla]="elementosTabla"
       [isLoading]="isLoading"
       [isError]="isError"
@@ -88,7 +88,19 @@
       (aprobarSeleccionadosEvent)="onAprobarSeleccionados($event)"
       (rechazarSeleccionadosEvent)="onRechazarSeleccionados($event)"
       (enviarSolicitud)="onEnviarSolicitud($event)"
-    ></app-tabla-estado>
+    ></app-tabla-estado> -->
+    <app-table
+    [cabeceras]="cabeceras"
+    [columnas]="columnas"
+    [elementosTabla]="elementosTabla"
+    [mostrarDropdown]="false"
+    [habilitarNavegacion]="true"
+    [isLoading]="isLoading"
+    [isError]="isError"
+    [error]="error"
+    (cambioSeleccion)="onSeleccionCambiada($event)"
+    (dobleClickElemento)="onDobleClickElemento($event)"
+    />
   </div>
 
   <!-- Modals -->

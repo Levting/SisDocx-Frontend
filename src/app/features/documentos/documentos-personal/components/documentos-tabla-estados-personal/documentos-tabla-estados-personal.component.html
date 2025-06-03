@@ -28,10 +28,7 @@
               class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg text-center transition-colors duration-200 flex items-center gap-2"
               (click)="papeleraSeleccionados()"
             >
-              <svg-icon
-                src="assets/icons/object.svg"
-                [svgClass]="'h-5 w-5 text-green-500'"
-              />
+              <i class="bi bi-trash"></i>
               Eliminar
             </button>
 
@@ -39,10 +36,7 @@
               class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg text-center transition-colors duration-200 flex items-center gap-2"
               (click)="descargarSeleccionados()"
             >
-              <svg-icon
-                src="assets/icons/object.svg"
-                [svgClass]="'h-5 w-5 text-red-500'"
-              />
+              <i class="bi bi-download"></i>
               Descargar
             </button>
 
@@ -50,10 +44,7 @@
               class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg text-center transition-colors duration-200 flex items-center gap-2"
               (click)="solicitudSeleccionados()"
             >
-              <svg-icon
-                src="assets/icons/object.svg"
-                [svgClass]="'h-5 w-5 text-red-500'"
-              />
+              <i class="bi bi-send"></i>
               Enviar Revisión
             </button>
           </div>
@@ -97,7 +88,7 @@
       [error]="error"
       (cambioSeleccion)="onSeleccionCambiada($event)"
       (dobleClickElemento)="onDobleClickElemento($event)"
-       [isElementoDisabled]="isElementoDisabled"
+      [isElementoDisabled]="isElementoDisabled.bind(this)"
     />
   </div>
 
@@ -139,7 +130,7 @@
       (onPapelera)="onPapeleraIndividual(elemento)"
       (onDescargar)="onDescargarIndividual(elemento)"
       (onRenombrar)="onElementoRenombrado($event)"
-      (onEnviarRevision)="onEnviarRevision($event)"
+      (onEnviarRevision)="onSolicitudIndividual($event)"
     />
   </ng-template>
 </div>

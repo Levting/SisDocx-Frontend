@@ -40,8 +40,18 @@
               />
             </div>
           </th>
-          <th *ngFor="let cabecera of cabeceras" class="px-6 py-3">
-            {{ cabecera }}
+          <th
+            *ngFor="let cabecera of cabeceras; let i = index"
+            class="px-6 py-3 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+            (click)="ordenarPorColumna(columnas?.[i] || '')"
+          >
+            <div class="flex items-center gap-2">
+              {{ cabecera }}
+              <i
+                class="bi"
+                [ngClass]="obtenerIconoOrdenamiento(columnas?.[i] || '')"
+              ></i>
+            </div>
           </th>
         </tr>
       </thead>
@@ -211,6 +221,35 @@
                   <div class="text-sm text-gray-500">
                     {{ elementoTabla.columnas["tipo"] }}
                   </div>
+
+                  <!-- Estado de revisión (badge) -->
+                  <div
+                    *ngIf="elementoTabla.columnas['estadoRevision']"
+                    class="ml-2 flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full transition-all duration-300"
+                    [ngClass]="{
+                      'bg-green-100 text-green-800 border border-green-300 dark:bg-green-200/30 dark:text-green-400':
+                        elementoTabla.columnas['estadoRevision'] === 'APROBADO',
+                      'bg-red-100 text-red-800 border border-red-300 dark:bg-red-200/30 dark:text-red-400':
+                        elementoTabla.columnas['estadoRevision'] ===
+                        'RECHAZADO',
+                      'bg-yellow-100 text-yellow-800 border border-yellow-300 dark:bg-yellow-200/30 dark:text-yellow-500':
+                        elementoTabla.columnas['estadoRevision'] === 'PENDIENTE'
+                    }"
+                    [title]="elementoTabla.columnas['estadoRevision']"
+                  >
+                    <svg-icon
+                      [src]="
+                        elementoTabla.columnas['estadoRevision'] === 'APROBADO'
+                          ? 'assets/icons/check-circle.svg'
+                          : elementoTabla.columnas['estadoRevision'] ===
+                            'RECHAZADO'
+                          ? 'assets/icons/x-circle.svg'
+                          : 'assets/icons/clock.svg'
+                      "
+                      class="w-3 h-3"
+                    />
+                    {{ elementoTabla.columnas["estadoRevision"] }}
+                  </div>
                 </div>
               </div>
 
@@ -280,9 +319,32 @@
           </td>
 
           <!-- Renderizar columnas dinámicamente -->
-          <td *ngFor="let col of getColumnasFiltradas()" class="px-6 py-4">
-            {{ elementoTabla.columnas[col] }}
+          <td *ngFor="let col of getColumnasFiltradas()" class="px-6 py-4 whitespace-nowrap">
+            <ng-container [ngSwitch]="col">
+
+              <!-- Columna equipoDistribucion con estilos dinámicos -->
+              <ng-container *ngSwitchCase="'equipoDistribucion'">
+                <ng-container *ngIf="elementoTabla.columnas['equipoDistribucion'] as valor">
+                  <div
+                    class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full border transition-colors duration-300"
+                    [ngClass]="getDistribucionColorClasses(valor)"
+                    [title]="valor"
+                  >
+                    {{ valor }}
+                  </div>
+                </ng-container>
+              </ng-container>
+
+              <!-- Otras columnas -->
+              <ng-container *ngSwitchDefault>
+                <div class="truncate max-w-xs" [title]="elementoTabla.columnas[col]">
+                  {{ elementoTabla.columnas[col] }}
+                </div>
+              </ng-container>
+
+            </ng-container>
           </td>
+
         </tr>
       </tbody>
     </table>

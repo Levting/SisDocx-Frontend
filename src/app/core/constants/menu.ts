@@ -27,12 +27,12 @@ export class Menu {
           route: '/documentos-situacion',
         },
         {
-          icon: 'assets/icons/object.svg',
+          icon: 'assets/icons/see.svg',
           label: 'Por Aprobar',
           route: '/documentos-por-aprobar',
         },
         {
-          icon: 'assets/icons/object.svg',
+          icon: 'assets/icons/trash.svg',
           label: 'Papelera',
           route: '/papelera',
         },
@@ -49,7 +49,7 @@ export class Menu {
       separator: false,
       items: [
         {
-          icon: 'assets/icons/object.svg',
+          icon: 'assets/icons/merge.svg',
           label: 'Fusión de Documentos',
           route: '/automatizaciones/fusion-documentos',
         },

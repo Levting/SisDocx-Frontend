@@ -4,117 +4,109 @@
 
 <div class="overflow-hidden rounded-lg border border-muted">
   @if (revisiones.length === 0) {
-  <p>No hay situacion de revision</p>
-
-  } @else { @for (revision of revisiones; track $index) {
-
-  <div
-    class="custom-scrollbar overflow-y-auto scroll-smooth max-h-[calc(100dvh-356px)] md:max-h-[calc(100dvh-311px)] lg:max-h-[calc(100dvh-240px)] xl:max-h-[calc(100dvh-230px)] 2xl:max-h-[calc(100dvh-240px)] 3xl:max-h-[calc(100dvh-270px)]"
-  >
-    <div
-      class="grid grid-cols-[24px_1fr] items-start gap-3 border-muted p-5 border-t-2 border-t-primary dark:bg-gray-100/70"
-    >
-      <!-- Contenedor del icono -->
-      <div class="flex items-center justify-center w-6 h-6">
-        <ng-container
-          *ngIf="revision.columnas['elemento'] === 'CARPETA'; else archivoIcono"
-        >
-          <svg-icon
-            src="assets/icons/folder.svg"
-            class="w-5 h-5"
-            [svgClass]="'fill-current text-white'"
-          />
-        </ng-container>
-
-        <ng-template #archivoIcono>
-          <ng-container *ngIf="revision.columnas['elemento'] === 'ARCHIVO'">
-            <ng-container
-              [ngSwitch]="revision.columnas['extension']?.toLowerCase()"
-            >
-              <ng-container *ngSwitchCase="'pdf'">
-                <svg-icon src="assets/icons/filePdf.svg" class="w-5 h-5" />
-              </ng-container>
-              <ng-container *ngSwitchCase="'docx'">
-                <svg-icon src="assets/icons/fileDocx.svg" class="w-5 h-5" />
-              </ng-container>
-              <ng-container *ngSwitchCase="'doc'">
-                <svg-icon src="assets/icons/fileDocx.svg" class="w-5 h-5" />
-              </ng-container>
-              <ng-container *ngSwitchCase="'xls'">
-                <svg-icon src="assets/icons/fileExcel.svg" class="w-5 h-5" />
-              </ng-container>
-              <ng-container *ngSwitchCase="'xlsx'">
-                <svg-icon src="assets/icons/fileExcel.svg" class="w-5 h-5" />
-              </ng-container>
-              <ng-container *ngSwitchCase="'jpg'">
-                <svg-icon src="assets/icons/fileImage.svg" class="w-5 h-5" />
-              </ng-container>
-              <ng-container *ngSwitchCase="'jpeg'">
-                <svg-icon src="assets/icons/fileImage.svg" class="w-5 h-5" />
-              </ng-container>
-              <ng-container *ngSwitchCase="'png'">
-                <svg-icon src="assets/icons/fileImage.svg" class="w-5 h-5" />
-              </ng-container>
-              <ng-container *ngSwitchDefault>
-                <svg-icon src="assets/icons/fileNone.svg" class="w-5 h-5" />
-              </ng-container>
-            </ng-container>
-          </ng-container>
-        </ng-template>
-      </div>
-
-      <div>
+    <p class="p-4 text-sm text-gray-500">No hay situación de revisión</p>
+  } @else {
+    @for (revision of revisiones; track $index) {
+      <div
+        class="custom-scrollbar overflow-y-auto scroll-smooth max-h-[calc(100dvh-356px)] md:max-h-[calc(100dvh-311px)] lg:max-h-[calc(100dvh-240px)] xl:max-h-[calc(100dvh-230px)] 2xl:max-h-[calc(100dvh-240px)] 3xl:max-h-[calc(100dvh-270px)]"
+      >
         <div
-          class="flex items-center justify-between lg:flex-col lg:items-start 2xl:flex-row 2xl:items-center"
+          class="grid grid-cols-[24px_1fr] gap-3 border-t-2 border-t-primary border-muted p-5 rounded-lg bg-white dark:bg-gray-100/70 shadow-sm hover:shadow-md transition"
         >
-          <div class="flex justify-between w-full">
-            <!-- Bloque Emision -->
-            <div>
-              <div class="flex items-center gap-2">
-                <h4 class="text-xl font-bold flex items-center">
-                  <span class="text-sm font-semibold dark:text-gray-700">{{
-                    revision.columnas["nombre"]
-                  }}</span>
-                </h4>
+          <!-- Icono -->
+          <div class="flex items-center justify-center w-6 h-6">
+            <ng-container *ngIf="revision.columnas['elemento'] === 'CARPETA'; else archivoIcono">
+              <svg-icon src="assets/icons/folder.svg" class="w-5 h-5 text-gray-700" />
+            </ng-container>
+            <ng-template #archivoIcono>
+              <ng-container *ngIf="revision.columnas['elemento'] === 'ARCHIVO'">
+                <ng-container [ngSwitch]="revision.columnas['extension']?.toLowerCase()">
+                  <ng-container *ngSwitchCase="'pdf'">
+                    <svg-icon src="assets/icons/filePdf.svg" class="w-5 h-5" />
+                  </ng-container>
+                  <ng-container *ngSwitchCase="'docx'">
+                    <svg-icon src="assets/icons/fileDocx.svg" class="w-5 h-5" />
+                  </ng-container>
+                  <ng-container *ngSwitchCase="'doc'">
+                    <svg-icon src="assets/icons/fileDocx.svg" class="w-5 h-5" />
+                  </ng-container>
+                  <ng-container *ngSwitchCase="'xls'">
+                    <svg-icon src="assets/icons/fileExcel.svg" class="w-5 h-5" />
+                  </ng-container>
+                  <ng-container *ngSwitchCase="'xlsx'">
+                    <svg-icon src="assets/icons/fileExcel.svg" class="w-5 h-5" />
+                  </ng-container>
+                  <ng-container *ngSwitchCase="'jpg'">
+                    <svg-icon src="assets/icons/fileImage.svg" class="w-5 h-5" />
+                  </ng-container>
+                  <ng-container *ngSwitchCase="'jpeg'">
+                    <svg-icon src="assets/icons/fileImage.svg" class="w-5 h-5" />
+                  </ng-container>
+                  <ng-container *ngSwitchCase="'png'">
+                    <svg-icon src="assets/icons/fileImage.svg" class="w-5 h-5" />
+                  </ng-container>
+                  <ng-container *ngSwitchDefault>
+                    <svg-icon src="assets/icons/fileNone.svg" class="w-5 h-5" />
+                  </ng-container>
+                </ng-container>
+              </ng-container>
+            </ng-template>
+          </div>
 
-                <span
-                  class="inline-flex items-center justify-center font-semibold base color px-1.5 py-1 text-[10px] leading-[1.1] border rounded-full"
-                  [ngClass]="
-                    revision.columnas['estadoRevision'] === 'RECHAZADO'
-                      ? 'border-red-600 text-red-600'
-                      : revision.columnas['estadoRevision'] === 'APROBADO'
-                      ? 'border-green-600 text-green-600'
-                      : 'border-yellow-600 text-yellow-600'
-                  "
-                  >{{ revision.columnas["estadoRevision"] }}</span
-                >
-              </div>
+          <!-- Detalles de revisión -->
+          <div>
+            <div class="flex items-center justify-between lg:flex-col lg:items-start 2xl:flex-row 2xl:items-center">
+              <div class="flex justify-between w-full">
+                <!-- Información principal -->
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h4 class="text-base font-semibold dark:text-gray-700">
+                      {{ revision.columnas["nombre"] }}
+                    </h4>
 
-              <div class="flex items-center gap-2">
-                <span class="text-xs text-gray-500">{{
-                  revision.columnas["fechaEnvio"]
-                }}</span>
+                    <!-- Estado con badge -->
+                    <span
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold transition-all duration-300"
+                      [ngClass]="{
+                        'bg-red-100 text-red-700 border border-red-300 dark:bg-red-200/30 dark:text-red-500': revision.columnas['estadoRevision'] === 'RECHAZADO',
+                        'bg-green-100 text-green-700 border border-green-300 dark:bg-green-200/30 dark:text-green-500': revision.columnas['estadoRevision'] === 'APROBADO',
+                        'bg-yellow-100 text-yellow-700 border border-yellow-300 dark:bg-yellow-200/30 dark:text-yellow-600': revision.columnas['estadoRevision'] === 'PENDIENTE'
+                      }"
+                      title="Estado de revisión"
+                    >
+                      <ng-container [ngSwitch]="revision.columnas['estadoRevision']">
+                        <svg-icon *ngSwitchCase="'RECHAZADO'" src="assets/icons/x-circle.svg" class="w-3 h-3" />
+                        <svg-icon *ngSwitchCase="'APROBADO'" src="assets/icons/check-circle.svg" class="w-3 h-3" />
+                        <svg-icon *ngSwitchCase="'PENDIENTE'" src="assets/icons/clock.svg" class="w-3 h-3" />
+                      </ng-container>
+                      {{ revision.columnas["estadoRevision"] }}
+                    </span>
+                  </div>
+
+                  <!-- Fecha de envío -->
+                  <div class="flex items-center gap-1 text-xs text-gray-500">
+                    <svg-icon src="assets/icons/calendar.svg" class="w-3 h-3" />
+                    <span>{{ revision.columnas["fechaEnvio"] }}</span>
+                  </div>
+                </div>
+
+                <!-- Información del revisor -->
+                <ng-container *ngIf="revision.columnas['revisor']">
+                  <div class="flex flex-col items-end gap-1">
+                    <span class="text-xs text-gray-500">{{ revision.columnas["revisor"] }}</span>
+                    <span class="text-xs text-gray-500">{{ revision.columnas["fechaRevision"] }}</span>
+                  </div>
+                </ng-container>
               </div>
             </div>
 
-            <!-- Bloque de Revisor -->
-            <ng-container *ngIf="revision.columnas['revisor']">
-              <div class="flex flex-col items-end gap-1">
-                <span class="text-xs text-gray-500"
-                  >{{ revision.columnas["revisor"] }}
-                </span>
-                <span class="text-xs text-gray-500"
-                  >{{ revision.columnas["fechaRevision"] }}
-                </span>
-              </div>
-            </ng-container>
+            <!-- Observaciones -->
+            <p class="mt-2 line-clamp-3 text-sm text-gray-500">
+              {{ revision.columnas["observaciones"] }}
+            </p>
           </div>
         </div>
-        <p class="mt-2 line-clamp-3 text-sm text-gray-500">
-          {{ revision.columnas["observaciones"] }}
-        </p>
       </div>
-    </div>
-  </div>
-  } }
+    }
+  }
 </div>

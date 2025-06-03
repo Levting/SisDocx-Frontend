@@ -1,1 +1,48 @@
-<p>campana-medicion works!</p>
+<div class="flex flex-col h-full">
+  <div
+    class="my-3 flex flex-col lg:flex-row justify-between items-start lg:items-center"
+  >
+    <header>
+      <h2
+        class="text-gray-800 font-bold text-[22px] lg:text-2xl 4xl:text-[26px]"
+      >
+        Campañas de Medición
+      </h2>
+    </header>
+
+    <button
+      type="button"
+      #botonCrearCampanaMedicion
+      (click)="abrirModalSubirCampanaMedicion()"
+      class="mt-4 lg:mt-0 inline-flex items-center px-4 py-2 h-10 text-sm font-medium text-white bg-blue-600 rounded-md border hover:bg-blue-700 active:translate-y-px transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
+    >
+      <svg-icon
+        src="assets/icons/plus.svg"
+        class="w-4 h-4"
+        aria-hidden="true"
+      ></svg-icon>
+      <span class="ml-2">Nueva Campaña</span>
+    </button>
+  </div>
+
+  <div class="flex-1 overflow-y-auto">
+    <app-table
+      [cabeceras]="cabeceras"
+      [columnas]="columnas"
+      [elementosTabla]="campanasTabla"
+      [mostrarDropdown]="false"
+      [habilitarNavegacion]="false"
+      [isLoading]="isLoading"
+      [isError]="isError"
+      [error]="error"
+      (cambioSeleccion)="onCambioSeleccion($event)"
+      (dobleClickElemento)="onDobleClickElemento($event)"
+    ></app-table>
+  </div>
+</div>
+
+<app-subir-campana-medicion-modal
+  [isOpen]="isOpenSubirCampanaMedicionModal"
+  (close)="cerrarModalSubirCampanaMedicion()"
+  (campanaCreada)="onCampanaCreada()"
+/>

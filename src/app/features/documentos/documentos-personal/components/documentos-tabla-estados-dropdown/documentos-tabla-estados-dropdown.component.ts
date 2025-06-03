@@ -21,12 +21,12 @@ export class DocumentosTablaEstadosDropdownComponent {
   public items = [
     {
       texto: 'Mover a Papelera',
-      icono: 'assets/icons/object.svg',
+      icono: 'assets/icons/trash.svg',
       accion: () => this.onPapelera.emit(this.elemento),
     },
     {
       texto: 'Descargar',
-      icono: 'assets/icons/object.svg',
+      icono: 'assets/icons/download.svg',
       accion: () => this.onDescargar.emit(this.elemento),
     },
     {
@@ -36,7 +36,7 @@ export class DocumentosTablaEstadosDropdownComponent {
     },
     {
       texto: 'Revisar',
-      icono: 'assets/icons/object.svg',
+      icono: 'assets/icons/send.svg',
       accion: () => this.onEnviarRevision.emit(this.elemento),
     },
   ];

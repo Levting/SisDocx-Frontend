@@ -52,15 +52,12 @@ export class AuthService {
     private userService: UserService,
     private logger: LoggerService
   ) {
-    // Inicializar el estado de autenticación inmediatamente
     this.initializeAuthState();
 
-    // Suscribirse a los cambios del usuario solo para debug
     if (!environment.production) {
       this.userService.usuarioAutenticado$.subscribe((usuario) => {
         if (usuario) {
           this.logger.debug('Estado de autenticación:', usuario);
-          // Actualizar rol y provincia cuando el usuario cambia
           this.userRoleSubject.next(usuario.rol.nombre);
           this.userProvinciaSubject.next(usuario.provincia.nombre);
         }
@@ -152,7 +149,6 @@ export class AuthService {
         tap((response: InicioSesionResponse) => {
           this.tokenService.setToken(response.token);
           this.userLoginOnSubject.next(true);
-          // Cargar el usuario después de iniciar sesión
           this.cargarUsuarioAutenticado().subscribe();
         }),
         catchError(this.handleError)
@@ -191,9 +187,7 @@ export class AuthService {
       catchError((error) => {
         this.userService.limpiarUsuarioActual();
 
-        // Si es un error de conexión (status 0) o un error de servidor
         if (error.status === 0 || error.status === 500) {
-          // Redirigir al usuario a la página de inicio de sesión
           this.router.navigate(['/auth/iniciar-sesion']);
         }
 

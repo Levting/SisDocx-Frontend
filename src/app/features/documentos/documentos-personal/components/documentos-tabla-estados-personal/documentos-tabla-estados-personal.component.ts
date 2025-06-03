@@ -31,21 +31,18 @@ import {
   RenombrarElementoRequest,
 } from '../../../../../core/models/request/elemento-request.model';
 import { DescargarElementoRequest } from '../../../../../core/models/documentos/descargar-elemento-request.model';
-import { TableComponent } from '../../../../../shared/components/table/table.component';
 import { RevisionService } from '../../../../../core/services/revision.service';
 import { TablaEstadoComponent } from '../../../../../shared/components/tabla-estado/tabla-estado.component';
 import { DocumentosModalRenombrarComponent } from '../../../documentos-admin/components/documentos-modal-renombrar/documentos-modal-renombrar.component';
-import { DocumentosDropdownComponent } from '../../../documentos-admin/components/documentos-dropdown/documentos-dropdown.component';
 import { DocumentosTablaEstadosDropdownComponent } from '../documentos-tabla-estados-dropdown/documentos-tabla-estados-dropdown.component';
 import { SolicitarRevisionRequest } from '../../../../../core/models/revision/revision-request.model';
-import { ToastService } from '../../../../../shared/services/toast.service';
+import { ToastService } from '../../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-documentos-tabla-estados-personal',
   standalone: true,
   imports: [
     NgIf,
-    SvgIconComponent,
     NgClass,
     BreadcrumbComponent,
     DocumentosPreviewModalComponent,
@@ -67,51 +64,56 @@ export class DocumentosTablaEstadosPersonalComponent {
       key: 'nombre',
       label: 'Nombre',
       type: 'text',
-      width: '300px',
+      width: '200px',
+      sortable: true,
     },
     {
       key: 'creadoPor',
       label: 'Creado por',
       type: 'text',
       width: '150px',
+      sortable: true,
     },
-    {
+    /* {
       key: 'modificadoPor',
       label: 'Modificado por',
       type: 'text',
       width: '150px',
-    },
+    }, */
     /* {
       key: 'creadoEl',
       label: 'Creado el',
       type: 'text',
       width: '120px',
     }, */
-    {
+    /*  {
       key: 'modificadoEl',
       label: 'Última modificación',
       type: 'text',
       width: '120px',
-    },
+    }, */
     {
       key: 'equipoDistribucion',
       label: 'Equipo de distribución',
       type: 'badge',
       badgeColor: 'bg-purple-100',
       badgeTextColor: 'text-purple-800',
-      width: '180px',
+      width: '150px',
+      sortable: true,
     },
     {
       key: 'tamano',
       label: 'Tamaño',
       type: 'text',
-      width: '100px',
+      width: '150px',
+      sortable: true,
     },
     {
       key: 'estadoVisibilidadAdmin',
       label: 'Visible para Admin',
       type: 'status-dot',
-      width: '120px',
+      width: '150px',
+      sortable: false,
     },
   ];
 
@@ -153,6 +155,7 @@ export class DocumentosTablaEstadosPersonalComponent {
   private userRole: string | null = null;
   private userProvincia: string | null = null;
 
+  // Propiedades para el modal de confirmación
   private destroy$ = new Subject<void>();
 
   constructor() {
@@ -445,34 +448,16 @@ export class DocumentosTablaEstadosPersonalComponent {
           )
         ).subscribe({
           next: () => {
+            this.actualizarContenidoActual();
+            this.toastService.showSuccess(
+              `Elementos ${this.elementosSeleccionados.length} movidos a papelera correctamente`
+            );
             this.limpiarSeleccion();
-            // Obtener la carpeta actual
-            const carpetaActual =
-              this.carpetaActualService.obtenerCarpetaActual();
-            if (carpetaActual) {
-              // Recargar el contenido de la carpeta actual
-              this.cargarContenido(carpetaActual.elementoId);
-            } else {
-              // Si no hay carpeta actual, obtener la raíz
-              this.elementoService.obtenerRaiz().subscribe({
-                next: ({ carpetaRaiz }) => {
-                  this.carpetaActualService.actualizarCarpetaActual(
-                    carpetaRaiz as Carpeta
-                  );
-                  this.cargarContenido(carpetaRaiz.elementoId);
-                },
-                error: (error: ApiError) => {
-                  this.isError = true;
-                  this.error = 'Error al cargar la carpeta raíz';
-                  console.error('Error al cargar carpeta raíz:', error);
-                },
-              });
-            }
           },
           error: (error) => {
             this.isError = true;
             this.error = 'No se pudieron mover los elementos a la papelera';
-            console.error('Error al mover elementos a papelera:', error);
+            this.toastService.showError(error.message);
           },
         });
       }
@@ -554,65 +539,55 @@ export class DocumentosTablaEstadosPersonalComponent {
     }
   }
 
-  onEnviarRevision(elemento: ElementoTabla): void {
-    if (this.elementosSeleccionados.length === 0) return;
-
+  onSolicitudIndividual(elemento: ElementoTabla): void {
     const config = {
-      title: 'Enviar revisión',
-      message: `¿Estás seguro de que deseas enviar la revisión de ${this.elementosSeleccionados.length} elemento(s)?`,
-      confirmText: 'Enviar revisión',
+      title: 'Solicitar revisión',
+      message: `¿Estás seguro de que deseas solicitar la revisión de "${elemento.columnas['nombre']}"?`,
+      confirmText: 'Solicitar revisión',
       cancelText: 'Cancelar',
     };
 
     this.confirmModalService.open(config).subscribe((result) => {
       if (result.confirmed) {
-        const requests = this.elementosSeleccionados.map((elemento) => ({
+        const request: SolicitarRevisionRequest = {
           elementoId: elemento.columnas['elementoId'],
           elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
-        }));
+        };
 
-        forkJoin(
-          requests.map((request) =>
-            this.revisionService.solicitarRevision(request).pipe(
-              catchError((error: ApiError) => {
-                console.log('Error al enviar revisión:', error.message);
-                console.error('Error al enviar revisión:', error);
-
-                this.isError = true;
-                this.error = error.message;
-
-                this.toastService.show({
-                  message: 'No se pudo enviar la revisión',
-                  type: 'error',
-                });
-
-                return of(null);
-              })
-            )
-          )
-        ).subscribe({
+        this.revisionService.solicitarRevision(request).subscribe({
           next: () => {
-            this.limpiarSeleccion();
-            this.actualizarContenidoActual();
+            // Actualizar el estado del elemento inmediatamente
+            const index = this.elementosTabla.findIndex(
+              (e) =>
+                e.columnas['elementoId'] === elemento.columnas['elementoId']
+            );
+
+            if (index !== -1) {
+              // Actualizar el estado del elemento
+              this.elementosTabla[index] = {
+                ...this.elementosTabla[index],
+                columnas: {
+                  ...this.elementosTabla[index].columnas,
+                  estadoRevision: 'PENDIENTE',
+                  estadoVisibilidadAdmin: 'PENDIENTE',
+                },
+              };
+              // Forzar la detección de cambios
+              this.elementosTabla = [...this.elementosTabla];
+              // Limpiar la selección
+              this.limpiarSeleccion();
+            }
+
+            this.toastService.showSuccess('Revisión solicitada correctamente');
           },
-          error: (error) => {
+          error: (error: ApiError) => {
             this.isError = true;
-            this.error = 'No se pudo enviar la revisión';
-            console.error('Error al enviar revisión:', error);
+            this.error = error.message || 'No se pudo solicitar la revisión';
+            this.toastService.showError('Error al solicitar revisión');
           },
         });
       }
     });
-  }
-
-  moverSeleccionados(): void {
-    // TODO: Implementar lógica de mover elementos
-    console.log('Mover elementos seleccionados:', this.elementosSeleccionados);
-  }
-
-  copiarSeleccionados(): void {
-    // TODO: Implementar lógica de copiar elementos
-    console.log('Copiar elementos seleccionados:', this.elementosSeleccionados);
   }
 
   solicitudSeleccionados(): void {
@@ -620,7 +595,7 @@ export class DocumentosTablaEstadosPersonalComponent {
 
     const config = {
       title: 'Solicitar revisión',
-      message: `¿Estás seguro de que deseas solicitar la revisión de "${this.elementosSeleccionados[0].columnas['nombre']}"?`,
+      message: `¿Estás seguro de que deseas solicitar la revisión de ${this.elementosSeleccionados.length} elemento(s)?`,
       confirmText: 'Solicitar revisión',
       cancelText: 'Cancelar',
     };
@@ -644,12 +619,36 @@ export class DocumentosTablaEstadosPersonalComponent {
           )
         ).subscribe({
           next: () => {
+            // Actualizar el estado de los elementos seleccionados inmediatamente
+            this.elementosSeleccionados.forEach((elemento) => {
+              const index = this.elementosTabla.findIndex(
+                (e) =>
+                  e.columnas['elementoId'] === elemento.columnas['elementoId']
+              );
+
+              if (index !== -1) {
+                // Actualizar el estado del elemento
+                this.elementosTabla[index] = {
+                  ...this.elementosTabla[index],
+                  columnas: {
+                    ...this.elementosTabla[index].columnas,
+                    estadoRevision: 'PENDIENTE',
+                    estadoVisibilidadAdmin: 'PENDIENTE',
+                  },
+                };
+              }
+            });
+
+            // Forzar la detección de cambios
+            this.elementosTabla = [...this.elementosTabla];
+            // Limpiar la selección
             this.limpiarSeleccion();
-            this.actualizarContenidoActual();
+            this.toastService.showSuccess('Revisión solicitada correctamente');
           },
           error: (error: ApiError) => {
             this.isError = true;
             this.error = 'No se pudo solicitar la revisión';
+            this.toastService.showError('Error al solicitar revisión');
             console.error('Error al solicitar revisión:', error);
           },
         });
@@ -677,28 +676,10 @@ export class DocumentosTablaEstadosPersonalComponent {
 
         this.elementoService.moverElementoPapelera(request).subscribe({
           next: () => {
-            // Obtener la carpeta actual
-            const carpetaActual =
-              this.carpetaActualService.obtenerCarpetaActual();
-            if (carpetaActual) {
-              // Recargar el contenido de la carpeta actual
-              this.cargarContenido(carpetaActual.elementoId);
-            } else {
-              // Si no hay carpeta actual, obtener la raíz
-              this.elementoService.obtenerRaiz().subscribe({
-                next: ({ carpetaRaiz }) => {
-                  this.carpetaActualService.actualizarCarpetaActual(
-                    carpetaRaiz as Carpeta
-                  );
-                  this.cargarContenido(carpetaRaiz.elementoId);
-                },
-                error: (error: ApiError) => {
-                  this.isError = true;
-                  this.error = 'Error al cargar la carpeta raíz';
-                  console.error('Error al cargar carpeta raíz:', error);
-                },
-              });
-            }
+            this.actualizarContenidoActual();
+            this.toastService.showSuccess(
+              'Elemento movido a papelera correctamente'
+            );
           },
           error: (error: ApiError) => {
             this.isError = true;
@@ -750,35 +731,6 @@ export class DocumentosTablaEstadosPersonalComponent {
         this.error = error.message;
         console.error('Error al cambiar nombre:', error);
       },
-    });
-  }
-
-  onSolicitudIndividual(elemento: ElementoTabla): void {
-    const config = {
-      title: 'Solicitar revisión',
-      message: `¿Estás seguro de que deseas solicitar la revisión de "${elemento.columnas['nombre']}"?`,
-      confirmText: 'Solicitar revisión',
-      cancelText: 'Cancelar',
-    };
-
-    this.confirmModalService.open(config).subscribe((result) => {
-      if (result.confirmed) {
-        const request: SolicitarRevisionRequest = {
-          elementoId: elemento.columnas['elementoId'],
-          elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
-        };
-
-        this.revisionService.solicitarRevision(request).subscribe({
-          next: () => {
-            this.actualizarContenidoActual();
-          },
-          error: (error: ApiError) => {
-            this.isError = true;
-            this.error = error.message || 'No se pudo solicitar la revisión';
-            console.error('Error al solicitar revisión:', error);
-          },
-        });
-      }
     });
   }
 
@@ -877,7 +829,15 @@ export class DocumentosTablaEstadosPersonalComponent {
     const estadoVisibilidad = elemento.columnas['estadoVisibilidadAdmin']
       ?.toString()
       .toUpperCase();
-    return estadoVisibilidad === 'PENDIENTE';
+    const estadoRevision = elemento.columnas['estadoRevision']
+      ?.toString()
+      .toUpperCase();
+
+    return (
+      estadoVisibilidad === 'PENDIENTE' ||
+      estadoVisibilidad === 'VISIBLE' ||
+      estadoRevision === 'PENDIENTE'
+    );
   }
 
   // Método para verificar si hay elementos seleccionados deshabilitados

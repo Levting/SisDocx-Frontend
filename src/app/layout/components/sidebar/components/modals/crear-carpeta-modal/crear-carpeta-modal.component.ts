@@ -16,8 +16,8 @@ import { Carpeta } from '../../../../../../core/models/documentos/carpeta.model'
 import { ElementoService } from '../../../../../../core/services/elemento.service';
 import { CrearCarpetaRequest } from '../../../../../../core/models/documentos/crear-carpeta-request.model';
 import { ApiError } from '../../../../../../core/models/errors/api-error.model';
-import { ToastService } from '../../../../../../shared/services/toast.service';
 import { Elemento } from '../../../../../../core/models/documentos/elemento.model';
+import { ToastService } from '../../../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-crear-carpeta-modal',
@@ -50,6 +50,12 @@ export class CrearCarpetaModalComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.setupSubscriptions();
     this.obtenerCarpetaRaiz();
+    if (this.carpetaActual && this.isCarpetaDisabled(this.carpetaActual)) {
+      this.toastService.showWarning(
+        'No se pueden crear carpetas en una carpeta pendiente o visible'
+      );
+      this.onClose();
+    }
   }
 
   private setupSubscriptions(): void {
@@ -114,7 +120,23 @@ export class CrearCarpetaModalComponent implements OnInit, OnDestroy {
     return null;
   }
 
+  private isCarpetaDisabled(carpeta: Carpeta): boolean {
+    const estadoVisibilidad = carpeta.estadoVisibilidadAdmin
+      ?.toString()
+      .toUpperCase();
+    if (!estadoVisibilidad) return false;
+    return estadoVisibilidad === 'PENDIENTE' || estadoVisibilidad === 'VISIBLE';
+  }
+
   onSubmit(): void {
+    if (this.carpetaActual && this.isCarpetaDisabled(this.carpetaActual)) {
+      this.toastService.showWarning(
+        'No se pueden crear carpetas en una carpeta pendiente o visible'
+      );
+      this.onClose();
+      return;
+    }
+
     const errorValidacion = this.validarNombreCarpeta(this.nombreCarpeta);
     if (errorValidacion) {
       this.errorMessage = errorValidacion;
@@ -151,12 +173,9 @@ export class CrearCarpetaModalComponent implements OnInit, OnDestroy {
         )
         .subscribe({
           next: (carpetaCreada: Carpeta) => {
-            this.toastService.show({
-              type: 'success',
-              message:
-                'Carpeta ' + carpetaCreada.nombre + ' creada exitosamente',
-              duration: 3000,
-            });
+            this.toastService.showSuccess(
+              'Carpeta ' + carpetaCreada.nombre + ' creada exitosamente'
+            );
 
             // Actualizar el contenido de la carpeta actual
             this.carpetaActualService.actualizarCarpetaActual(carpetaCreada);
@@ -192,11 +211,9 @@ export class CrearCarpetaModalComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (carpetaCreada: Carpeta) => {
-          this.toastService.show({
-            type: 'success',
-            message: 'Carpeta creada exitosamente',
-            duration: 3000,
-          });
+          this.toastService.showSuccess(
+            'Carpeta ' + carpetaCreada.nombre + ' creada exitosamente'
+          );
 
           // Notificar la recarga usando la carpeta actual
           this.carpetaActualService.notificarRecargarContenido(
@@ -206,14 +223,10 @@ export class CrearCarpetaModalComponent implements OnInit, OnDestroy {
           this.onClose();
         },
         error: (error: ApiError) => {
-          this.toastService.show({
-            type: 'error',
-            message: error.message,
-            duration: 3000,
-          });
+          this.toastService.showError(error.message);
 
           console.error('Error al crear la carpeta:', error);
-          this.errorMessage = error.message
+          this.errorMessage = error.message;
         },
       });
   }

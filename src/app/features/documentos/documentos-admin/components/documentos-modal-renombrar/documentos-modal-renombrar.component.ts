@@ -134,20 +134,10 @@ export class DocumentosModalRenombrarComponent implements OnInit, OnDestroy {
           this.onClose();
         },
         error: (error: ApiError) => {
-          console.error('Error al renombrar el elemento:', error);
-          this.errorMessage = this.obtenerMensajeError(error);
+          console.error('Error al renombrar el elemento:', error.message);
+          this.errorMessage = error.message;
         },
       });
-  }
-
-  private obtenerMensajeError(error: any): string {
-    if (error.status === 409) {
-      return 'Ya existe un elemento con ese nombre en esta ubicación';
-    }
-    if (error.status === 403) {
-      return 'No tienes permisos para renombrar este elemento';
-    }
-    return 'Ocurrió un error al renombrar el elemento. Por favor, inténtelo de nuevo.';
   }
 
   @HostListener('click', ['$event'])

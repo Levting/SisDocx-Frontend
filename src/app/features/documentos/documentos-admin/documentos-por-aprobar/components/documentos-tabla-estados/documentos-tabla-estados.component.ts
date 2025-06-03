@@ -31,6 +31,7 @@ import { DescargarElementoRequest } from '../../../../../../core/models/document
 import { RevisionService } from '../../../../../../core/services/revision.service';
 import { RevisionDesicion } from '../../../../../../core/models/revision/revision-desicion.model';
 import { Revision } from '../../../../../../core/models/revision/elemento-revision.model';
+import { TableComponent } from "../../../../../../shared/components/table/table.component";
 
 interface ColumnaConfig {
   key: string;
@@ -51,14 +52,31 @@ interface ColumnaConfig {
     NgClass,
     BreadcrumbComponent,
     DocumentosPreviewModalComponent,
-  ],
+    TableComponent
+],
   templateUrl: './documentos-tabla-estados.component.html',
 })
 export class DocumentosTablaEstadosComponent implements OnInit {
   public elementosTabla: ElementoTabla[] = [];
   public elementosOriginales: Elemento[] = [];
 
-  public columnasConfig: ColumnaConfig[] = [
+  public cabeceras: string[] = [
+    'Remitente',
+    'Provincia',
+    'Fecha de envio',
+    'Equipo de distribución',
+    'Tamaño',
+  ];
+
+  public columnas: string[] = [
+    'remitente',
+    'provincia',
+    'fechaEnvio',
+    'equipoDistribucion',
+    'tamano',
+  ];
+
+  /* public columnasConfig: ColumnaConfig[] = [
     {
       key: 'remitente',
       label: 'Remitente',
@@ -98,9 +116,9 @@ export class DocumentosTablaEstadosComponent implements OnInit {
       label: 'Acciones',
       type: 'actions',
     },
-  ];
+  ]; */
 
-  public columnas: string[] = this.columnasConfig.map((col) => col.key);
+  // public columnas: string[] = this.columnasConfig.map((col) => col.key);
 
   // Inyección de servicios
   private carpetaActualService: CarpetaActualService =
@@ -410,7 +428,8 @@ export class DocumentosTablaEstadosComponent implements OnInit {
       cancelText: 'Cancelar',
     };
 
-    this.confirmModalService.open(config, () => {
+    this.confirmModalService.open(config).subscribe((result) => {
+      if (result.confirmed) {
       const requests = this.elementosSeleccionados.map((elemento) => ({
         elementoId: elemento.columnas['elementoId'],
         elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
@@ -439,8 +458,9 @@ export class DocumentosTablaEstadosComponent implements OnInit {
           this.isError = true;
           this.error = 'No se pudieron mover los elementos a la papelera';
           console.error('Error al mover elementos a papelera:', error);
-        },
-      });
+          },
+        });
+      }
     });
   }
 
@@ -475,7 +495,8 @@ export class DocumentosTablaEstadosComponent implements OnInit {
       cancelText: 'Cancelar',
     };
 
-    this.confirmModalService.open(config, () => {
+    this.confirmModalService.open(config).subscribe((result) => {
+      if (result.confirmed) {
       const request = {
         elementoId: elemento.columnas['elementoId'],
         elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
@@ -496,8 +517,9 @@ export class DocumentosTablaEstadosComponent implements OnInit {
           this.error =
             error.message || 'No se pudo mover el elemento a la papelera';
           console.error('Error al mover a papelera:', error);
-        },
-      });
+          },
+        });
+      }
     });
   }
 
@@ -550,10 +572,11 @@ export class DocumentosTablaEstadosComponent implements OnInit {
       type: 'warning' as const,
     };
 
-    this.confirmModalService.open(config, () => {
+    this.confirmModalService.open(config).subscribe((result) => {
+      if (result.confirmed) {
       const request: RevisionDesicion = {
         revisionId: elemento.columnas['id'],
-        decision: 'APROBADO',
+        estadoRevision: 'APROBADO',
         observaciones: elemento.columnas['observaciones'],
       };
 
@@ -568,7 +591,8 @@ export class DocumentosTablaEstadosComponent implements OnInit {
           this.logger.error('Error al aprobar revisión:', error);
         },
       });
-    });
+    }
+  });
   }
 
   onRechazar(elemento: ElementoTabla): void {
@@ -579,10 +603,11 @@ export class DocumentosTablaEstadosComponent implements OnInit {
       cancelText: 'Cancelar',
     };
 
-    this.confirmModalService.open(config, () => {
+    this.confirmModalService.open(config).subscribe((result) => {
+      if (result.confirmed) {
       const request: RevisionDesicion = {
         revisionId: elemento.columnas['id'],
-        decision: 'RECHAZADO',
+        estadoRevision: 'RECHAZADO',
         observaciones: elemento.columnas['observaciones'],
       };
 
@@ -596,7 +621,8 @@ export class DocumentosTablaEstadosComponent implements OnInit {
           this.logger.error('Error al rechazar revisión:', error);
         },
       });
-    });
+    }
+  });
   }
 
   onAprobarSeleccionados(elementos: ElementoTabla[]): void {
@@ -608,7 +634,8 @@ export class DocumentosTablaEstadosComponent implements OnInit {
       type: 'warning' as const,
     };
 
-    this.confirmModalService.open(config, () => {
+    this.confirmModalService.open(config).subscribe((result) => {
+      if (result.confirmed) {
       // Aquí iría la llamada al servicio para aprobar los documentos
       console.log('Aprobando documentos:', elementos);
       // Actualizar el estado de los documentos
@@ -617,7 +644,8 @@ export class DocumentosTablaEstadosComponent implements OnInit {
       });
       // Recargar la tabla
       this.cargarContenido(this.ruta[this.ruta.length - 1]?.elementoId || 1);
-    });
+    }
+  });
   }
 
   onRechazarSeleccionados(elementos: ElementoTabla[]): void {
@@ -628,7 +656,8 @@ export class DocumentosTablaEstadosComponent implements OnInit {
       cancelText: 'Cancelar',
     };
 
-    this.confirmModalService.open(config, () => {
+    this.confirmModalService.open(config).subscribe((result) => {
+      if (result.confirmed) {
       // Aquí iría la llamada al servicio para rechazar los documentos
       console.log('Rechazando documentos:', elementos);
       // Actualizar el estado de los documentos
@@ -637,7 +666,8 @@ export class DocumentosTablaEstadosComponent implements OnInit {
       });
       // Recargar la tabla
       this.cargarContenido(this.ruta[this.ruta.length - 1]?.elementoId || 1);
-    });
+    }
+  });
   }
 
   cargarRevisionesPendientes(): void {

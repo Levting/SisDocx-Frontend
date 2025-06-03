@@ -14,10 +14,10 @@ import { Subject } from 'rxjs';
 import { Carpeta } from '../../../../../../core/models/documentos/carpeta.model';
 import { ElementoService } from '../../../../../../core/services/elemento.service';
 import { CarpetaActualService } from '../../../../../../core/services/carpeta-actual.service';
-import { SubirArchivoRequest } from '../../../../../../core/models/documentos/subir-archivo-request.model';
 import { ApiError } from '../../../../../../core/models/errors/api-error.model';
 import { Elemento } from '../../../../../../core/models/documentos/elemento.model';
 import { SubirElementoRequest } from '../../../../../../core/models/documentos/subir-elemento-request.model';
+import { ToastService } from '../../../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-subir-archivo-modal',
@@ -54,15 +54,22 @@ export class SubirArchivoModalComponent implements OnInit, OnDestroy {
     '.png',
 
     // Analizadores
-    '.pqm702'
+    '.pqm702',
   ];
 
   private destroy$ = new Subject<void>();
   private elementoService = inject(ElementoService);
   private carpetaActualService = inject(CarpetaActualService);
+  private toastService = inject(ToastService);
 
   ngOnInit(): void {
     this.setupSubscriptions();
+    if (this.carpetaActual && this.isCarpetaDisabled(this.carpetaActual)) {
+      this.toastService.showWarning(
+        'No se pueden subir archivos en una carpeta pendiente o visible'
+      );
+      this.onClose();
+    }
   }
 
   private setupSubscriptions(): void {
@@ -71,6 +78,14 @@ export class SubirArchivoModalComponent implements OnInit, OnDestroy {
       .subscribe((carpeta) => {
         this.carpetaActual = carpeta;
       });
+  }
+
+  private isCarpetaDisabled(carpeta: Carpeta): boolean {
+    const estadoVisibilidad = carpeta.estadoVisibilidadAdmin
+      ?.toString()
+      .toUpperCase();
+    if (!estadoVisibilidad) return false;
+    return estadoVisibilidad === 'PENDIENTE' || estadoVisibilidad === 'VISIBLE';
   }
 
   ngOnDestroy(): void {
@@ -197,6 +212,14 @@ export class SubirArchivoModalComponent implements OnInit, OnDestroy {
 
   onSubmit(): void {
     if (this.isLoading || this.archivos.length === 0) return;
+
+    if (this.carpetaActual && this.isCarpetaDisabled(this.carpetaActual)) {
+      this.toastService.showWarning(
+        'No se pueden subir archivos en una carpeta pendiente o visible'
+      );
+      this.onClose();
+      return;
+    }
 
     this.isLoading = true;
     this.errorMessage = null;

@@ -16,7 +16,7 @@ import { Revision } from '../models/revision/elemento-revision.model';
   providedIn: 'root',
 })
 export class RevisionService {
-  private readonly API_URL: string = `${environment.URL_API}/revision`;
+  private readonly API_URL: string = `${environment.URL_API}/revisiones`;
   private http: HttpClient = inject(HttpClient);
   private authService: AuthService = inject(AuthService);
   private logger: LoggerService = inject(LoggerService);

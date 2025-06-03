@@ -20,17 +20,17 @@ export class DocumentosDropdownComponent {
   public items = [
     {
       texto: 'Mover a Papelera',
-      icono: 'assets/icons/object.svg',
+      icono: 'assets/icons/trash.svg',
       accion: () => this.onPapelera.emit(this.elemento),
     },
     {
       texto: 'Descargar',
-      icono: 'assets/icons/object.svg',
+      icono: 'assets/icons/download.svg',
       accion: () => this.onDescargar.emit(this.elemento),
     },
     {
       texto: 'Cambiar Nombre',
-      icono: 'assets/icons/object.svg',
+      icono: 'assets/icons/rename.svg',
       accion: () => this.abrirModalRenombrar(),
     },
   ];

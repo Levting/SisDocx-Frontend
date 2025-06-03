@@ -13,6 +13,7 @@ import { ApiError } from '../../../../core/models/errors/api-error.model';
 import { ConfirmModalService } from '../../../../shared/services/confirm-modal.service';
 import { LoggerService } from '../../../../core/services/logger.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { ToastService } from '../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-papelera-table',
@@ -51,6 +52,7 @@ export class PapeleraTableComponent implements OnInit, OnDestroy {
     inject(ConfirmModalService);
   private logger: LoggerService = inject(LoggerService);
   private authService: AuthService = inject(AuthService);
+  private toastService: ToastService = inject(ToastService);
 
   public elementosSeleccionados: ElementoTabla[] = []; // Elementos seleccionados
   public isLoading: boolean = false; // Indicador de carga
@@ -164,12 +166,12 @@ export class PapeleraTableComponent implements OnInit, OnDestroy {
           next: () => {
             this.limpiarSeleccion();
             this.cargarPapelera();
-            this.logger.debug('Papelera vaciada correctamente');
+            this.toastService.showSuccess('Papelera vaciada correctamente');
           },
           error: (error: ApiError) => {
             this.isError = true;
             this.error = error.message || 'No se pudo vaciar la papelera';
-            this.logger.error('Error al vaciar papelera:', error);
+            this.toastService.showError(this.error);
           },
         });
       }
@@ -215,11 +217,16 @@ export class PapeleraTableComponent implements OnInit, OnDestroy {
           next: () => {
             this.limpiarSeleccion();
             this.cargarPapelera();
+            this.toastService.showSuccess(
+              'Elementos ' +
+                this.elementosSeleccionados.length +
+                ' eliminados correctamente'
+            );
           },
           error: (error) => {
             this.isError = true;
             this.error = 'No se pudieron eliminar los elementos';
-            console.error('Error al eliminar elementos:', error);
+            this.toastService.showError(this.error);
           },
         });
       }
@@ -240,12 +247,12 @@ export class PapeleraTableComponent implements OnInit, OnDestroy {
       next: () => {
         this.limpiarSeleccion();
         this.cargarPapelera();
-        this.logger.debug('Elementos restaurados correctamente');
+        this.toastService.showSuccess('Elementos restaurados correctamente');
       },
       error: (error: ApiError) => {
         this.isError = true;
         this.error = error.message || 'No se pudieron restaurar los elementos';
-        this.logger.error('Error al restaurar elementos:', error);
+        this.toastService.showError(this.error);
       },
     });
   }

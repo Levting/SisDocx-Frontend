@@ -24,6 +24,7 @@ export interface ColumnaConfig {
   width?: string;
   minWidth?: string;
   maxWidth?: string;
+  sortable?: boolean;
 }
 
 @Component({
@@ -60,6 +61,10 @@ export class TablaEstadoComponent implements OnInit {
 
   // Elemento enfocado
   public elementoEnfocado: ElementoTabla | null = null;
+
+  // Propiedades para el ordenamiento
+  public columnaOrdenada: string | null = null;
+  public ordenAscendente: boolean = true;
 
   ngOnInit(): void {
     // Suscribirse a los cambios del rol del usuario para mostrar los botones de administrador
@@ -166,6 +171,8 @@ export class TablaEstadoComponent implements OnInit {
 
   onEnviarSolicitud(elementoTabla: ElementoTabla): void {
     this.enviarSolicitud.emit(elementoTabla);
+    // Actualizar el estado del elemento inmediatamente después de enviar la solicitud
+    this.actualizarEstadoElemento(elementoTabla, 'PENDIENTE');
   }
 
   getIconForFile(extension: string): string {
@@ -297,5 +304,77 @@ export class TablaEstadoComponent implements OnInit {
     }
 
     return 'text-sm font-medium capitalize text-gray-700';
+  }
+
+  // Métodos para el ordenamiento
+  ordenarPorColumna(columna: ColumnaConfig): void {
+    if (!columna.sortable) return;
+
+    if (this.columnaOrdenada === columna.key) {
+      this.ordenAscendente = !this.ordenAscendente;
+    } else {
+      this.columnaOrdenada = columna.key;
+      this.ordenAscendente = true;
+    }
+
+    this.elementosTabla.sort((a, b) => {
+      const valorA = a.columnas[columna.key];
+      const valorB = b.columnas[columna.key];
+
+      // Manejar diferentes tipos de datos
+      if (typeof valorA === 'string' && typeof valorB === 'string') {
+        return this.ordenAscendente
+          ? valorA.localeCompare(valorB)
+          : valorB.localeCompare(valorA);
+      }
+
+      if (valorA instanceof Date && valorB instanceof Date) {
+        return this.ordenAscendente
+          ? valorA.getTime() - valorB.getTime()
+          : valorB.getTime() - valorA.getTime();
+      }
+
+      // Para números y otros tipos
+      if (valorA < valorB) {
+        return this.ordenAscendente ? -1 : 1;
+      }
+      if (valorA > valorB) {
+        return this.ordenAscendente ? 1 : -1;
+      }
+      return 0;
+    });
+  }
+
+  obtenerIconoOrdenamiento(columna: ColumnaConfig): string {
+    if (!columna.sortable || this.columnaOrdenada !== columna.key) {
+      return 'bi-arrow-down-up text-gray-400';
+    }
+    return this.ordenAscendente
+      ? 'bi-arrow-down text-blue-600'
+      : 'bi-arrow-up text-blue-600';
+  }
+
+  // Método para actualizar el estado de un elemento después de enviar la solicitud
+  actualizarEstadoElemento(elemento: ElementoTabla, nuevoEstado: string): void {
+    const index = this.elementosTabla.findIndex(
+      (e) => e.columnas['elementoId'] === elemento.columnas['elementoId']
+    );
+
+    if (index !== -1) {
+      // Actualizar el estado del elemento
+      this.elementosTabla[index] = {
+        ...this.elementosTabla[index],
+        columnas: {
+          ...this.elementosTabla[index].columnas,
+          estadoRevision: nuevoEstado,
+          estadoVisibilidadAdmin: nuevoEstado,
+        },
+      };
+
+      // Forzar la detección de cambios
+      this.elementosTabla = [...this.elementosTabla];
+      // Emitir el evento de cambio de selección para actualizar la vista
+      this.emitirCambioSeleccion();
+    }
   }
 }

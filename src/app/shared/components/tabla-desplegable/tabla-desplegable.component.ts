@@ -1,12 +1,9 @@
 import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
-import { Revision } from '../../../core/models/revision/elemento-revision.model';
 import { CommonModule } from '@angular/common';
 import { SvgIconComponent } from 'angular-svg-icon';
 import { ElementoTabla } from '../../models/table/elemento-tabla.model';
-import { Carpeta } from '../../../core/models/documentos/carpeta.model';
 import { Archivo } from '../../../core/models/documentos/archivo.model';
 import { ElementoService } from '../../../core/services/elemento.service';
-import { Elemento } from '../../../core/models/documentos/elemento.model';
 
 interface ElementoArbol extends ElementoTabla {
   expandido?: boolean;
@@ -28,9 +25,7 @@ export class TablaDesplegableComponent implements OnInit {
 
   constructor(private elementoService: ElementoService) {}
 
-  ngOnInit(): void {
-    /* console.log('ElementosTablaDesplegable', this.elementosRevision); */
-  }
+  ngOnInit(): void {}
 
   // Variables
   public isExpanded = false;
@@ -150,5 +145,9 @@ export class TablaDesplegableComponent implements OnInit {
         RECHAZADO: 'text-red-600',
       }[status] || 'text-gray-500'
     );
+  }
+
+  trackById(index: number, item: any): any {
+    return item.columnas['id'];
   }
 }

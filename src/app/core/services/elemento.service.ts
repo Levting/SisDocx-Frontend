@@ -88,7 +88,7 @@ export class ElementoService {
         catchError((error) => {
           this.logger.error('Error al obtener detalles del elemento:', error);
           return throwError(
-            () => new Error('No se pudo obtener los detalles del elemento') 
+            () => new Error('No se pudo obtener los detalles del elemento')
           );
         })
       )

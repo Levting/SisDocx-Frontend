@@ -27,14 +27,14 @@ export class InicioComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     // Suscribirse a los cambios del usuario
-    this.usuarioSubscription = this.userService.usuarioAutenticado$.subscribe(
-      (usuario) => {
+    this.usuarioSubscription = this.userService.usuarioAutenticado$.subscribe({
+      next: (usuario) => {
         this.usuario = usuario;
         this.rol = this.roleService.getUserRole();
         this.provincia = this.roleService.getUserProvince();
         this.actualizarMensajeBienvenida();
-      }
-    );
+      },
+    });
   }
 
   /**
