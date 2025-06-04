@@ -7,8 +7,12 @@ export interface Elemento {
   creadoPorId: number; // ID del usuario que creó el elemento
   creadoPor: string;
   creadoEl: string; // Fecha en formato ISO
+  provinciaId: number;
+  provincia: string;
   estado: string; // Estado del elemento (ACTIVO, ELIMINADO, ARCHIVADO)
-  ruta: number[]; // Array de IDs que representa la ruta del elemento
   equipoDistribucion?: string;
+  ruta: number[]; // Array de IDs que representa la ruta del elemento
   estadoVisibilidadAdmin?: string;
+  anio: string;
+  mes: string;
 }

@@ -20,7 +20,8 @@ import { DescargarElementoRequest } from '../models/documentos/descargar-element
 import { AuthService } from './auth.service';
 import { LoggerService } from './logger.service';
 import { TokenService } from './token.service';
-import { ElementoFiltrado } from '../models/documentos/elemento-filtrado.model';
+import { ElementoFiltrado, FiltrosFusion } from '../models/documentos/elemento-filtrado.model';
+import { FusionarArchivoRequest } from '../models/documentos/fusionar-archivo-request.model';
 
 /**
  * Servicio para gestionar las operaciones relacionadas con los elementos (carpetas y archivos).
@@ -302,6 +303,11 @@ export class ElementoService {
           );
         })
       );
+  }
+
+  obtenerArchivosParaFusionar(request: FiltrosFusion): Observable<Elemento[]> {
+    const url = `${this.API_URL}/archivos/filtrar-para-fusionar`;
+    return this.waitForAuth(this.http.post<Elemento[]>(url, request));
   }
 
   private descargarArchivo(blob: Blob, filename: string): void {
