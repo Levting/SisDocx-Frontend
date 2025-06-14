@@ -109,8 +109,8 @@ export class DocumentosTablaEstadosPersonalComponent {
       sortable: true,
     },
     {
-      key: 'estadoVisibilidadAdmin',
-      label: 'Visible para Admin',
+      key: 'estadoVisibilidad',
+      label: 'Visibilidad',
       type: 'status-dot',
       width: '150px',
       sortable: false,
@@ -569,7 +569,7 @@ export class DocumentosTablaEstadosPersonalComponent {
                 columnas: {
                   ...this.elementosTabla[index].columnas,
                   estadoRevision: 'PENDIENTE',
-                  estadoVisibilidadAdmin: 'PENDIENTE',
+                  estadoVisibilidad: 'ENVIADO',
                 },
               };
               // Forzar la detección de cambios
@@ -633,7 +633,7 @@ export class DocumentosTablaEstadosPersonalComponent {
                   columnas: {
                     ...this.elementosTabla[index].columnas,
                     estadoRevision: 'PENDIENTE',
-                    estadoVisibilidadAdmin: 'PENDIENTE',
+                    estadoVisibilidad: 'ENVIADO',
                   },
                 };
               }
@@ -826,7 +826,7 @@ export class DocumentosTablaEstadosPersonalComponent {
 
   // Método para verificar si un elemento está deshabilitado
   public isElementoDisabled(elemento: ElementoTabla): boolean {
-    const estadoVisibilidad = elemento.columnas['estadoVisibilidadAdmin']
+    const estadoVisibilidad = elemento.columnas['estadoVisibilidad']
       ?.toString()
       .toUpperCase();
     const estadoRevision = elemento.columnas['estadoRevision']
@@ -834,8 +834,8 @@ export class DocumentosTablaEstadosPersonalComponent {
       .toUpperCase();
 
     return (
-      estadoVisibilidad === 'PENDIENTE' ||
-      estadoVisibilidad === 'VISIBLE' ||
+      estadoVisibilidad === 'ENVIADO' ||
+      estadoVisibilidad === 'ACEPTADO' ||
       estadoRevision === 'PENDIENTE'
     );
   }

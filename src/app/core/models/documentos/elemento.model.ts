@@ -2,17 +2,17 @@ export interface Elemento {
   elementoId: number;
   elemento: string; // Puede ser "ARCHIVO" o "CARPETA"
   nombre: string; // Nombre del elemento
-  carpetaPadreId: number; // Carpeta padre del elemento
-  carpetaPadre: string;
   creadoPorId: number; // ID del usuario que creó el elemento
   creadoPor: string;
   creadoEl: string; // Fecha en formato ISO
+  ruta: number[]; // Array de IDs que representa la ruta del elemento
+  estado: string; // Estado del elemento (ACTIVO, ELIMINADO, ARCHIVADO)
   provinciaId: number;
   provincia: string;
-  estado: string; // Estado del elemento (ACTIVO, ELIMINADO, ARCHIVADO)
-  equipoDistribucion?: string;
-  ruta: number[]; // Array de IDs que representa la ruta del elemento
-  estadoVisibilidadAdmin?: string;
+  carpetaPadreId: number; // Carpeta padre del elemento
+  carpetaPadre: string;
+  equipoDistribucion: 'BARRIA' | 'TRANSFORMADOR' | 'UBV' | 'UMV' | 'UAV' | 'NINGUNO';
+  estadoVisibilidad: 'CREADO_ADMINISTRADOR' | 'CREADO' | 'ENVIADO' | 'ACEPTADO' | 'RECHAZADO';
   anio: string;
   mes: string;
 }

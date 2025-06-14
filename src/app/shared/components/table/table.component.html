@@ -319,12 +319,16 @@
           </td>
 
           <!-- Renderizar columnas dinámicamente -->
-          <td *ngFor="let col of getColumnasFiltradas()" class="px-6 py-4 whitespace-nowrap">
+          <td
+            *ngFor="let col of getColumnasFiltradas()"
+            class="px-6 py-4 whitespace-nowrap"
+          >
             <ng-container [ngSwitch]="col">
-
               <!-- Columna equipoDistribucion con estilos dinámicos -->
               <ng-container *ngSwitchCase="'equipoDistribucion'">
-                <ng-container *ngIf="elementoTabla.columnas['equipoDistribucion'] as valor">
+                <ng-container
+                  *ngIf="elementoTabla.columnas['equipoDistribucion'] as valor"
+                >
                   <div
                     class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full border transition-colors duration-300"
                     [ngClass]="getDistribucionColorClasses(valor)"
@@ -337,14 +341,15 @@
 
               <!-- Otras columnas -->
               <ng-container *ngSwitchDefault>
-                <div class="truncate max-w-xs" [title]="elementoTabla.columnas[col]">
+                <div
+                  class="truncate max-w-xs"
+                  [title]="elementoTabla.columnas[col]"
+                >
                   {{ elementoTabla.columnas[col] }}
                 </div>
               </ng-container>
-
             </ng-container>
           </td>
-
         </tr>
       </tbody>
     </table>

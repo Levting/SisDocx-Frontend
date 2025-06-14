@@ -41,7 +41,7 @@ export class TransformacionService {
         estado: elemento.estado,
         equipoDistribucion: elemento.equipoDistribucion,
         ruta: elemento.ruta.join(' / '),
-        estadoVisibilidadAdmin: elemento.estadoVisibilidadAdmin,
+        estadoVisibilidad: elemento.estadoVisibilidad,
 
         ...(elemento.elemento === 'CARPETA'
           ? {
@@ -54,6 +54,8 @@ export class TransformacionService {
               tamano: this.formatearTamano(
                 (elemento as unknown as Archivo).tamano
               ),
+              tipoFusion: (elemento as unknown as Archivo).tipoFusion,
+              tipoContenido: (elemento as unknown as Archivo).tipoContenido,
             }
           : {}),
       },
@@ -87,6 +89,8 @@ export class TransformacionService {
           ? {
               extension: (elemento as unknown as Archivo).extension,
               tamano: (elemento as unknown as Archivo).tamano,
+              tipoFusion: (elemento as unknown as Archivo).tipoFusion,
+              tipoContenido: (elemento as unknown as Archivo).tipoContenido,
             }
           : {}),
       },
@@ -118,7 +122,7 @@ export class TransformacionService {
         estado: elemento.estado,
         equipoDistribucion: elemento.equipoDistribucion,
         ruta: elemento.ruta.join(' / '),
-        estadoVisibilidadAdmin: elemento.estadoVisibilidadAdmin || 'N/A',
+        estadoVisibilidad: elemento.estadoVisibilidad || 'N/A',
 
         ...(elemento.elemento === 'CARPETA'
           ? {
@@ -131,6 +135,8 @@ export class TransformacionService {
               tamano: this.formatearTamano(
                 (elemento as unknown as Archivo).tamano
               ),
+              tipoFusion: (elemento as unknown as Archivo).tipoFusion,
+              tipoContenido: (elemento as unknown as Archivo).tipoContenido,
             }
           : {}),
 
@@ -164,7 +170,7 @@ export class TransformacionService {
         creadoEl: this.fechaUtils.formatear(elemento.creadoEl) || 'N/A',
         estado: elemento.estado,
         ruta: elemento.ruta.join(' / '),
-        estadoVisibilidadAdmin: elemento.estadoVisibilidadAdmin || 'N/A',
+        estadoVisibilidad: elemento.estadoVisibilidad || 'N/A',
         ...(elemento.elemento === 'CARPETA'
           ? { cantidadElementos: (elemento as Carpeta).cantidadElementos }
           : {}),
@@ -172,6 +178,8 @@ export class TransformacionService {
           ? {
               extension: (elemento as Archivo).extension,
               tamano: this.formatearTamano((elemento as Archivo).tamano),
+              tipoFusion: (elemento as unknown as Archivo).tipoFusion,
+              tipoContenido: (elemento as unknown as Archivo).tipoContenido,
             }
           : {}),
       },
@@ -218,6 +226,8 @@ export class TransformacionService {
               tamano: this.formatearTamano(
                 (elemento as unknown as Archivo).tamano
               ),
+              tipoFusion: (elemento as unknown as Archivo).tipoFusion,
+              tipoContenido: (elemento as unknown as Archivo).tipoContenido,
             }
           : {}),
         estadoRevision: elemento.estadoRevision,
@@ -261,7 +271,7 @@ export class TransformacionService {
         estado: elemento.estado,
 
         ruta: elemento.ruta.join(' / '),
-        estadoVisibilidadAdmin: elemento.estadoVisibilidadAdmin,
+        estadoVisibilidad: elemento.estadoVisibilidad,
 
 
         ...(elemento.elemento === 'ARCHIVO'
@@ -270,6 +280,8 @@ export class TransformacionService {
               tamano: this.formatearTamano(
                 (elemento as unknown as Archivo).tamano
               ),
+              tipoFusion: (elemento as unknown as Archivo).tipoFusion,
+              tipoContenido: (elemento as unknown as Archivo).tipoContenido,
             }
           : {}),
       },

@@ -66,7 +66,7 @@ export class SubirArchivoModalComponent implements OnInit, OnDestroy {
     this.setupSubscriptions();
     if (this.carpetaActual && this.isCarpetaDisabled(this.carpetaActual)) {
       this.toastService.showWarning(
-        'No se pueden subir archivos en una carpeta pendiente o visible'
+        'No se pueden subir archivos en una carpeta enviada o aceptada'
       );
       this.onClose();
     }
@@ -81,11 +81,11 @@ export class SubirArchivoModalComponent implements OnInit, OnDestroy {
   }
 
   private isCarpetaDisabled(carpeta: Carpeta): boolean {
-    const estadoVisibilidad = carpeta.estadoVisibilidadAdmin
+    const estadoVisibilidad = carpeta.estadoVisibilidad
       ?.toString()
       .toUpperCase();
     if (!estadoVisibilidad) return false;
-    return estadoVisibilidad === 'PENDIENTE' || estadoVisibilidad === 'VISIBLE';
+    return estadoVisibilidad === 'ENVIADO' || estadoVisibilidad === 'ACEPTADO';
   }
 
   ngOnDestroy(): void {
@@ -215,7 +215,7 @@ export class SubirArchivoModalComponent implements OnInit, OnDestroy {
 
     if (this.carpetaActual && this.isCarpetaDisabled(this.carpetaActual)) {
       this.toastService.showWarning(
-        'No se pueden subir archivos en una carpeta pendiente o visible'
+        'No se pueden subir archivos en una carpeta enviada o aceptada'
       );
       this.onClose();
       return;

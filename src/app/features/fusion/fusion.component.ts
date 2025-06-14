@@ -203,7 +203,7 @@ export class FusionComponent implements OnInit {
               carpetaPadre: elemento.carpetaPadre,
               anio: elemento.anio,
               mes: elemento.mes,
-              tipoArchivoFusion: elemento.tipoArchivoFusion,
+              tipoFusion: elemento.tipoFusion,
               extension: elemento.extension,
               tamano: elemento.tamano,
             },

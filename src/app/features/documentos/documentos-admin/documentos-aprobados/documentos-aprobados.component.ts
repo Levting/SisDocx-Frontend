@@ -134,9 +134,10 @@ export class DocumentosAprobadosComponent {
             } else if (elemento.elemento === 'ARCHIVO') {
               const archivo: Archivo = {
                 ...elemento,
-                tipoArchivoFusion: (elemento as Archivo).tipoArchivoFusion,
                 extension: (elemento as Archivo).extension,
                 tamano: (elemento as Archivo).tamano,
+                tipoFusion: (elemento as Archivo).tipoFusion,
+                tipoContenido: (elemento as Archivo).tipoContenido,
               };
               return archivo;
             } else {

@@ -233,8 +233,8 @@ export class TablaEstadoComponent implements OnInit {
 
     const valor = elemento.columnas[columna.key];
 
-    // Manejo especial para estadoVisibilidadAdmin
-    if (columna.key === 'estadoVisibilidadAdmin') {
+    // Manejo especial para estadoVisibilidad
+    if (columna.key === 'estadoVisibilidad') {
       if (columna.type === 'status-dot') {
         return 'flex flex-row justify-start items-center gap-2 w-auto';
       }
@@ -266,13 +266,13 @@ export class TablaEstadoComponent implements OnInit {
 
     const valor = elemento.columnas[columna.key]?.toString().toUpperCase();
 
-    if (columna.key === 'estadoVisibilidadAdmin') {
+    if (columna.key === 'estadoVisibilidad') {
       switch (valor) {
-        case 'VISIBLE':
+        case 'ACEPTADO':
           return 'inline-flex items-center justify-center font-semibold leading-none w-2 h-2 text-white rounded-full bg-green-600';
-        case 'PENDIENTE':
+        case 'ENVIADO':
           return 'inline-flex items-center justify-center font-semibold leading-none w-2 h-2 text-white rounded-full bg-yellow-500';
-        case 'OCULTO':
+        case 'CREADO':
           return 'inline-flex items-center justify-center font-semibold leading-none w-2 h-2 text-white rounded-full bg-red-600';
         default:
           return 'inline-flex items-center justify-center font-semibold leading-none w-2 h-2 text-white rounded-full bg-gray-500';
@@ -290,13 +290,13 @@ export class TablaEstadoComponent implements OnInit {
 
     const valor = elemento.columnas[columna.key]?.toString().toUpperCase();
 
-    if (columna.key === 'estadoVisibilidadAdmin') {
+      if (columna.key === 'estadoVisibilidad') {
       switch (valor) {
-        case 'VISIBLE':
+        case 'ACEPTADO':
           return 'text-sm font-medium capitalize text-green-700';
-        case 'PENDIENTE':
+        case 'ENVIADO':
           return 'text-sm font-medium capitalize text-yellow-700';
-        case 'OCULTO':
+        case 'CREADO':
           return 'text-sm font-medium capitalize text-red-700';
         default:
           return 'text-sm font-medium capitalize text-gray-700';
@@ -367,7 +367,7 @@ export class TablaEstadoComponent implements OnInit {
         columnas: {
           ...this.elementosTabla[index].columnas,
           estadoRevision: nuevoEstado,
-          estadoVisibilidadAdmin: nuevoEstado,
+          estadoVisibilidad: nuevoEstado,
         },
       };
 
