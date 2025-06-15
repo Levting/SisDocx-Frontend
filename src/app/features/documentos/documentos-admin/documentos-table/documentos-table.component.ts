@@ -216,7 +216,7 @@ export class DocumentosTableComponent implements OnInit, OnDestroy {
       .pipe(
         filter((isLoggedIn) => isLoggedIn === true),
         take(1),
-        switchMap(() => this.elementoService.obtenerContenidoCarpeta(carpetaId))
+        switchMap(() => this.elementoService.obtenerContenidoCarpetaAdmin(carpetaId))
       )
       .subscribe({
         next: (elementos: Elemento[]) => {

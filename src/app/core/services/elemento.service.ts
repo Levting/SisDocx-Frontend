@@ -22,6 +22,7 @@ import { LoggerService } from './logger.service';
 import { TokenService } from './token.service';
 import { ElementoFiltrado, FiltrosFusion } from '../models/documentos/elemento-filtrado.model';
 import { FusionarArchivoRequest } from '../models/documentos/fusionar-archivo-request.model';
+import { SourceTextModule } from 'node:vm';
 
 /**
  * Servicio para gestionar las operaciones relacionadas con los elementos (carpetas y archivos).
@@ -76,6 +77,11 @@ export class ElementoService {
 
   obtenerContenidoCarpeta(carpetaId: number): Observable<Elemento[]> {
     const url = `${this.API_URL}/carpetas/${carpetaId}/contenido`;
+    return this.waitForAuth(this.http.get<Elemento[]>(url));
+  }
+
+  obtenerContenidoCarpetaAdmin(carpetaId: number): Observable<Elemento[]> {
+    const url = `${this.API_URL}/admin/carpetas/${carpetaId}/contenido`;
     return this.waitForAuth(this.http.get<Elemento[]>(url));
   }
 
