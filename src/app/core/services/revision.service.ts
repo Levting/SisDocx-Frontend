@@ -1,8 +1,6 @@
 import { inject } from '@angular/core';
-
 import { HttpClient } from '@angular/common/http';
-
-import { switchMap } from 'rxjs';
+import { switchMap, throwError } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
@@ -25,8 +23,8 @@ export class RevisionService {
     return this.authService.userLoginOn.pipe(
       switchMap((isLoggedIn) => {
         if (!isLoggedIn) {
-          // this.logger.warn('No autenticado');
-          // return throwError(() => new Error('No autenticado'));
+          this.logger.warn('No autenticado');
+          return throwError(() => new Error('No autenticado'));
         }
         return request;
       })
@@ -48,9 +46,7 @@ export class RevisionService {
     return this.waitForAuth(this.http.get<Revision[]>(url));
   }
 
-  solicitarRevision(
-    request: SolicitarRevisionRequest
-  ): Observable<Revision> {
+  solicitarRevision(request: SolicitarRevisionRequest): Observable<Revision> {
     const url = `${this.API_URL}/solicitar?elemento=${request.elemento}`;
     return this.waitForAuth(this.http.post<Revision>(url, request));
   }

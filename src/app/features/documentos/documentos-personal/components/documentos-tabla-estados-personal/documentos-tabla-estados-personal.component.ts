@@ -558,8 +558,8 @@ export class DocumentosTablaEstadosPersonalComponent {
         };
 
         this.revisionService.solicitarRevision(request).subscribe({
-          next: () => {
-            // Actualizar el estado del elemento inmediatamente
+          next: (response) => {
+            // Solo actualizar el estado si la respuesta es exitosa
             const index = this.elementosTabla.findIndex(
               (e) =>
                 e.columnas['elementoId'] === elemento.columnas['elementoId']
@@ -588,9 +588,15 @@ export class DocumentosTablaEstadosPersonalComponent {
 
               // Limpiar la selección
               this.limpiarSeleccion();
-            }
 
-            this.toastService.showSuccess('Revisión solicitada correctamente');
+              // Mostrar mensaje de éxito
+              this.toastService.showSuccess(
+                'Revisión solicitada correctamente'
+              );
+
+              // Recargar el contenido actual para asegurar la sincronización
+              this.actualizarContenidoActual();
+            }
           },
           error: (error: ApiError) => {
             this.isError = true;
@@ -626,12 +632,14 @@ export class DocumentosTablaEstadosPersonalComponent {
             // Todas las solicitudes se han procesado
             this.toastService.showSuccess('Revisión solicitada correctamente');
             this.limpiarSeleccion();
+            // Recargar el contenido actual para asegurar la sincronización
+            this.actualizarContenidoActual();
             return;
           }
 
           const request = requests[index];
           this.revisionService.solicitarRevision(request).subscribe({
-            next: () => {
+            next: (response) => {
               // Actualizar el estado del elemento actual
               const elemento = this.elementosSeleccionados[index];
               const indexTabla = this.elementosTabla.findIndex(
