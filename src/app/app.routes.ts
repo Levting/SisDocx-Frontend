@@ -21,47 +21,71 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        component: InicioComponent,
+        loadComponent: () =>
+          import('./features/inicio/inicio.component').then(
+            (m) => m.InicioComponent
+          ),
       },
       {
         path: 'documentos',
-        component: DocumentosComponent,
+        loadComponent: () =>
+          import('./features/documentos/documentos.component').then(
+            (m) => m.DocumentosComponent
+          ),
         canActivate: [RoleGuard],
         data: { roles: ['Administrador'] },
       },
       {
         path: 'documentos-por-aprobar',
-        component: DocumentosPorAprobarComponent,
+        loadComponent: () =>
+          import(
+            './features/documentos/documentos-admin/documentos-por-aprobar/documentos-por-aprobar.component'
+          ).then((m) => m.DocumentosPorAprobarComponent),
         canActivate: [RoleGuard],
         data: { roles: ['Administrador'] },
       },
       {
         path: 'documentos-personal',
-        component: DocumentosPersonalComponent,
+        loadComponent: () =>
+          import(
+            './features/documentos/documentos-personal/documentos-personal.component'
+          ).then((m) => m.DocumentosPersonalComponent),
         canActivate: [RoleGuard],
         data: { roles: ['Personal'] },
       },
       {
         path: 'documentos-situacion',
-        component: DocumentosSituacionComponent,
+        loadComponent: () =>
+          import(
+            './features/documentos-situacion/documentos-situacion.component'
+          ).then((m) => m.DocumentosSituacionComponent),
         canActivate: [RoleGuard],
         data: { roles: ['Personal'] },
       },
       {
         path: 'papelera',
-        component: PapeleraComponent,
+        loadComponent: () =>
+          import('./features/papelera/papelera.component').then(
+            (m) => m.PapeleraComponent
+          ),
         canActivate: [RoleGuard],
         data: { roles: ['Administrador', 'Personal'] },
       },
       {
         path: 'campana-medicion',
-        component: CampanaMedicionComponent,
+        loadComponent: () =>
+          import('./features/campana-medicion/campana-medicion.component').then(
+            (m) => m.CampanaMedicionComponent
+          ),
         canActivate: [RoleGuard],
         data: { roles: ['Administrador'] },
       },
       {
         path: 'fusion',
-        component: FusionComponent,
+        loadComponent: () =>
+          import('./features/fusion/fusion.component').then(
+            (m) => m.FusionComponent
+          ),
         canActivate: [RoleGuard],
         data: { roles: ['Administrador'] },
       },
@@ -71,7 +95,10 @@ export const routes: Routes = [
       }, */
       {
         path: 'ajustes',
-        component: AjustesComponent,
+        loadComponent: () =>
+          import('./features/ajustes/ajustes.component').then(
+            (m) => m.AjustesComponent
+          ),
         canActivate: [RoleGuard],
         data: { roles: ['Administrador'] },
       },

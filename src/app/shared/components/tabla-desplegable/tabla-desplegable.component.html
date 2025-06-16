@@ -1,15 +1,12 @@
 <table class="min-w-full border-collapse">
-  <thead
-    class="bg-gray-100 sticky top-0 z-10 text-left font-semibold text-gray-500 uppercase tracking-wider"
-  >
+  <thead class="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0 z-10">
     <tr>
-      <th class="p-3" style="width: 60px"></th>
-      <th style="width: 120px">Envío ID</th>
-      <th style="width: 150px">Remitente</th>
-      <th style="width: 150px">Provincia</th>
-      <th style="width: 150px">Fecha de envío</th>
-      <th style="width: 200px">Estado de revisión</th>
-      <th style="width: 140px">Acciones</th>
+      <th class="px-6 py-3" style="width: 60px"></th>
+      <th class="px-6 py-3" style="width: 120px">Envío ID</th>
+      <th class="px-6 py-3" style="width: 150px">Remitente</th>
+      <th class="px-6 py-3" style="width: 150px">Fecha de envío</th>
+      <th class="px-6 py-3" style="width: 200px">Estado de revisión</th>
+      <th style="width: 200px">Acciones</th>
     </tr>
   </thead>
 
@@ -40,13 +37,21 @@
         </td>
 
         <!-- Datos principales -->
-        <td class="px-3 py-4">{{ revision.columnas["id"] }}</td>
-        <td class="px-3 py-4">{{ revision.columnas["remitente"] }}</td>
-        <td class="px-3 py-4">{{ revision.columnas["provincia"] }}</td>
-        <td class="px-3 py-4">{{ revision.columnas["fechaEnvio"] }}</td>
+        <td class="px-3 py-5">{{ revision.columnas["id"] }}</td>
+        <td class="px-3 py-5">
+          <div class="flex flex-col">
+            <span class="font-medium text-gray-900">
+              {{ revision.columnas["provincia"] }}
+            </span>
+            <span class="text-sm text-gray-500">
+              {{ revision.columnas["remitente"] }}
+            </span>
+          </div>
+        </td>
+        <td class="px-3 py-5">{{ revision.columnas["fechaEnvio"] }}</td>
 
         <!-- Estado -->
-        <td class="px-3 py-4">
+        <td class="px-3 py-5">
           <div class="flex items-center gap-2">
             <span
               class="w-2 h-2 rounded-full"
@@ -62,23 +67,34 @@
         </td>
 
         <!-- Acciones -->
-        <td class="px-3 py-4 text-right">
-          <div
-            class="flex justify-end gap-2"
-            *ngIf="revision.columnas['revisor'] === null"
-          >
-            <button
-              (click)="handleAprobarRevision(revision.columnas['id'])"
-              class="bg-green-600 hover:bg-green-700 text-white text-xs font-medium px-4 py-2 rounded-md"
-            >
-              Aprobar
-            </button>
-            <button
-              (click)="handleRechazarRevision(revision.columnas['id'])"
-              class="bg-red-600 hover:bg-red-700 text-white text-xs font-medium px-4 py-2 rounded-md"
-            >
-              Rechazar
-            </button>
+        <td class="px-3 py-1">
+          <!-- Botones de aprobar y rechazar carpeta -->
+          <div class="flex flex-col gap-1">
+            <div class="flex gap-1 justify-end">
+              <button
+                (click)="handleAprobarRevision(revision.columnas['id'])"
+                class="bg-green-600 hover:bg-green-700 text-white text-xs font-medium px-4 py-2 rounded-md"
+              >
+                Aprobar
+              </button>
+
+              <button
+                (click)="handleRechazarRevision(revision.columnas['id'])"
+                class="bg-red-600 hover:bg-red-700 text-white text-xs font-medium px-4 py-2 rounded-md"
+              >
+                Rechazar
+              </button>
+            </div>
+
+            <!-- Botón aprobar seleccionados -->
+            <div *ngIf="seleccionados.size > 0" class="flex justify-end">
+              <button
+                (click)="handleAprobarSeleccionados()"
+                class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-4 py-2 rounded-md"
+              >
+                Aprobar {{ seleccionados.size }} seleccionados
+              </button>
+            </div>
           </div>
         </td>
       </tr>
@@ -112,6 +128,13 @@
                           : handleVerArchivo(archivoRaiz!)
                       "
                     >
+                      <!-- Checkbox para carpetaRaiz o archivoRaiz -->
+                      <!-- <input
+                        type="checkbox"
+                        class="appearance-none w-4 h-4 border border-gray-400 rounded-full checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-150 cursor-pointer"
+                        [checked]="isSelected(carpetaRaiz || archivoRaiz)"
+                        (change)="toggleSeleccion(carpetaRaiz || archivoRaiz)"
+                      /> -->
                       <div class="flex items-center">
                         <button
                           *ngIf="
@@ -153,6 +176,7 @@
                             [svgClass]="'fill-current text-gray-600'"
                           />
                         </ng-container>
+
                         <ng-template #archivoIcono>
                           <ng-container
                             [ngSwitch]="
@@ -232,6 +256,7 @@
                           </span>
                         </div>
                       </div>
+
                       <div
                         *ngIf="carpetaRaiz && carpetaRaiz.cargando"
                         class="ml-2"
@@ -281,6 +306,15 @@
                               : expandirCarpeta(hijo)
                           "
                         >
+                          <!-- Checkbox para hijo -->
+                          <input
+                            type="checkbox"
+                            class="appearance-none w-4 h-4 border border-gray-400 rounded-full checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-150 cursor-pointer"
+                            [checked]="isSelected(hijo)"
+                            (change)="
+                              toggleSeleccion(hijo, $event, carpetaRaiz)
+                            "
+                          />
                           <div class="flex items-center">
                             <button
                               *ngIf="hijo.columnas['elemento'] === 'CARPETA'"
@@ -431,6 +465,13 @@
                                   : expandirCarpeta(sub)
                               "
                             >
+                              <!-- Checkbox para sub -->
+                              <input
+                                type="checkbox"
+                                class="appearance-none w-4 h-4 border border-gray-400 rounded-full checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-150 cursor-pointer"
+                                [checked]="isSelected(sub)"
+                                (change)="toggleSeleccion(sub, $event, hijo)"
+                              />
                               <div class="flex items-center">
                                 <button
                                   *ngIf="sub.columnas['elemento'] === 'CARPETA'"

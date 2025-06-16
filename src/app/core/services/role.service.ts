@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Injectable, OnDestroy } from '@angular/core';
+import { BehaviorSubject, Observable, Subject, takeUntil } from 'rxjs';
 import { Usuario } from '../models/usuario/usuario.model';
 import { UserService } from './user.service';
 import { map } from 'rxjs/operators';
@@ -11,7 +11,7 @@ import { map } from 'rxjs/operators';
 @Injectable({
   providedIn: 'root',
 })
-export class RoleService {
+export class RoleService implements OnDestroy {
   /**
    * BehaviorSubject que mantiene el estado del usuario actual.
    * Se actualiza automáticamente cuando el usuario autenticado cambia.
@@ -24,11 +24,19 @@ export class RoleService {
    */
   public currentUser$ = this.currentUserSubject.asObservable();
 
+  private destroy$ = new Subject<void>();
+
   constructor(private userService: UserService) {
-    // Suscribirse a los cambios del usuario autenticado para mantener el estado actualizado
-    this.userService.usuarioAutenticado$.subscribe((user) => {
-      this.currentUserSubject.next(user);
-    });
+    this.userService.usuarioAutenticado$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((user) => {
+        this.currentUserSubject.next(user);
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   /**

@@ -3,6 +3,7 @@ import {
   EventEmitter,
   Input,
   OnInit,
+  OnDestroy,
   Output,
   inject,
 } from '@angular/core';
@@ -12,6 +13,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { Carpeta } from '../../../../../core/models/documentos/carpeta.model';
 import { MenuService } from '../../../../../core/services/menu.service';
 import { RoleService } from '../../../../../core/services/role.service';
+import { Subject, takeUntil } from 'rxjs';
 
 interface MenuItem {
   label: string;
@@ -40,7 +42,7 @@ interface MenuGroup {
   ],
   templateUrl: './sidebar-nav.component.html',
 })
-export class SidebarNavComponent implements OnInit {
+export class SidebarNavComponent implements OnInit, OnDestroy {
   // Recibir datos del sidebar
   @Input() showSideBar: boolean = true;
   @Input() carpetaActual: Carpeta | null = null;
@@ -54,6 +56,8 @@ export class SidebarNavComponent implements OnInit {
   // Inyectar servicios
   public menuService = inject(MenuService);
   private roleService = inject(RoleService);
+
+  private destroy$ = new Subject<void>();
 
   /**
    * Inicializar el componente
@@ -162,11 +166,13 @@ export class SidebarNavComponent implements OnInit {
       },
     ];
 
-    this.roleService.currentUser$.subscribe((user) => {
-      const userRole = user?.rol?.nombre || '';
-      const filteredItems = this.filterItemsByRole(menuItems, userRole);
-      this.menuService.updateMenuItems(filteredItems);
-    });
+    this.roleService.currentUser$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((user) => {
+        const userRole = user?.rol?.nombre || '';
+        const filteredItems = this.filterItemsByRole(menuItems, userRole);
+        this.menuService.updateMenuItems(filteredItems);
+      });
   }
 
   /**
@@ -188,5 +194,10 @@ export class SidebarNavComponent implements OnInit {
    */
   onToggleDropdown(): void {
     this.toggleDropdown.emit();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

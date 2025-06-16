@@ -17,7 +17,10 @@ import {
 import { BreadcrumbComponent } from '../../../../../shared/components/breadcrumb/breadcrumb.component';
 import { DocumentosPreviewModalComponent } from '../../../documentos-admin/components/documentos-preview-modal/documentos-preview-modal.component';
 import { ElementoTabla } from '../../../../../shared/models/table/elemento-tabla.model';
-import { Elemento } from '../../../../../core/models/documentos/elemento.model';
+import {
+  Elemento,
+  PaginatedResponse,
+} from '../../../../../core/models/documentos/elemento.model';
 import { ElementoService } from '../../../../../core/services/elemento.service';
 import { CarpetaActualService } from '../../../../../core/services/carpeta-actual.service';
 import { ConfirmModalService } from '../../../../../shared/services/confirm-modal.service';
@@ -203,7 +206,7 @@ export class DocumentosTablaEstadosPersonalComponent {
         switchMap(() => this.elementoService.obtenerContenidoCarpeta(carpetaId))
       )
       .subscribe({
-        next: (elementos: Elemento[]) => {
+        next: (response: PaginatedResponse<Elemento>) => {
           if (
             nombre &&
             (this.ruta.length === 0 ||
@@ -218,15 +221,15 @@ export class DocumentosTablaEstadosPersonalComponent {
             this.ruta = [];
           }
 
-          this.elementosOriginales = elementos;
+          this.elementosOriginales = response.content;
 
-          if (elementos.length === 0) {
+          if (response.content.length === 0) {
             this.isLoading = false;
             return;
           }
 
           this.transformacionService
-            .transformarDocumentosATabla(elementos)
+            .transformarDocumentosATabla(response.content)
             .subscribe({
               next: (filas) => {
                 this.elementosTabla = filas;
@@ -563,8 +566,8 @@ export class DocumentosTablaEstadosPersonalComponent {
             );
 
             if (index !== -1) {
-              // Actualizar el estado del elemento
-              this.elementosTabla[index] = {
+              // Crear una copia profunda del elemento actualizado
+              const elementoActualizado = {
                 ...this.elementosTabla[index],
                 columnas: {
                   ...this.elementosTabla[index].columnas,
@@ -572,8 +575,17 @@ export class DocumentosTablaEstadosPersonalComponent {
                   estadoVisibilidad: 'ENVIADO',
                 },
               };
+
+              // Actualizar el array con el nuevo elemento
+              this.elementosTabla = [
+                ...this.elementosTabla.slice(0, index),
+                elementoActualizado,
+                ...this.elementosTabla.slice(index + 1),
+              ];
+
               // Forzar la detección de cambios
               this.elementosTabla = [...this.elementosTabla];
+
               // Limpiar la selección
               this.limpiarSeleccion();
             }
@@ -608,50 +620,58 @@ export class DocumentosTablaEstadosPersonalComponent {
             elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
           }));
 
-        forkJoin(
-          requests.map((request) =>
-            this.revisionService.solicitarRevision(request).pipe(
-              catchError((error) => {
-                console.error('Error al enviar revisión:', error);
-                return of(null);
-              })
-            )
-          )
-        ).subscribe({
-          next: () => {
-            // Actualizar el estado de los elementos seleccionados inmediatamente
-            this.elementosSeleccionados.forEach((elemento) => {
-              const index = this.elementosTabla.findIndex(
+        // Procesar las solicitudes secuencialmente para mantener el contexto de autenticación
+        const procesarSolicitud = (index: number) => {
+          if (index >= requests.length) {
+            // Todas las solicitudes se han procesado
+            this.toastService.showSuccess('Revisión solicitada correctamente');
+            this.limpiarSeleccion();
+            return;
+          }
+
+          const request = requests[index];
+          this.revisionService.solicitarRevision(request).subscribe({
+            next: () => {
+              // Actualizar el estado del elemento actual
+              const elemento = this.elementosSeleccionados[index];
+              const indexTabla = this.elementosTabla.findIndex(
                 (e) =>
                   e.columnas['elementoId'] === elemento.columnas['elementoId']
               );
 
-              if (index !== -1) {
-                // Actualizar el estado del elemento
-                this.elementosTabla[index] = {
-                  ...this.elementosTabla[index],
+              if (indexTabla !== -1) {
+                // Crear una copia profunda del elemento actualizado
+                const elementoActualizado = {
+                  ...this.elementosTabla[indexTabla],
                   columnas: {
-                    ...this.elementosTabla[index].columnas,
+                    ...this.elementosTabla[indexTabla].columnas,
                     estadoRevision: 'PENDIENTE',
                     estadoVisibilidad: 'ENVIADO',
                   },
                 };
-              }
-            });
 
-            // Forzar la detección de cambios
-            this.elementosTabla = [...this.elementosTabla];
-            // Limpiar la selección
-            this.limpiarSeleccion();
-            this.toastService.showSuccess('Revisión solicitada correctamente');
-          },
-          error: (error: ApiError) => {
-            this.isError = true;
-            this.error = 'No se pudo solicitar la revisión';
-            this.toastService.showError('Error al solicitar revisión');
-            console.error('Error al solicitar revisión:', error);
-          },
-        });
+                // Actualizar el elemento en el array
+                this.elementosTabla = [
+                  ...this.elementosTabla.slice(0, indexTabla),
+                  elementoActualizado,
+                  ...this.elementosTabla.slice(indexTabla + 1),
+                ];
+              }
+
+              // Procesar la siguiente solicitud
+              procesarSolicitud(index + 1);
+            },
+            error: (error: ApiError) => {
+              console.error('Error al solicitar revisión:', error);
+              this.toastService.showError('Error al solicitar revisión');
+              // Continuar con la siguiente solicitud incluso si hay un error
+              procesarSolicitud(index + 1);
+            },
+          });
+        };
+
+        // Iniciar el procesamiento de solicitudes
+        procesarSolicitud(0);
       }
     });
   }

@@ -5,7 +5,10 @@ import { TableComponent } from '../../../../shared/components/table/table.compon
 import { FavoritosDropdownComponent } from '../favoritos-dropdown/favoritos-dropdown.component';
 import { ElementoService } from '../../../../core/services/elemento.service';
 import { ElementoFavorito } from '../../../../core/models/documentos/elemento-favorito-reponse.model';
-import { Elemento } from '../../../../core/models/documentos/elemento.model';
+import {
+  Elemento,
+  PaginatedResponse,
+} from '../../../../core/models/documentos/elemento.model';
 import { TransformacionService } from '../../../../core/services/transformacion.service';
 import { ElementoTabla } from '../../../../shared/models/table/elemento-tabla.model';
 import { CarpetaActualService } from '../../../../core/services/carpeta-actual.service';
@@ -101,10 +104,12 @@ export class FavoritosTableComponent {
         switchMap(() => this.elementoService.obtenerFavoritos())
       )
       .subscribe({
-        next: (elementos: ElementoFavorito[]) => {
-          this.elementosOriginales = elementos;
+        next: (response: PaginatedResponse<ElementoFavorito>) => {
+          this.elementosOriginales = response.content;
           this.elementosTabla =
-            this.transformacionService.transformarFavoritosATabla(elementos);
+            this.transformacionService.transformarFavoritosATabla(
+              response.content
+            );
           this.isLoading = false;
         },
         error: (err: ApiError) => {
@@ -171,11 +176,11 @@ export class FavoritosTableComponent {
         switchMap(() => this.elementoService.obtenerContenidoCarpeta(carpetaId))
       )
       .subscribe({
-        next: (elementos: Elemento[]) => {
-          this.elementosOriginales = elementos as ElementoFavorito[];
+        next: (response: PaginatedResponse<Elemento>) => {
+          this.elementosOriginales = response.content as ElementoFavorito[];
           this.elementosTabla =
             this.transformacionService.transformarFavoritosATabla(
-              elementos as ElementoFavorito[]
+              response.content as ElementoFavorito[]
             );
           this.isLoading = false;
         },

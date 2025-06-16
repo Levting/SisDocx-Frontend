@@ -33,6 +33,7 @@ import { Carpeta } from '../../../../core/models/documentos/carpeta.model';
 import { RenombrarElementoRequest } from '../../../../core/models/request/elemento-request.model';
 import { MarcarElementoFavoritoRequest } from '../../../../core/models/request/elemento-request.model';
 import { DescargarElementoRequest } from '../../../../core/models/documentos/descargar-elemento-request.model';
+import { PaginatedResponse } from '../../../../core/models/documentos/elemento.model';
 
 @Component({
   selector: 'app-documentos-table',
@@ -216,10 +217,12 @@ export class DocumentosTableComponent implements OnInit, OnDestroy {
       .pipe(
         filter((isLoggedIn) => isLoggedIn === true),
         take(1),
-        switchMap(() => this.elementoService.obtenerContenidoCarpetaAdmin(carpetaId))
+        switchMap(() =>
+          this.elementoService.obtenerContenidoCarpetaAdmin(carpetaId)
+        )
       )
       .subscribe({
-        next: (elementos: Elemento[]) => {
+        next: (response: PaginatedResponse<Elemento>) => {
           if (
             nombre &&
             (this.ruta.length === 0 ||
@@ -234,15 +237,15 @@ export class DocumentosTableComponent implements OnInit, OnDestroy {
             this.ruta = [];
           }
 
-          this.elementosOriginales = elementos;
+          this.elementosOriginales = response.content;
 
-          if (elementos.length === 0) {
+          if (response.content.length === 0) {
             this.isLoading = false;
             return;
           }
 
           this.transformacionService
-            .transformarDocumentosATabla(elementos)
+            .transformarDocumentosATabla(response.content)
             .subscribe({
               next: (filas) => {
                 this.elementosTabla = filas;
@@ -373,6 +376,8 @@ export class DocumentosTableComponent implements OnInit, OnDestroy {
           elementoId: elemento.columnas['elementoId'],
           elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
         }));
+
+        console.log('Requests', requests);
 
         forkJoin(
           requests.map((request) =>
@@ -512,6 +517,8 @@ export class DocumentosTableComponent implements OnInit, OnDestroy {
           elementoId: elemento.columnas['elementoId'],
           elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
         };
+
+        console.log('Request', request);
 
         this.elementoService.moverElementoPapelera(request).subscribe({
           next: () => {

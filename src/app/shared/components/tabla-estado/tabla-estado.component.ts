@@ -91,7 +91,21 @@ export class TablaEstadoComponent implements OnInit {
   }
 
   estaDeshabilitado(elemento: ElementoTabla): boolean {
-    return this.isElementoDisabled ? this.isElementoDisabled(elemento) : false;
+    if (!this.isElementoDisabled) return false;
+
+    const estadoVisibilidad = elemento.columnas['estadoVisibilidad']
+      ?.toString()
+      .toUpperCase();
+    const estadoRevision = elemento.columnas['estadoRevision']
+      ?.toString()
+      .toUpperCase();
+
+    return (
+      estadoVisibilidad === 'ENVIADO' ||
+      estadoVisibilidad === 'ACEPTADO' ||
+      estadoRevision === 'PENDIENTE' ||
+      this.isElementoDisabled(elemento)
+    );
   }
 
   enfocarFila(elemento: ElementoTabla): void {
@@ -290,7 +304,7 @@ export class TablaEstadoComponent implements OnInit {
 
     const valor = elemento.columnas[columna.key]?.toString().toUpperCase();
 
-      if (columna.key === 'estadoVisibilidad') {
+    if (columna.key === 'estadoVisibilidad') {
       switch (valor) {
         case 'ACEPTADO':
           return 'text-sm font-medium capitalize text-green-700';

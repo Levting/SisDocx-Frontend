@@ -11,8 +11,33 @@ export interface Elemento {
   provincia: string;
   carpetaPadreId: number; // Carpeta padre del elemento
   carpetaPadre: string;
-  equipoDistribucion: 'BARRIA' | 'TRANSFORMADOR' | 'UBV' | 'UMV' | 'UAV' | 'NINGUNO';
-  estadoVisibilidad: 'CREADO_ADMINISTRADOR' | 'CREADO' | 'ENVIADO' | 'ACEPTADO' | 'RECHAZADO';
+  equipoDistribucion:
+    | 'BARRIA'
+    | 'TRANSFORMADOR'
+    | 'UBV'
+    | 'UMV'
+    | 'UAV'
+    | 'NINGUNO';
+  estadoVisibilidad:
+    | 'CREADO_ADMINISTRADOR'
+    | 'CREADO'
+    | 'ENVIADO'
+    | 'ACEPTADO'
+    | 'RECHAZADO';
   anio: string;
   mes: string;
+}
+
+export interface PaginatedResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+}
+
+export interface CarpetaRaizResponse {
+  carpetaRaiz: Elemento;
+  contenido: Elemento[];
+  totalElementos: number;
 }

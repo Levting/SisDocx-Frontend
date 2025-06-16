@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { ConfirmModalComponent } from '../../../../shared/components/confirm-modal/confirm-modal.component';
 import { RevisionService } from '../../../../core/services/revision.service';
 import { ElementoTabla } from '../../../../shared/models/table/elemento-tabla.model';
@@ -13,6 +13,7 @@ import {
   TabsComponent,
 } from '../../../../shared/components/tabs/tabs.component';
 import { ToastService } from '../../../../core/services/toast.service';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-documentos-por-aprobar',
@@ -26,7 +27,7 @@ import { ToastService } from '../../../../core/services/toast.service';
   ],
   templateUrl: './documentos-por-aprobar.component.html',
 })
-export class DocumentosPorAprobarComponent implements OnInit {
+export class DocumentosPorAprobarComponent implements OnInit, OnDestroy {
   // Variables
   public revisionesPorAprobar: ElementoTabla[] = [];
   public revisionesRechazadas: ElementoTabla[] = [];
@@ -34,6 +35,7 @@ export class DocumentosPorAprobarComponent implements OnInit {
   public isOpenPreviewModal: boolean = false;
   public elementoAPrevisualizar: ElementoTabla | null = null;
   public observacionesRechazo: string = '';
+  private destroy$ = new Subject<void>();
 
   // Inyección de servicios
   private revisionService: RevisionService = inject(RevisionService);
@@ -53,37 +55,53 @@ export class DocumentosPorAprobarComponent implements OnInit {
 
   public activeTab: string = this.tabs[0].id;
 
-  // Cuando el usuario de click en el tab, esta recargara el contenido de la carpeta raiz
-  onReload(): void {}
-
-  onTabChange(tab: Tab): void {
-    this.activeTab = tab.id;
+  ngOnInit(): void {
+    this.cargarRevisiones();
   }
 
-  ngOnInit(): void {
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private cargarRevisiones(): void {
     // Cargar las revisiones por aprobar
     this.revisionService
       .obtenerRevisionesPendientes()
+      .pipe(takeUntil(this.destroy$))
       .subscribe((revisiones) => {
         this.revisionesPorAprobar = revisiones.map((revision) =>
           this.transformacionService.transformarATablaRevision(revision)
         );
       });
 
-    // Cargar las revisiones todas
+    // Cargar las revisiones rechazadas
     this.revisionService
       .obtenerRevisionesRechazadas()
+      .pipe(takeUntil(this.destroy$))
       .subscribe((revisiones) => {
         this.revisionesRechazadas = revisiones.map((revision) =>
           this.transformacionService.transformarATablaRevision(revision)
         );
       });
 
-    this.revisionService.obtenerRevisiones().subscribe((revisiones) => {
-      this.revisiones = revisiones.map((revision) =>
-        this.transformacionService.transformarATablaRevision(revision)
-      );
-    });
+    // Cargar todas las revisiones
+    this.revisionService
+      .obtenerRevisiones()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((revisiones) => {
+        this.revisiones = revisiones.map((revision) =>
+          this.transformacionService.transformarATablaRevision(revision)
+        );
+      });
+  }
+
+  onTabChange(tab: Tab): void {
+    this.activeTab = tab.id;
+  }
+
+  onReload(): void {
+    this.cargarRevisiones();
   }
 
   // Cerrar el modal de previsualización
@@ -183,4 +201,46 @@ export class DocumentosPorAprobarComponent implements OnInit {
         }
       });
   }
+
+  // Aprobar Seleccionados
+  /* onAprobarSeleccionados(revisiones: ElementoTabla[]): void {
+    this.confirmModalService
+      .open({
+        title: 'Confirmar Aprobación',
+        message: `¿Está seguro que desea aprobar ${revisiones.length} elementos de la revisión?`,
+        type: 'success',
+        confirmText: 'Aprobar',
+        cancelText: 'Cancelar',
+      })
+      .subscribe((result) => {
+        if (result.confirmed) {
+          const decision: RevisionDesicion = {
+            revisionId: revisionId,
+            estadoRevision: 'APROBADO',
+            observaciones: '',
+          };
+
+          this.revisionService.revisar(decision).subscribe({
+            next: () => {
+              // Actualizar la lista de revisiones
+              this.revisionService
+                .obtenerRevisionesPendientes()
+                .subscribe((revisiones) => {
+                  this.revisionesPorAprobar = revisiones.map((revision) =>
+                    this.transformacionService.transformarATablaRevision(
+                      revision
+                    )
+                  );
+                });
+
+              this.toastService.showSuccess('Revisión a sido aprobada');
+            },
+            error: (error) => {
+              console.error('Error al aprobar la revisión:', error);
+              this.toastService.showError('Error al aprobar la revisión');
+            },
+          });
+        }
+      });
+  } */
 }

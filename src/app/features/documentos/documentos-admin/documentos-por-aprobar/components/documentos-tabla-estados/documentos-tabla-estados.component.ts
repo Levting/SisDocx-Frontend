@@ -31,7 +31,7 @@ import { DescargarElementoRequest } from '../../../../../../core/models/document
 import { RevisionService } from '../../../../../../core/services/revision.service';
 import { RevisionDesicion } from '../../../../../../core/models/revision/revision-desicion.model';
 import { Revision } from '../../../../../../core/models/revision/elemento-revision.model';
-import { TableComponent } from "../../../../../../shared/components/table/table.component";
+import { TableComponent } from '../../../../../../shared/components/table/table.component';
 
 interface ColumnaConfig {
   key: string;
@@ -52,8 +52,8 @@ interface ColumnaConfig {
     NgClass,
     BreadcrumbComponent,
     DocumentosPreviewModalComponent,
-    TableComponent
-],
+    TableComponent,
+  ],
   templateUrl: './documentos-tabla-estados.component.html',
 })
 export class DocumentosTablaEstadosComponent implements OnInit {
@@ -158,6 +158,13 @@ export class DocumentosTablaEstadosComponent implements OnInit {
   private userProvincia: string | null = null;
 
   public revisiones: Revision[] = [];
+
+  // Pagination properties
+  public currentPage: number = 0;
+  public pageSize: number = 20;
+  public totalElements: number = 0;
+  public totalPages: number = 0;
+  public isLoadingMore: boolean = false;
 
   constructor() {
     // Suscribirse a los cambios del rol y provincia
@@ -269,15 +276,22 @@ export class DocumentosTablaEstadosComponent implements OnInit {
     this.isError = false;
     this.error = null;
     this.elementosTabla = [];
+    this.currentPage = 0;
 
     this.authService.userLoginOn
       .pipe(
         filter((isLoggedIn) => isLoggedIn === true),
         take(1),
-        switchMap(() => this.elementoService.obtenerContenidoCarpeta(carpetaId))
+        switchMap(() =>
+          this.elementoService.obtenerContenidoCarpeta(
+            carpetaId,
+            this.currentPage,
+            this.pageSize
+          )
+        )
       )
       .subscribe({
-        next: (elementos) => {
+        next: (response) => {
           if (
             nombre &&
             (this.ruta.length === 0 ||
@@ -292,15 +306,17 @@ export class DocumentosTablaEstadosComponent implements OnInit {
             this.ruta = [];
           }
 
-          this.elementosOriginales = elementos;
+          this.elementosOriginales = response.content;
+          this.totalElements = response.totalElements;
+          this.totalPages = response.totalPages;
 
-          if (elementos.length === 0) {
+          if (response.content.length === 0) {
             this.isLoading = false;
             return;
           }
 
           this.transformacionService
-            .transformarDocumentosATabla(elementos)
+            .transformarDocumentosATabla(response.content)
             .subscribe({
               next: (filas) => {
                 this.elementosTabla = filas;
@@ -330,6 +346,43 @@ export class DocumentosTablaEstadosComponent implements OnInit {
               'Ocurrió un problema al cargar los archivos. Intenta de nuevo más tarde.';
             this.logger.error('Error al cargar contenido:', err.message);
           }
+        },
+      });
+  }
+
+  cargarMasElementos(): void {
+    if (this.isLoadingMore || this.currentPage >= this.totalPages - 1) return;
+
+    this.isLoadingMore = true;
+    this.currentPage++;
+
+    const carpetaActual = this.carpetaActualService.obtenerCarpetaActual();
+    if (!carpetaActual) return;
+
+    this.elementoService
+      .obtenerContenidoCarpeta(
+        carpetaActual.elementoId,
+        this.currentPage,
+        this.pageSize
+      )
+      .subscribe({
+        next: (response) => {
+          this.transformacionService
+            .transformarDocumentosATabla(response.content)
+            .subscribe({
+              next: (filas) => {
+                this.elementosTabla = [...this.elementosTabla, ...filas];
+                this.isLoadingMore = false;
+              },
+              error: (err) => {
+                this.isLoadingMore = false;
+                this.logger.error('Error al cargar más elementos:', err);
+              },
+            });
+        },
+        error: (err) => {
+          this.isLoadingMore = false;
+          this.logger.error('Error al cargar más elementos:', err);
         },
       });
   }
@@ -430,34 +483,34 @@ export class DocumentosTablaEstadosComponent implements OnInit {
 
     this.confirmModalService.open(config).subscribe((result) => {
       if (result.confirmed) {
-      const requests = this.elementosSeleccionados.map((elemento) => ({
-        elementoId: elemento.columnas['elementoId'],
-        elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
-      }));
+        const requests = this.elementosSeleccionados.map((elemento) => ({
+          elementoId: elemento.columnas['elementoId'],
+          elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
+        }));
 
-      forkJoin(
-        requests.map((request) =>
-          this.elementoService.moverElementoPapelera(request).pipe(
-            catchError((error) => {
-              console.error(
-                `Error al mover elemento ${request.elementoId} a papelera:`,
-                error
-              );
-              return of(null);
-            })
+        forkJoin(
+          requests.map((request) =>
+            this.elementoService.moverElementoPapelera(request).pipe(
+              catchError((error) => {
+                console.error(
+                  `Error al mover elemento ${request.elementoId} a papelera:`,
+                  error
+                );
+                return of(null);
+              })
+            )
           )
-        )
-      ).subscribe({
-        next: () => {
-          this.limpiarSeleccion();
-          this.cargarContenido(
-            this.ruta[this.ruta.length - 1]?.elementoId || 1
-          );
-        },
-        error: (error) => {
-          this.isError = true;
-          this.error = 'No se pudieron mover los elementos a la papelera';
-          console.error('Error al mover elementos a papelera:', error);
+        ).subscribe({
+          next: () => {
+            this.limpiarSeleccion();
+            this.cargarContenido(
+              this.ruta[this.ruta.length - 1]?.elementoId || 1
+            );
+          },
+          error: (error) => {
+            this.isError = true;
+            this.error = 'No se pudieron mover los elementos a la papelera';
+            console.error('Error al mover elementos a papelera:', error);
           },
         });
       }
@@ -497,26 +550,26 @@ export class DocumentosTablaEstadosComponent implements OnInit {
 
     this.confirmModalService.open(config).subscribe((result) => {
       if (result.confirmed) {
-      const request = {
-        elementoId: elemento.columnas['elementoId'],
-        elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
-      };
+        const request = {
+          elementoId: elemento.columnas['elementoId'],
+          elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
+        };
 
-      this.elementoService.moverElementoPapelera(request).subscribe({
-        next: () => {
-          const carpetaActual =
-            this.carpetaActualService.obtenerCarpetaActual();
-          if (carpetaActual) {
-            this.carpetaActualService.notificarRecargarContenido(
-              carpetaActual.elementoId
-            );
-          }
-        },
-        error: (error: ApiError) => {
-          this.isError = true;
-          this.error =
-            error.message || 'No se pudo mover el elemento a la papelera';
-          console.error('Error al mover a papelera:', error);
+        this.elementoService.moverElementoPapelera(request).subscribe({
+          next: () => {
+            const carpetaActual =
+              this.carpetaActualService.obtenerCarpetaActual();
+            if (carpetaActual) {
+              this.carpetaActualService.notificarRecargarContenido(
+                carpetaActual.elementoId
+              );
+            }
+          },
+          error: (error: ApiError) => {
+            this.isError = true;
+            this.error =
+              error.message || 'No se pudo mover el elemento a la papelera';
+            console.error('Error al mover a papelera:', error);
           },
         });
       }
@@ -574,25 +627,28 @@ export class DocumentosTablaEstadosComponent implements OnInit {
 
     this.confirmModalService.open(config).subscribe((result) => {
       if (result.confirmed) {
-      const request: RevisionDesicion = {
-        revisionId: elemento.columnas['id'],
-        estadoRevision: 'APROBADO',
-        observaciones: elemento.columnas['observaciones'],
-      };
+        const request: RevisionDesicion = {
+          revisionId: elemento.columnas['id'],
+          estadoRevision: 'APROBADO',
+          observaciones: elemento.columnas['observaciones'],
+        };
 
-      this.revisionService.revisar(request).subscribe({
-        next: () => {
-          this.logger.info('Aprobando revisión:', elemento.columnas['nombre']);
-          this.cargarRevisionesPendientes();
-        },
-        error: (error) => {
-          this.isError = true;
-          this.error = 'Error al aprobar la revisión';
-          this.logger.error('Error al aprobar revisión:', error);
-        },
-      });
-    }
-  });
+        this.revisionService.revisar(request).subscribe({
+          next: () => {
+            this.logger.info(
+              'Aprobando revisión:',
+              elemento.columnas['nombre']
+            );
+            this.cargarRevisionesPendientes();
+          },
+          error: (error) => {
+            this.isError = true;
+            this.error = 'Error al aprobar la revisión';
+            this.logger.error('Error al aprobar revisión:', error);
+          },
+        });
+      }
+    });
   }
 
   onRechazar(elemento: ElementoTabla): void {
@@ -605,24 +661,24 @@ export class DocumentosTablaEstadosComponent implements OnInit {
 
     this.confirmModalService.open(config).subscribe((result) => {
       if (result.confirmed) {
-      const request: RevisionDesicion = {
-        revisionId: elemento.columnas['id'],
-        estadoRevision: 'RECHAZADO',
-        observaciones: elemento.columnas['observaciones'],
-      };
+        const request: RevisionDesicion = {
+          revisionId: elemento.columnas['id'],
+          estadoRevision: 'RECHAZADO',
+          observaciones: elemento.columnas['observaciones'],
+        };
 
-      this.revisionService.revisar(request).subscribe({
-        next: () => {
-          this.cargarRevisionesPendientes();
-        },
-        error: (error) => {
-          this.isError = true;
-          this.error = 'Error al rechazar la revisión';
-          this.logger.error('Error al rechazar revisión:', error);
-        },
-      });
-    }
-  });
+        this.revisionService.revisar(request).subscribe({
+          next: () => {
+            this.cargarRevisionesPendientes();
+          },
+          error: (error) => {
+            this.isError = true;
+            this.error = 'Error al rechazar la revisión';
+            this.logger.error('Error al rechazar revisión:', error);
+          },
+        });
+      }
+    });
   }
 
   onAprobarSeleccionados(elementos: ElementoTabla[]): void {
@@ -636,16 +692,16 @@ export class DocumentosTablaEstadosComponent implements OnInit {
 
     this.confirmModalService.open(config).subscribe((result) => {
       if (result.confirmed) {
-      // Aquí iría la llamada al servicio para aprobar los documentos
-      console.log('Aprobando documentos:', elementos);
-      // Actualizar el estado de los documentos
-      elementos.forEach((elemento) => {
-        elemento.columnas['estado'] = 'Aprobado';
-      });
-      // Recargar la tabla
-      this.cargarContenido(this.ruta[this.ruta.length - 1]?.elementoId || 1);
-    }
-  });
+        // Aquí iría la llamada al servicio para aprobar los documentos
+        console.log('Aprobando documentos:', elementos);
+        // Actualizar el estado de los documentos
+        elementos.forEach((elemento) => {
+          elemento.columnas['estado'] = 'Aprobado';
+        });
+        // Recargar la tabla
+        this.cargarContenido(this.ruta[this.ruta.length - 1]?.elementoId || 1);
+      }
+    });
   }
 
   onRechazarSeleccionados(elementos: ElementoTabla[]): void {
@@ -658,16 +714,16 @@ export class DocumentosTablaEstadosComponent implements OnInit {
 
     this.confirmModalService.open(config).subscribe((result) => {
       if (result.confirmed) {
-      // Aquí iría la llamada al servicio para rechazar los documentos
-      console.log('Rechazando documentos:', elementos);
-      // Actualizar el estado de los documentos
-      elementos.forEach((elemento) => {
-        elemento.columnas['estado'] = 'Rechazado';
-      });
-      // Recargar la tabla
-      this.cargarContenido(this.ruta[this.ruta.length - 1]?.elementoId || 1);
-    }
-  });
+        // Aquí iría la llamada al servicio para rechazar los documentos
+        console.log('Rechazando documentos:', elementos);
+        // Actualizar el estado de los documentos
+        elementos.forEach((elemento) => {
+          elemento.columnas['estado'] = 'Rechazado';
+        });
+        // Recargar la tabla
+        this.cargarContenido(this.ruta[this.ruta.length - 1]?.elementoId || 1);
+      }
+    });
   }
 
   cargarRevisionesPendientes(): void {
@@ -693,5 +749,19 @@ export class DocumentosTablaEstadosComponent implements OnInit {
   onEnviarSolicitud(elemento: ElementoTabla): void {
     // Implementar la lógica para enviar solicitud
     console.log('Enviando solicitud para:', elemento);
+  }
+
+  onTableScroll(event: any): void {
+    const element = event.target;
+    const atBottom =
+      element.scrollHeight - element.scrollTop === element.clientHeight;
+
+    if (
+      atBottom &&
+      !this.isLoadingMore &&
+      this.currentPage < this.totalPages - 1
+    ) {
+      this.cargarMasElementos();
+    }
   }
 }

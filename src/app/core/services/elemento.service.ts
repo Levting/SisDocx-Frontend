@@ -1,8 +1,12 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { catchError, map, Observable, throwError, tap, switchMap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Elemento } from '../models/documentos/elemento.model';
+import {
+  Elemento,
+  PaginatedResponse,
+  CarpetaRaizResponse,
+} from '../models/documentos/elemento.model';
 import { ElementoPapelera } from '../models/documentos/elemento-papelera-response.model';
 import { ElementoFavorito } from '../models/documentos/elemento-favorito-reponse.model';
 import { CrearCarpetaRequest } from '../models/documentos/crear-carpeta-request.model';
@@ -20,7 +24,10 @@ import { DescargarElementoRequest } from '../models/documentos/descargar-element
 import { AuthService } from './auth.service';
 import { LoggerService } from './logger.service';
 import { TokenService } from './token.service';
-import { ElementoFiltrado, FiltrosFusion } from '../models/documentos/elemento-filtrado.model';
+import {
+  ElementoFiltrado,
+  FiltrosFusion,
+} from '../models/documentos/elemento-filtrado.model';
 import { FusionarArchivoRequest } from '../models/documentos/fusionar-archivo-request.model';
 import { SourceTextModule } from 'node:vm';
 
@@ -54,12 +61,12 @@ export class ElementoService {
     );
   }
 
-  obtenerRaiz(): Observable<{ carpetaRaiz: Elemento; contenido: Elemento[] }> {
+  obtenerRaiz(): Observable<CarpetaRaizResponse> {
     const url = `${this.API_URL}/raiz`;
     return this.waitForAuth(
-      this.http.get<{ carpetaRaiz: Elemento; contenido: Elemento[] }>(url).pipe(
+      this.http.get<CarpetaRaizResponse>(url).pipe(
         tap((response) => {
-          /* this.logger.debug('Contenido raíz obtenido:', response); */
+          this.logger.debug('Contenido raíz obtenido:', response);
         }),
         catchError((error: ApiError) => {
           return throwError(
@@ -75,14 +82,65 @@ export class ElementoService {
     return this.waitForAuth(this.http.post<Elemento[]>(url, request));
   }
 
-  obtenerContenidoCarpeta(carpetaId: number): Observable<Elemento[]> {
+  obtenerContenidoCarpeta(
+    carpetaId: number,
+    page: number = 0,
+    size: number = 20,
+    sortBy: string = 'nombre',
+    direction: 'asc' | 'desc' = 'asc'
+  ): Observable<PaginatedResponse<Elemento>> {
     const url = `${this.API_URL}/carpetas/${carpetaId}/contenido`;
-    return this.waitForAuth(this.http.get<Elemento[]>(url));
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sortBy', sortBy)
+      .set('direction', direction);
+
+    return this.waitForAuth(
+      this.http.get<PaginatedResponse<Elemento>>(url, { params }).pipe(
+        catchError((error: ApiError) => {
+          this.logger.error('Error al obtener contenido de carpeta:', error);
+          return throwError(
+            () =>
+              new Error(
+                error.message || 'Error al obtener contenido de carpeta'
+              )
+          );
+        })
+      )
+    );
   }
 
-  obtenerContenidoCarpetaAdmin(carpetaId: number): Observable<Elemento[]> {
+  obtenerContenidoCarpetaAdmin(
+    carpetaId: number,
+    page: number = 0,
+    size: number = 20,
+    sortBy: string = 'nombre',
+    direction: 'asc' | 'desc' = 'asc'
+  ): Observable<PaginatedResponse<Elemento>> {
     const url = `${this.API_URL}/admin/carpetas/${carpetaId}/contenido`;
-    return this.waitForAuth(this.http.get<Elemento[]>(url));
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sortBy', sortBy)
+      .set('direction', direction);
+
+    return this.waitForAuth(
+      this.http.get<PaginatedResponse<Elemento>>(url, { params }).pipe(
+        catchError((error: ApiError) => {
+          this.logger.error(
+            'Error al obtener contenido de carpeta admin:',
+            error
+          );
+          return throwError(
+            () =>
+              new Error(
+                error.message || 'Error al obtener contenido de carpeta admin'
+              )
+          );
+        })
+      )
+    );
   }
 
   obtenerDetallesElemento(
@@ -107,9 +165,9 @@ export class ElementoService {
     return this.http.get<ElementoPapelera[]>(url);
   }
 
-  obtenerFavoritos(): Observable<ElementoFavorito[]> {
+  obtenerFavoritos(): Observable<PaginatedResponse<ElementoFavorito>> {
     const url = `${this.API_URL}/favoritos`;
-    return this.http.get<ElementoFavorito[]>(url);
+    return this.http.get<PaginatedResponse<ElementoFavorito>>(url);
   }
 
   previsualizarArchivo(request: PrevisualizarArchivoRequest): Observable<Blob> {
