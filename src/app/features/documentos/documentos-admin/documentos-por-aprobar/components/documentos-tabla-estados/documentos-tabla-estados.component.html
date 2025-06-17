@@ -76,7 +76,7 @@
     class="flex-1 min-h-0 bg-white rounded-lg shadow-sm border border-gray-200"
   >
     <div class="h-full flex flex-col">
-      <app-table
+      <app-tabla-estado
         [cabeceras]="cabeceras"
         [columnas]="columnas"
         [elementosTabla]="elementosTabla"
@@ -85,6 +85,8 @@
         [isLoading]="isLoading"
         [isError]="isError"
         [error]="error"
+        [hasMoreItems]="hasMoreItems"
+        [isLoadingMore]="isLoadingMore"
         (cambioSeleccion)="onSeleccionCambiada($event)"
         (dobleClickElemento)="onDobleClickElemento($event)"
         (scroll)="onTableScroll($event)"

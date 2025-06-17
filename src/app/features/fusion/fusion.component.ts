@@ -24,6 +24,8 @@ import { ConfirmModalComponent } from '../../shared/components/confirm-modal/con
 import { Subject } from 'rxjs';
 import { FusionarArchivoRequest } from '../../core/models/documentos/fusionar-archivo-request.model';
 import { FusionService } from '../../core/services/fusion.service';
+import { FusionModalComponent } from '../../shared/components/fusion-modal/fusion-modal.component';
+import { FusionModalService } from '../../shared/services/fusion-modal.service';
 
 @Component({
   selector: 'app-fusion',
@@ -34,6 +36,7 @@ import { FusionService } from '../../core/services/fusion.service';
     FileSizePipe,
     FormsModule,
     ConfirmModalComponent,
+    FusionModalComponent,
   ],
   templateUrl: './fusion.component.html',
 })
@@ -70,7 +73,7 @@ export class FusionComponent implements OnInit {
     equipoDistribucion: null,
     anio: null,
     mes: null,
-    tipoArchivoFusion: null,
+    tipoFusion: null,
   };
 
   public provincias: Provincia[] = [];
@@ -125,6 +128,7 @@ export class FusionComponent implements OnInit {
     inject(ConfirmModalService);
   private toastService: ToastService = inject(ToastService);
   private fusionService: FusionService = inject(FusionService);
+  private fusionModalService: FusionModalService = inject(FusionModalService);
 
   ngOnInit(): void {
     this.cargarProvincias();
@@ -167,13 +171,14 @@ export class FusionComponent implements OnInit {
     } else if (typeof this.filtros.provinciaId === 'number') {
       provinciaIdValue = this.filtros.provinciaId;
     }
+
     const request: FiltrosFusion = {
       nombre: this.filtros.nombre || null,
       provinciaId: provinciaIdValue,
       equipoDistribucion: this.filtros.equipoDistribucion || null,
       anio: this.filtros.anio || null,
       mes: this.filtros.mes || null,
-      tipoArchivoFusion: this.filtros.tipoArchivoFusion || null,
+      tipoFusion: this.filtros.tipoFusion || null,
     };
 
     this.elementoService
@@ -248,10 +253,9 @@ export class FusionComponent implements OnInit {
     }
 
     // Validar que todos los elementos sean del mismo tipo
-    const primerTipo =
-      this.elementosSeleccionados[0].columnas['tipoArchivoFusion'];
+    const primerTipo = this.elementosSeleccionados[0].columnas['tipoFusion'];
     const todosMismoTipo = this.elementosSeleccionados.every(
-      (elemento) => elemento.columnas['tipoArchivoFusion'] === primerTipo
+      (elemento) => elemento.columnas['tipoFusion'] === primerTipo
     );
 
     if (!todosMismoTipo) {
@@ -277,7 +281,7 @@ export class FusionComponent implements OnInit {
 
         const request: FusionarArchivoRequest = {
           archivoId: archivoIds,
-          tipoArchivoFusion: primerTipo, // ya se validó que todos son del mismo tipo
+          tipoFusion: primerTipo,
         };
 
         this.fusionService.fusionarArchivos(request).subscribe({
@@ -295,14 +299,58 @@ export class FusionComponent implements OnInit {
               }
             }
 
-            this.elementoService.descargarElementos(
-              this.elementosSeleccionados.map((e) => ({
-                elementoId: e.columnas['elementoId'],
-                elemento: 'ARCHIVO',
-              }))
-            );
+            // Mostrar el modal de fusión con las opciones de descargar o guardar
+            this.fusionModalService
+              .open({
+                title: 'Fusión Completada',
+                message:
+                  'La fusión se ha completado exitosamente. ¿Qué deseas hacer con el archivo?',
+                confirmText: 'Confirmar',
+                downloadText: 'Descargar',
+                saveText: 'Guardar',
+                cancelText: 'Cancelar',
+                blob: blob,
+                filename: filename,
+              })
+              .subscribe((result) => {
+                if (result === 'download') {
+                  // Descargar el archivo
+                  const url = window.URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = filename;
+                  link.click();
+                  window.URL.revokeObjectURL(url);
+                } else if (result === 'save') {
+                  console.log('Guardando archivo:', filename);
+                  this.toastService.showSuccess(
+                    'Archivo guardado correctamente'
+                  );
 
-            this.toastService.showSuccess('Archivos fusionados correctamente');
+                  // Crear un File a partir del blob
+                  const file = new File([blob], filename, { type: blob.type });
+
+                  // Llamar al servicio para guardar el archivo fusionado
+                  this.fusionService
+                    .guardarArchivoFusionado(file, filename)
+                    .subscribe({
+                      next: (response) => {
+                        this.toastService.showSuccess(
+                          'Archivo guardado correctamente en el sistema'
+                        );
+                        // Actualizar la vista si es necesario
+                      },
+                      error: (error: ApiError) => {
+                        this.toastService.showError(
+                          `Error al guardar el archivo: ${error.message}`
+                        );
+                      },
+                    });
+                }
+
+                // Si es 'cancel', no hacemos nada
+              });
+
             this.limpiarSeleccion();
             this.cargarArchivosParaFusionar();
           },

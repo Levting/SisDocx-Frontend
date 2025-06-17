@@ -109,7 +109,7 @@ export class ElementoService {
         })
       )
     );
-  }
+  } 
 
   obtenerContenidoCarpetaAdmin(
     carpetaId: number,

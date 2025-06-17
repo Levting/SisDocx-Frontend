@@ -1,4 +1,4 @@
 export interface FusionarArchivoRequest {
   archivoId: number[];
-  tipoArchivoFusion: 'CAL' | 'ANALIZADOR';
+  tipoFusion: 'CAL' | 'ANALIZADOR';
 }

@@ -144,7 +144,7 @@
       <select
         id="tipoArchivoFusion"
         name="tipoArchivoFusion"
-        [(ngModel)]="filtros.tipoArchivoFusion"
+        [(ngModel)]="filtros.tipoFusion"
         (ngModelChange)="onSelectChange()"
         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
       >
@@ -319,16 +319,16 @@
                 {{ elemento.columnas["elemento"] }}
               </span>
               <span
-                *ngIf="elemento.columnas['tipoArchivoFusion']"
+                *ngIf="elemento.columnas['tipoFusion']"
                 class="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
                 [ngClass]="{
                   'bg-green-100 text-green-800':
-                    elemento.columnas['tipoArchivoFusion'] === 'CAL',
+                    elemento.columnas['tipoFusion'] === 'CAL',
                   'bg-purple-100 text-purple-800':
-                    elemento.columnas['tipoArchivoFusion'] === 'ANALIZADOR'
+                    elemento.columnas['tipoFusion'] === 'ANALIZADOR'
                 }"
               >
-                {{ elemento.columnas["tipoArchivoFusion"] }}
+                {{ elemento.columnas["tipoFusion"] }}
               </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -359,3 +359,6 @@
 
 <!-- Modal de confirmación -->
 <app-confirm-modal />
+
+<!-- Modal de fusión -->
+<app-fusion-modal />

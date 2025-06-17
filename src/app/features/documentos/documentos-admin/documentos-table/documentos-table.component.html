@@ -11,7 +11,7 @@
     >
       <!-- Mostrar cuando no hay elementos seleccionados -->
       <ng-container *ngIf="elementosSeleccionados.length === 0">
-        <header>
+        <header class="flex items-center gap-4">
           <h2
             class="font-bold mb-0 text-[22px] text-gray-800 lg:text-2xl 4xl:text-[26px]"
           >
@@ -118,9 +118,12 @@
       [isLoading]="isLoading"
       [isError]="isError"
       [error]="error"
+      [hasMoreItems]="hasMoreItems"
+      [isLoadingMore]="isLoadingMore"
       (cambioSeleccion)="onSeleccionCambiada($event)"
       (dobleClickElemento)="onDobleClickElemento($event)"
       (toggleFavorito)="onToggleFavorito($event)"
+      (scroll)="onScroll()"
     />
   </div>
 
@@ -142,4 +145,11 @@
       (onRenombrar)="onElementoRenombrado($event)"
     />
   </ng-template>
+
+  <div
+    *ngIf="!isLoading && !isError && totalElements > 0"
+    class="text-sm text-gray-500 mt-2 text-center"
+  >
+    Mostrando {{ loadedElements }} de {{ totalElements }} elementos
+  </div>
 </div>

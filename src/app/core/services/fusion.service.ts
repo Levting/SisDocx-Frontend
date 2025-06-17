@@ -1,11 +1,13 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
-import { Observable, throwError, tap, switchMap } from 'rxjs';
+import { Observable, throwError, tap, switchMap, catchError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
 import { LoggerService } from './logger.service';
 import { TokenService } from './token.service';
 import { FusionarArchivoRequest } from '../models/documentos/fusionar-archivo-request.model';
+import { Elemento } from '../models/documentos/elemento.model';
+import { ApiError } from '../models/errors/api-error.model';
 
 /**
  * Servicio para gestionar las operaciones relacionadas con los elementos (carpetas y archivos).
@@ -64,6 +66,28 @@ export class FusionService {
         // Descargar el archivo
         const blob = response.body as Blob;
         this.descargarArchivo(blob, filename);
+      })
+    );
+  }
+
+  guardarArchivoFusionado(blob: Blob, filename: string): Observable<Elemento> {
+    const url = `${this.API_URL}/guardar`;
+
+    // Convertir el blob a un archivo
+    const file = new File([blob], filename, { type: blob.type });
+
+    const formData = new FormData();
+    formData.append('archivo', file);
+
+    return this.http.post<Elemento>(url, formData).pipe(
+      catchError((error: ApiError) => {
+        console.error('Error al guardar archivo fusionado:', error.message);
+        return throwError(
+          () =>
+            new Error(
+              error.message || 'No se pudo guardar el archivo fusionado'
+            )
+        );
       })
     );
   }

@@ -23,7 +23,9 @@
 
   <!-- Contenedor con scroll -->
   <div
+    #tableContainer
     class="h-full w-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent scrollbar-thumb-rounded relative z-0"
+    (scroll)="onTableScroll($event)"
   >
     <table class="w-full text-sm text-left rtl:text-right text-gray-500">
       <thead
@@ -57,8 +59,8 @@
       </thead>
 
       <tbody>
-        <!-- Estado de carga -->
-        <tr *ngIf="isLoading">
+        <!-- Estado de carga inicial -->
+        <tr *ngIf="isLoading && isInitialLoad">
           <td [colSpan]="cabeceras.length + 1" class="px-6 py-20">
             <div class="flex justify-center items-center animate-pulse">
               <div role="status">
@@ -353,5 +355,12 @@
         </tr>
       </tbody>
     </table>
+
+    <!-- Loading indicator for infinite scroll -->
+    <div *ngIf="isLoadingMore" class="p-4 text-center">
+      <div
+        class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-blue-600"
+      ></div>
+    </div>
   </div>
 </div>

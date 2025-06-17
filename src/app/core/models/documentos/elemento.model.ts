@@ -34,6 +34,9 @@ export interface PaginatedResponse<T> {
   totalPages: number;
   size: number;
   number: number;
+  last: boolean;
+  first: boolean;
+  empty: boolean;
 }
 
 export interface CarpetaRaizResponse {

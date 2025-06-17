@@ -6,8 +6,5 @@ import { RouterOutlet } from '@angular/router';
   standalone: true,
   imports: [RouterOutlet],
   templateUrl: './auth.component.html',
-
 })
-export class AuthComponent {
-
-}
+export class AuthComponent {}

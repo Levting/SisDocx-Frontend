@@ -1,13 +1,20 @@
-import { CommonModule } from '@angular/common';
 import {
   Component,
   Input,
   Output,
   EventEmitter,
   TemplateRef,
+  ElementRef,
+  ViewChild,
+  AfterViewInit,
+  OnInit,
+  OnDestroy,
 } from '@angular/core';
 import { SvgIconComponent } from 'angular-svg-icon';
+import { CommonModule } from '@angular/common';
 import { ElementoTabla } from '../../models/table/elemento-tabla.model';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, filter, takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-table',
@@ -15,30 +22,56 @@ import { ElementoTabla } from '../../models/table/elemento-tabla.model';
   imports: [CommonModule, SvgIconComponent],
   templateUrl: './table.component.html',
 })
-export class TableComponent {
+export class TableComponent implements OnInit, OnDestroy {
+  @ViewChild('tableContainer') tableContainer!: ElementRef;
+
   @Input() cabeceras: string[] = []; // Cabeceras de la tabla
   @Input() elementosTabla: ElementoTabla[] = []; // Datos de la tabla
   @Input() columnas: string[] | null = []; // Columnas a mostrar (mostrar nombre por defecto)
-
   @Input() mostrarDropdown: boolean = false; // Indica si se muestra un dropdown (acciones)
   @Input() dropdownTemplate: TemplateRef<any> | null = null; // Template del dropdown
   @Input() habilitarNavegacion: boolean = false; // Indica si se muestra la navegación de carpetas
   @Input() isLoading: boolean = false; // Indica si la tabla está cargando
   @Input() isError: boolean = false; // Indica si hay un error
   @Input() error: string | null = null; // Mensaje de error
+  @Input() hasMoreItems: boolean = false;
+  @Input() isLoadingMore: boolean = false;
 
   @Output() cambioSeleccion = new EventEmitter<ElementoTabla[]>();
   @Output() dobleClickElemento = new EventEmitter<ElementoTabla>();
   @Output() toggleFavorito = new EventEmitter<ElementoTabla>();
+  @Output() loadMore = new EventEmitter<void>();
+  @Output() scroll = new EventEmitter<void>();
 
   public searchTerm: string = '';
   public elementoEnfocado: ElementoTabla | null = null;
+  public isInitialLoad: boolean = true;
+
+  private scrollSubject = new Subject<void>();
+  private destroy$ = new Subject<void>();
+  private scrollSubscription: Subscription | null = null;
 
   // Propiedades para el ordenamiento
   public columnaOrdenada: string | null = null;
   public ordenAscendente: boolean = true;
 
+
+
   // public elementosSeleccionados: ElementoTabla[] = [];
+
+
+  ngOnInit(): void {
+    this.scrollSubject
+    .pipe(debounceTime(300), takeUntil(this.destroy$))
+    .subscribe(() => {
+      this.scroll.emit();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
   get elementosSeleccionados(): ElementoTabla[] {
     return this.elementosTabla.filter((e) => e.seleccionado);
@@ -83,6 +116,11 @@ export class TableComponent {
     this.emitirCambioSeleccion();
   }
 
+
+  abrirCarpeta(elementoTabla: ElementoTabla): void {
+    this.dobleClickElemento.emit(elementoTabla);
+  }
+
   emitirCambioSeleccion(): void {
     this.cambioSeleccion.emit(this.elementosSeleccionados);
   }
@@ -96,9 +134,6 @@ export class TableComponent {
     this.toggleFavorito.emit(elementoTabla);
   }
 
-  abrirCarpeta(elementoTabla: ElementoTabla): void {
-    this.dobleClickElemento.emit(elementoTabla);
-  }
 
   getAllColumnKeys(elementoTabla: ElementoTabla): string[] {
     return Object.keys(elementoTabla.columnas);
@@ -168,5 +203,29 @@ export class TableComponent {
     };
 
     return colores[valor] || 'bg-gray-100 text-gray-800 border-gray-300';
+  }
+
+  onTableScroll(event: Event): void {
+    const element = event.target as HTMLElement;
+    const scrollPosition = element.scrollTop + element.clientHeight;
+    const scrollHeight = element.scrollHeight;
+
+    // Emitir el evento de scroll cuando el usuario llega al 80% del contenido
+    if (scrollPosition >= scrollHeight * 0.8) {
+      this.scroll.emit();
+    }
+  }
+
+  private shouldLoadMore(event: Event): boolean {
+    if (this.isLoadingMore || !this.hasMoreItems) return false;
+
+    const target = event.target as HTMLElement;
+    const scrollPosition = target.scrollTop + target.clientHeight;
+    const scrollHeight = target.scrollHeight;
+
+    // Aumentamos el margen para cargar antes
+    const threshold = 0.9; // 90% del scroll
+
+    return scrollPosition >= scrollHeight * threshold;
   }
 }

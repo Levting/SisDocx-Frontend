@@ -1,18 +1,23 @@
 import {
   Component,
-  Output,
-  TemplateRef,
   Input,
+  Output,
   EventEmitter,
+  TemplateRef,
+  ElementRef,
+  ViewChild,
+  AfterViewInit,
   OnInit,
+  OnDestroy,
   inject,
-  input,
 } from '@angular/core';
 import { ElementoTabla } from '../../models/table/elemento-tabla.model';
 import { CommonModule, NgIf } from '@angular/common';
 import { SvgIconComponent } from 'angular-svg-icon';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
+import { debounceTime, takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
 export interface ColumnaConfig {
   key: string;
@@ -33,7 +38,7 @@ export interface ColumnaConfig {
   imports: [NgIf, CommonModule, SvgIconComponent, FormsModule],
   templateUrl: './tabla-estado.component.html',
 })
-export class TablaEstadoComponent implements OnInit {
+export class TablaEstadoComponent implements OnInit, OnDestroy {
   @Input() columnasConfig: ColumnaConfig[] = [];
   @Input() elementosTabla: ElementoTabla[] = [];
   @Input() mostrarDropdown: boolean = false;
@@ -44,6 +49,8 @@ export class TablaEstadoComponent implements OnInit {
   @Input() error: string | null = null;
   @Input() isElementoDisabled: ((elemento: ElementoTabla) => boolean) | null =
     null;
+  @Input() hasMoreItems: boolean = false;
+  @Input() isLoadingMore: boolean = false;
 
   @Output() cambioSeleccion = new EventEmitter<ElementoTabla[]>();
   @Output() dobleClickElemento = new EventEmitter<ElementoTabla>();
@@ -52,6 +59,7 @@ export class TablaEstadoComponent implements OnInit {
   @Output() aprobarSeleccionadosEvent = new EventEmitter<ElementoTabla[]>();
   @Output() rechazarSeleccionadosEvent = new EventEmitter<ElementoTabla[]>();
   @Output() enviarSolicitud = new EventEmitter<ElementoTabla>();
+  @Output() scroll = new EventEmitter<void>();
 
   // Inyeccion de servicios
   private authService: AuthService = inject(AuthService);
@@ -66,11 +74,25 @@ export class TablaEstadoComponent implements OnInit {
   public columnaOrdenada: string | null = null;
   public ordenAscendente: boolean = true;
 
+  private destroy$ = new Subject<void>();
+  private scrollSubject = new Subject<void>();
+
   ngOnInit(): void {
     // Suscribirse a los cambios del rol del usuario para mostrar los botones de administrador
     this.authService.userRole$.subscribe((role) => {
       this.isAdmin = role === 'Administrador';
     });
+
+    this.scrollSubject
+      .pipe(debounceTime(300), takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.scroll.emit();
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   get elementosSeleccionados(): ElementoTabla[] {
@@ -390,5 +412,29 @@ export class TablaEstadoComponent implements OnInit {
       // Emitir el evento de cambio de selección para actualizar la vista
       this.emitirCambioSeleccion();
     }
+  }
+
+  onTableScroll(event: Event): void {
+    const element = event.target as HTMLElement;
+    const scrollPosition = element.scrollTop + element.clientHeight;
+    const scrollHeight = element.scrollHeight;
+
+    // Emitir el evento de scroll cuando el usuario llega al 80% del contenido
+    if (scrollPosition >= scrollHeight * 0.8) {
+      this.scroll.emit();
+    }
+  }
+
+  private shouldLoadMore(event: Event): boolean {
+    if (this.isLoadingMore || !this.hasMoreItems) return false;
+
+    const target = event.target as HTMLElement;
+    const scrollPosition = target.scrollTop + target.clientHeight;
+    const scrollHeight = target.scrollHeight;
+
+    // Aumentamos el margen para cargar antes
+    const threshold = 0.9; // 90% del scroll
+
+    return scrollPosition >= scrollHeight * threshold;
   }
 }

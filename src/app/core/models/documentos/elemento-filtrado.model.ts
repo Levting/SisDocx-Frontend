@@ -11,5 +11,5 @@ export interface FiltrosFusion {
   equipoDistribucion: 'BARRA'| 'TRANSFORMADOR' | 'UBV' | 'UMV' | 'UMA' | null;
   anio: string | null;
   mes: string | null;
-  tipoArchivoFusion: 'CAL' | 'ANALIZADOR' | null; // Trae cal y analizadores
+  tipoFusion: 'CAL' | 'ANALIZADOR' | 'NINGUNO' | null; // Trae cal y analizadores
 }

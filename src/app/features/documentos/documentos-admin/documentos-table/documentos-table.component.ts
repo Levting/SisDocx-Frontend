@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { NgClass, NgIf } from '@angular/common';
 import { SvgIconComponent } from 'angular-svg-icon';
 import {
@@ -12,8 +12,12 @@ import {
   map,
   throwError,
   takeUntil,
+  finalize,
+  debounceTime,
+  Subject,
+  Subscription,
 } from 'rxjs';
-import { Subject } from 'rxjs';
+import { Subject as RxjsSubject } from 'rxjs';
 
 import { DocumentosDropdownComponent } from '../components/documentos-dropdown/documentos-dropdown.component';
 import { TableComponent } from '../../../../shared/components/table/table.component';
@@ -34,6 +38,7 @@ import { RenombrarElementoRequest } from '../../../../core/models/request/elemen
 import { MarcarElementoFavoritoRequest } from '../../../../core/models/request/elemento-request.model';
 import { DescargarElementoRequest } from '../../../../core/models/documentos/descargar-elemento-request.model';
 import { PaginatedResponse } from '../../../../core/models/documentos/elemento.model';
+import { ToastService } from '../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-documentos-table',
@@ -51,6 +56,7 @@ import { PaginatedResponse } from '../../../../core/models/documentos/elemento.m
   templateUrl: './documentos-table.component.html',
 })
 export class DocumentosTableComponent implements OnInit, OnDestroy {
+  @ViewChild('tableComponent') tableComponent: any;
   public carpetaRaiz: Carpeta | null = null;
   public contenidoCarpetaRaiz: Elemento[] = [];
   public elementosOriginales: Elemento[] = [];
@@ -87,6 +93,7 @@ export class DocumentosTableComponent implements OnInit, OnDestroy {
     inject(ConfirmModalService);
   private logger: LoggerService = inject(LoggerService);
   private authService: AuthService = inject(AuthService);
+  private toastService: ToastService = inject(ToastService);
 
   // Propiedades para la selección de elementos
   public elementosSeleccionados: ElementoTabla[] = [];
@@ -112,7 +119,17 @@ export class DocumentosTableComponent implements OnInit, OnDestroy {
   private userRole: string | null = null;
   private userProvincia: string | null = null;
 
-  private destroy$ = new Subject<void>();
+  private destroy$ = new RxjsSubject<void>();
+
+  private currentPage: number = 0;
+  private pageSize: number = 20;
+  public hasMoreItems: boolean = true;
+  public isLoadingMore: boolean = false;
+  public totalElements: number = 0;
+  public loadedElements: number = 0;
+
+  private scrollSubject = new Subject<void>();
+  private scrollSubscription: Subscription | null = null;
 
   constructor() {
     // Suscribirse a los cambios del rol y provincia
@@ -127,6 +144,13 @@ export class DocumentosTableComponent implements OnInit, OnDestroy {
 
   /* Inicializador del Componente */
   ngOnInit(): void {
+    // Set up scroll subscription
+    this.scrollSubscription = this.scrollSubject
+      .pipe(debounceTime(200), takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.cargarMasElementos();
+      });
+
     // Cargar contenido, si no hay contenido cargar la carpeta raíz
     this.cargarRaiz();
 
@@ -145,6 +169,9 @@ export class DocumentosTableComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    if (this.scrollSubscription) {
+      this.scrollSubscription.unsubscribe();
+    }
   }
 
   cargarRaiz(): void {
@@ -208,18 +235,24 @@ export class DocumentosTableComponent implements OnInit, OnDestroy {
   }
 
   cargarContenido(carpetaId: number, nombre?: string): void {
-    this.isLoading = true;
-    this.isError = false;
-    this.error = null;
-    this.elementosTabla = [];
+    // Resetear todo el estado
+    this.resetearEstado();
 
     this.authService.userLoginOn
       .pipe(
         filter((isLoggedIn) => isLoggedIn === true),
         take(1),
         switchMap(() =>
-          this.elementoService.obtenerContenidoCarpetaAdmin(carpetaId)
-        )
+          this.elementoService.obtenerContenidoCarpetaAdmin(
+            carpetaId,
+            this.currentPage,
+            this.pageSize
+          )
+        ),
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.isLoading = false;
+        })
       )
       .subscribe({
         next: (response: PaginatedResponse<Elemento>) => {
@@ -238,6 +271,10 @@ export class DocumentosTableComponent implements OnInit, OnDestroy {
           }
 
           this.elementosOriginales = response.content;
+          this.hasMoreItems = !response.last;
+          this.totalElements = response.totalElements;
+          this.loadedElements = response.content.length;
+          this.currentPage = response.number + 1;
 
           if (response.content.length === 0) {
             this.isLoading = false;
@@ -252,6 +289,7 @@ export class DocumentosTableComponent implements OnInit, OnDestroy {
                 this.isLoading = false;
               },
               error: (err: ApiError) => {
+                console.error('Error al transformar elementos:', err);
                 this.isLoading = false;
                 this.isError = true;
                 this.error = 'Error al transformar los elementos para la tabla';
@@ -263,6 +301,7 @@ export class DocumentosTableComponent implements OnInit, OnDestroy {
             });
         },
         error: (err: ApiError) => {
+          console.error('Error al cargar contenido:', err);
           this.isLoading = false;
           this.isError = true;
           if (err.status === 401) {
@@ -277,6 +316,29 @@ export class DocumentosTableComponent implements OnInit, OnDestroy {
           }
         },
       });
+  }
+
+  private resetearEstado(): void {
+    this.isLoading = true;
+    this.currentPage = 0;
+    this.hasMoreItems = true;
+    this.elementosTabla = [];
+    this.isError = false;
+    this.error = null;
+    this.loadedElements = 0;
+    this.totalElements = 0;
+    this.elementosOriginales = [];
+    this.isLoadingMore = false;
+  }
+
+  onScroll(): void {
+    if (!this.isLoadingMore && this.hasMoreItems) {
+      this.scrollSubject.next();
+    }
+  }
+
+  onLoadMore(): void {
+    this.cargarMasElementos();
   }
 
   navegarA(index: number): void {
@@ -678,5 +740,78 @@ export class DocumentosTableComponent implements OnInit, OnDestroy {
         console.error('Error al descargar elemento:', error.message);
       },
     });
+  }
+
+  private cargarMasElementos(): void {
+    if (this.isLoadingMore || !this.hasMoreItems) {
+      return;
+    }
+
+    this.isLoadingMore = true;
+
+    this.carpetaActualService.carpetaActual$
+      .pipe(
+        take(1),
+        switchMap((carpeta) => {
+          const carpetaId = carpeta?.elementoId || 0;
+          return this.elementoService.obtenerContenidoCarpetaAdmin(
+            carpetaId,
+            this.currentPage,
+            this.pageSize
+          );
+        }),
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.isLoadingMore = false;
+        })
+      )
+      .subscribe({
+        next: (response) => {
+          if (response && response.content) {
+            // Actualizar elementos originales
+            this.elementosOriginales = [
+              ...this.elementosOriginales,
+              ...response.content,
+            ];
+
+            // Actualizar estado de paginación
+            this.hasMoreItems = !response.last;
+            this.loadedElements += response.content.length;
+            this.currentPage = response.number + 1;
+            this.totalElements = response.totalElements;
+
+            // Transformar y agregar nuevos elementos a la tabla
+            this.transformacionService
+              .transformarDocumentosATabla(response.content)
+              .pipe(takeUntil(this.destroy$))
+              .subscribe({
+                next: (filas) => {
+                  this.elementosTabla = [...this.elementosTabla, ...filas];
+                  this.isLoadingMore = false;
+                },
+                error: (error) => {
+                  console.error(
+                    'Error al transformar elementos adicionales:',
+                    error
+                  );
+                  this.logger.error('Error al transformar elementos:', error);
+                  this.toastService.showError(
+                    'Error al procesar los elementos'
+                  );
+                  this.isLoadingMore = false;
+                },
+              });
+          } else {
+            this.isLoadingMore = false;
+          }
+        },
+        error: (error) => {
+          console.error('Error al cargar más elementos:', error);
+          this.logger.error('Error al cargar más elementos:', error);
+          this.toastService.showError('Error al cargar más elementos');
+          this.hasMoreItems = false;
+          this.isLoadingMore = false;
+        },
+      });
   }
 }

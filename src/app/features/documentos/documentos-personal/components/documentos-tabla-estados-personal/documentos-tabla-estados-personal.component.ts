@@ -3,7 +3,6 @@ import { NgIf } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { SvgIconComponent } from 'angular-svg-icon';
 import { ColumnaConfig } from '../../../../../shared/components/tabla-estado/tabla-estado.component';
-
 import {
   catchError,
   filter,
@@ -13,6 +12,9 @@ import {
   switchMap,
   take,
   takeUntil,
+  finalize,
+  debounceTime,
+  Subscription,
 } from 'rxjs';
 import { BreadcrumbComponent } from '../../../../../shared/components/breadcrumb/breadcrumb.component';
 import { DocumentosPreviewModalComponent } from '../../../documentos-admin/components/documentos-preview-modal/documentos-preview-modal.component';
@@ -161,6 +163,18 @@ export class DocumentosTablaEstadosPersonalComponent {
   // Propiedades para el modal de confirmación
   private destroy$ = new Subject<void>();
 
+  private currentPage: number = 0;
+  private pageSize: number = 20;
+  public hasMoreItems: boolean = true;
+  public isLoadingMore: boolean = false;
+  public totalElements: number = 0;
+  public loadedElements: number = 0;
+
+  private scrollSubject = new Subject<void>();
+  private scrollSubscription: Subscription | null = null;
+
+  public allElementsLoaded: boolean = false;
+
   constructor() {
     // Suscribirse a los cambios del rol y provincia
     this.authService.userRole$.subscribe((role) => {
@@ -186,6 +200,24 @@ export class DocumentosTablaEstadosPersonalComponent {
           this.cargarRaiz();
         }
       });
+
+    // Configurar el debounce para el scroll
+    this.scrollSubscription = this.scrollSubject
+      .pipe(
+        debounceTime(200), // Esperar 200ms entre eventos de scroll
+        filter(() => !this.isLoadingMore && this.hasMoreItems) // Solo procesar si no está cargando y hay más elementos
+      )
+      .subscribe(() => {
+        this.cargarMasElementos();
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    if (this.scrollSubscription) {
+      this.scrollSubscription.unsubscribe();
+    }
   }
 
   /**
@@ -194,16 +226,24 @@ export class DocumentosTablaEstadosPersonalComponent {
    * @param nombre - El nombre de la carpeta a cargar
    */
   cargarContenido(carpetaId: number, nombre?: string): void {
-    this.isLoading = true;
-    this.isError = false;
-    this.error = null;
-    this.elementosTabla = [];
+    // Resetear todo el estado
+    this.resetearEstado();
 
     this.authService.userLoginOn
       .pipe(
         filter((isLoggedIn) => isLoggedIn === true),
         take(1),
-        switchMap(() => this.elementoService.obtenerContenidoCarpeta(carpetaId))
+        switchMap(() =>
+          this.elementoService.obtenerContenidoCarpeta(
+            carpetaId,
+            this.currentPage,
+            this.pageSize
+          )
+        ),
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.isLoading = false;
+        })
       )
       .subscribe({
         next: (response: PaginatedResponse<Elemento>) => {
@@ -222,6 +262,10 @@ export class DocumentosTablaEstadosPersonalComponent {
           }
 
           this.elementosOriginales = response.content;
+          this.hasMoreItems = !response.last;
+          this.totalElements = response.totalElements;
+          this.loadedElements = response.content.length;
+          this.currentPage = response.number + 1;
 
           if (response.content.length === 0) {
             this.isLoading = false;
@@ -236,6 +280,7 @@ export class DocumentosTablaEstadosPersonalComponent {
                 this.isLoading = false;
               },
               error: (err: ApiError) => {
+                console.error('Error al transformar elementos:', err);
                 this.isLoading = false;
                 this.isError = true;
                 this.error = 'Error al transformar los elementos para la tabla';
@@ -247,6 +292,7 @@ export class DocumentosTablaEstadosPersonalComponent {
             });
         },
         error: (err: ApiError) => {
+          console.error('Error al cargar contenido:', err);
           this.isLoading = false;
           this.isError = true;
           if (err.status === 401) {
@@ -261,6 +307,20 @@ export class DocumentosTablaEstadosPersonalComponent {
           }
         },
       });
+  }
+
+  private resetearEstado(): void {
+    this.isLoading = true;
+    this.currentPage = 0;
+    this.hasMoreItems = true;
+    this.elementosTabla = [];
+    this.isError = false;
+    this.error = null;
+    this.loadedElements = 0;
+    this.totalElements = 0;
+    this.elementosOriginales = [];
+    this.isLoadingMore = false;
+    this.allElementsLoaded = false;
   }
 
   /**
@@ -415,7 +475,46 @@ export class DocumentosTablaEstadosPersonalComponent {
     this.elementoAPrevisualizar = null;
   }
 
-  /* Operaciones con Elementos */
+  private esCarpetaProtegida(nombre: string): boolean {
+    // Validar años (2024, 2025, etc.)
+    if (/^\d{4}$/.test(nombre)) {
+      return true;
+    }
+
+    // Validar meses (01 Enero, 02 Febrero, etc.)
+    const meses = [
+      '01 Enero',
+      '02 Febrero',
+      '03 Marzo',
+      '04 Abril',
+      '05 Mayo',
+      '06 Junio',
+      '07 Julio',
+      '08 Agosto',
+      '09 Septiembre',
+      '10 Octubre',
+      '11 Noviembre',
+      '12 Diciembre',
+    ];
+    if (meses.includes(nombre)) {
+      return true;
+    }
+
+    // Validar nombres específicos
+    const nombresProtegidos = [
+      'Barras',
+      'Transformadores',
+      'Trafos',
+      'UBV',
+      'UMAV',
+    ];
+    if (nombresProtegidos.includes(nombre)) {
+      return true;
+    }
+
+    return false;
+  }
+
   papeleraSeleccionados(): void {
     if (
       this.elementosSeleccionados.length === 0 ||
@@ -423,16 +522,36 @@ export class DocumentosTablaEstadosPersonalComponent {
     )
       return;
 
+    // Filtrar elementos que no son carpetas protegidas
+    const elementosPermitidos = this.elementosSeleccionados.filter(
+      (elemento) => {
+        if (elemento.columnas['elemento'] === 'CARPETA') {
+          return !this.esCarpetaProtegida(elemento.columnas['nombre']);
+        }
+        return true;
+      }
+    );
+
+    // Si no hay elementos permitidos después del filtrado
+    if (elementosPermitidos.length === 0) {
+      this.logger.warn('No se pueden mover carpetas protegidas a la papelera');
+      this.toastService.showInfo(
+        'No se pueden mover carpetas protegidas a la papelera',
+        'Estas carpetas son protegidas y no pueden ser movidas a la papelera'
+      );
+      return;
+    }
+
     const config = {
       title: 'Mover a papelera',
-      message: `¿Estás seguro de que deseas mover ${this.elementosSeleccionados.length} elemento(s) a la papelera?`,
+      message: `¿Estás seguro de que deseas mover ${elementosPermitidos.length} elemento(s) a la papelera?`,
       confirmText: 'Mover a papelera',
       cancelText: 'Cancelar',
     };
 
     this.confirmModalService.open(config).subscribe((result) => {
       if (result.confirmed) {
-        const requests = this.elementosSeleccionados.map((elemento) => ({
+        const requests = elementosPermitidos.map((elemento) => ({
           elementoId: elemento.columnas['elementoId'],
           elemento: elemento.columnas['elemento'] as 'CARPETA' | 'ARCHIVO',
         }));
@@ -453,7 +572,7 @@ export class DocumentosTablaEstadosPersonalComponent {
           next: () => {
             this.actualizarContenidoActual();
             this.toastService.showSuccess(
-              `Elementos ${this.elementosSeleccionados.length} movidos a papelera correctamente`
+              `Elementos ${elementosPermitidos.length} movidos a papelera correctamente`
             );
             this.limpiarSeleccion();
           },
@@ -688,6 +807,19 @@ export class DocumentosTablaEstadosPersonalComponent {
   onPapeleraIndividual(elemento: ElementoTabla): void {
     if (this.isElementoDisabled(elemento)) return;
 
+    // Verificar si es una carpeta protegida
+    if (
+      elemento.columnas['elemento'] === 'CARPETA' &&
+      this.esCarpetaProtegida(elemento.columnas['nombre'])
+    ) {
+      this.logger.warn('No se puede mover esta carpeta a la papelera');
+      this.toastService.showInfo(
+        'No se puede mover esta carpeta a la papelera',
+        'Esta carpeta es protegida y no puede ser movida a la papelera'
+      );
+      return;
+    }
+
     const config = {
       title: 'Mover a papelera',
       message: `¿Estás seguro de que deseas mover "${elemento.columnas['nombre']}" a la papelera?`,
@@ -873,5 +1005,85 @@ export class DocumentosTablaEstadosPersonalComponent {
     return this.elementosSeleccionados.some((elemento) =>
       this.isElementoDisabled(elemento)
     );
+  }
+
+  onScroll(): void {
+    // Solo emitir el evento si hay más elementos por cargar
+    if (!this.isLoadingMore && this.hasMoreItems) {
+      this.scrollSubject.next();
+    }
+  }
+
+  private cargarMasElementos(): void {
+    if (this.isLoadingMore || !this.hasMoreItems) {
+      return;
+    }
+
+    this.isLoadingMore = true;
+
+    this.carpetaActualService.carpetaActual$
+      .pipe(
+        take(1),
+        switchMap((carpeta) => {
+          const carpetaId = carpeta?.elementoId || 0;
+          return this.elementoService.obtenerContenidoCarpeta(
+            carpetaId,
+            this.currentPage,
+            this.pageSize
+          );
+        }),
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.isLoadingMore = false;
+        })
+      )
+      .subscribe({
+        next: (response) => {
+          if (response && response.content) {
+            // Actualizar elementos originales
+            this.elementosOriginales = [
+              ...this.elementosOriginales,
+              ...response.content,
+            ];
+
+            // Actualizar estado de paginación
+            this.hasMoreItems = !response.last;
+            this.loadedElements += response.content.length;
+            this.currentPage = response.number + 1;
+            this.totalElements = response.totalElements;
+
+            // Transformar y agregar nuevos elementos a la tabla
+            this.transformacionService
+              .transformarDocumentosATabla(response.content)
+              .pipe(takeUntil(this.destroy$))
+              .subscribe({
+                next: (filas) => {
+                  this.elementosTabla = [...this.elementosTabla, ...filas];
+                  this.isLoadingMore = false;
+                },
+                error: (error) => {
+                  console.error(
+                    'Error al transformar elementos adicionales:',
+                    error
+                  );
+                  this.logger.error('Error al transformar elementos:', error);
+                  this.toastService.showError(
+                    'Error al procesar los elementos'
+                  );
+                  this.isLoadingMore = false;
+                },
+              });
+          } else {
+            this.isLoadingMore = false;
+          }
+        },
+        error: (error) => {
+          console.error('Error al cargar más elementos:', error);
+          this.logger.error('Error al cargar más elementos:', error);
+          this.toastService.showError('Error al cargar más elementos');
+          this.hasMoreItems = false;
+          this.isLoadingMore = false;
+        },
+      });
   }
 }

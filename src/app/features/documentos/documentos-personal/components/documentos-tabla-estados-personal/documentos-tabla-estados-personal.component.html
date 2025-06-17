@@ -86,8 +86,11 @@
       [isLoading]="isLoading"
       [isError]="isError"
       [error]="error"
+      [hasMoreItems]="hasMoreItems"
+      [isLoadingMore]="isLoadingMore"
       (cambioSeleccion)="onSeleccionCambiada($event)"
       (dobleClickElemento)="onDobleClickElemento($event)"
+      (scroll)="onScroll()"
       [isElementoDisabled]="isElementoDisabled.bind(this)"
     />
   </div>
@@ -133,4 +136,11 @@
       (onEnviarRevision)="onSolicitudIndividual($event)"
     />
   </ng-template>
+
+  <div
+    *ngIf="!isLoading && !isError && totalElements > 0"
+    class="text-sm text-gray-500 mt-2 text-center"
+  >
+    Mostrando {{ loadedElements }} de {{ totalElements }} elementos
+  </div>
 </div>
