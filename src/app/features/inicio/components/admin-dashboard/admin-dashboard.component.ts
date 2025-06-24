@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Chart, ChartConfiguration, ChartType } from 'chart.js';
 import { NgChartsModule } from 'ng2-charts';
+import { SvgIconComponent } from 'angular-svg-icon';
 import {
   DashboardService,
   GraficoItemDTO,
@@ -10,7 +11,7 @@ import {
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, NgChartsModule],
+  imports: [CommonModule, NgChartsModule, SvgIconComponent],
   templateUrl: './admin-dashboard.component.html',
 })
 export class AdminDashboardComponent implements OnInit {
@@ -87,6 +88,10 @@ export class AdminDashboardComponent implements OnInit {
   };
   public actividadChartType = 'line' as const;
 
+  public totalCarpetas = 0;
+  public totalArchivos = 0;
+  public totalUsuarios = 0;
+
   public isLoading: boolean = true;
   public error: string | null = null;
 
@@ -114,6 +119,17 @@ export class AdminDashboardComponent implements OnInit {
         this.actividadChartData.datasets[0].data = data.map(
           (item) => item.valor
         );
+
+        // KPIs usando nombre
+        this.totalCarpetas = data
+          .filter((item) => item.nombre.toLowerCase().includes('carpeta'))
+          .reduce((acc, item) => acc + item.valor, 0);
+        this.totalArchivos = data
+          .filter((item) => item.nombre.toLowerCase().includes('archivo'))
+          .reduce((acc, item) => acc + item.valor, 0);
+        this.totalUsuarios = data
+          .filter((item) => item.nombre.toLowerCase().includes('usuario'))
+          .reduce((acc, item) => acc + item.valor, 0);
 
         this.isLoading = false;
       },

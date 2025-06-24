@@ -1,79 +1,96 @@
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-  <!-- Card de Documentos -->
-  <div class="bg-white rounded-lg shadow p-6">
-    <h2 class="text-xl font-semibold text-gray-800 mb-4">Documentos</h2>
-    <div class="h-64">
-      <div *ngIf="isLoading" class="flex items-center justify-center h-full">
-        <div
-          class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
-        ></div>
-      </div>
-      <div
-        *ngIf="!isLoading && error"
-        class="flex items-center justify-center h-full text-red-500"
-      >
-        {{ error }}
-      </div>
-      <canvas
-        *ngIf="!isLoading && !error"
-        baseChart
-        [data]="documentosChartData"
-        [options]="documentosChartOptions"
-        [type]="documentosChartType"
-      >
-      </canvas>
+<!-- KPIs -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+  <div class="flex items-center p-5 bg-white rounded-lg shadow gap-4">
+    <div class="p-3 bg-blue-100 rounded-full">
+      <svg-icon
+        src="assets/icons/folder.svg"
+        [svgClass]="'w-7 h-7 text-blue-600'"
+      />
+    </div>
+    <div>
+      <div class="text-2xl font-bold">{{ totalCarpetas }}</div>
+      <div class="text-gray-500 text-sm">Carpetas</div>
     </div>
   </div>
-
-  <!-- Card de Usuarios -->
-  <div class="bg-white rounded-lg shadow p-6">
-    <h2 class="text-xl font-semibold text-gray-800 mb-4">Usuarios</h2>
-    <div class="h-64">
-      <div *ngIf="isLoading" class="flex items-center justify-center h-full">
-        <div
-          class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
-        ></div>
-      </div>
-      <div
-        *ngIf="!isLoading && error"
-        class="flex items-center justify-center h-full text-red-500"
-      >
-        {{ error }}
-      </div>
-      <canvas
-        *ngIf="!isLoading && !error"
-        baseChart
-        [data]="usuariosChartData"
-        [options]="usuariosChartOptions"
-        [type]="usuariosChartType"
-      >
-      </canvas>
+  <div class="flex items-center p-5 bg-white rounded-lg shadow gap-4">
+    <div class="p-3 bg-green-100 rounded-full">
+      <svg-icon
+        src="assets/icons/document.svg"
+        [svgClass]="'w-7 h-7 text-green-600'"
+      />
+    </div>
+    <div>
+      <div class="text-2xl font-bold">{{ totalArchivos }}</div>
+      <div class="text-gray-500 text-sm">Archivos</div>
     </div>
   </div>
+  <div class="flex items-center p-5 bg-white rounded-lg shadow gap-4">
+    <div class="p-3 bg-purple-100 rounded-full">
+      <svg-icon
+        src="assets/icons/user.svg"
+        [svgClass]="'w-7 h-7 text-purple-600'"
+      />
+    </div>
+    <div>
+      <div class="text-2xl font-bold">{{ totalUsuarios }}</div>
+      <div class="text-gray-500 text-sm">Usuarios</div>
+    </div>
+  </div>
+</div>
 
-  <!-- Card de Actividad -->
+<!-- Gráficos -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+  <!-- Documentos -->
   <div class="bg-white rounded-lg shadow p-6">
-    <h2 class="text-xl font-semibold text-gray-800 mb-4">Actividad</h2>
-    <div class="h-64">
-      <div *ngIf="isLoading" class="flex items-center justify-center h-full">
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">
+      Distribución de Documentos
+    </h2>
+    <div class="h-64 flex items-center justify-center">
+      <ng-container *ngIf="!isLoading && !error; else loadingOrError">
+        <canvas
+          baseChart
+          [data]="documentosChartData"
+          [options]="documentosChartOptions"
+          [type]="documentosChartType"
+        ></canvas>
+      </ng-container>
+      <ng-template #loadingOrError>
         <div
+          *ngIf="isLoading"
           class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
         ></div>
-      </div>
-      <div
-        *ngIf="!isLoading && error"
-        class="flex items-center justify-center h-full text-red-500"
-      >
-        {{ error }}
-      </div>
-      <canvas
-        *ngIf="!isLoading && !error"
-        baseChart
-        [data]="actividadChartData"
-        [options]="actividadChartOptions"
-        [type]="actividadChartType"
-      >
-      </canvas>
+        <div *ngIf="!isLoading && error" class="text-red-500">{{ error }}</div>
+      </ng-template>
+    </div>
+  </div>
+  <!-- Usuarios -->
+  <div class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">
+      Usuarios Activos/Inactivos
+    </h2>
+    <div class="h-64 flex items-center justify-center">
+      <ng-container *ngIf="!isLoading && !error; else loadingOrError">
+        <canvas
+          baseChart
+          [data]="usuariosChartData"
+          [options]="usuariosChartOptions"
+          [type]="usuariosChartType"
+        ></canvas>
+      </ng-container>
+    </div>
+  </div>
+  <!-- Actividad -->
+  <div class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">Actividad Reciente</h2>
+    <div class="h-64 flex items-center justify-center">
+      <ng-container *ngIf="!isLoading && !error; else loadingOrError">
+        <canvas
+          baseChart
+          [data]="actividadChartData"
+          [options]="actividadChartOptions"
+          [type]="actividadChartType"
+        ></canvas>
+      </ng-container>
     </div>
   </div>
 </div>

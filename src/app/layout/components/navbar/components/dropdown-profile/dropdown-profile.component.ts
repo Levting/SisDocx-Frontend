@@ -7,17 +7,44 @@ import {
   OnInit,
 } from '@angular/core';
 import { NgIf } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { AuthService } from '../../../../../core/services/auth.service';
 import { Usuario } from '../../../../../core/models/usuario/usuario.model';
 import { UserService } from '../../../../../core/services/user.service';
+import {
+  trigger,
+  state,
+  style,
+  transition,
+  animate,
+} from '@angular/animations';
+import { SvgIconComponent } from 'angular-svg-icon';
 
 @Component({
   selector: 'app-dropdown-profile',
   standalone: true,
-  imports: [NgIf],
+  imports: [NgIf, SvgIconComponent, RouterLink, RouterLinkActive],
   templateUrl: './dropdown-profile.component.html',
+  animations: [
+    trigger('slideInOut', [
+      state(
+        'void',
+        style({
+          transform: 'translateY(-10px)',
+          opacity: 0,
+        })
+      ),
+      state(
+        '*',
+        style({
+          transform: 'translateY(0)',
+          opacity: 1,
+        })
+      ),
+      transition('void <=> *', [animate('150ms ease-out')]),
+    ]),
+  ],
 })
 export class DropdownProfileComponent implements OnInit, OnDestroy {
   public usuario: Usuario | null = null;

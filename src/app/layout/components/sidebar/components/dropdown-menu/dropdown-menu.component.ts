@@ -17,6 +17,13 @@ import { Router, NavigationEnd } from '@angular/router';
 import { filter, switchMap } from 'rxjs/operators';
 import { Carpeta } from '../../../../../core/models/documentos/carpeta.model';
 import { CarpetaActualService } from '../../../../../core/services/carpeta-actual.service';
+import {
+  trigger,
+  state,
+  style,
+  transition,
+  animate,
+} from '@angular/animations';
 
 /**
  * Componente que representa el menú desplegable en la barra lateral.
@@ -27,6 +34,25 @@ import { CarpetaActualService } from '../../../../../core/services/carpeta-actua
   standalone: true,
   imports: [NgIf, SvgIconComponent, NgClass],
   templateUrl: './dropdown-menu.component.html',
+  animations: [
+    trigger('slideInOut', [
+      state(
+        'void',
+        style({
+          transform: 'translateY(-10px)',
+          opacity: 0,
+        })
+      ),
+      state(
+        '*',
+        style({
+          transform: 'translateY(0)',
+          opacity: 1,
+        })
+      ),
+      transition('void <=> *', [animate('150ms ease-out')]),
+    ]),
+  ],
 })
 export class DropdownMenuComponent implements OnInit, OnDestroy {
   @Input() showSideBar: boolean = true;

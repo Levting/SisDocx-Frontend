@@ -1,10 +1,10 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { NgIf } from '@angular/common';
+import { NgIf, NgClass } from '@angular/common';
 
 @Component({
   selector: 'app-sidebar-header',
   standalone: true,
-  imports: [NgIf],
+  imports: [NgIf, NgClass],
   templateUrl: './sidebar-header.component.html',
 })
 export class SidebarHeaderComponent {

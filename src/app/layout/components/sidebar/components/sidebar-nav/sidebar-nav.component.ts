@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { NgClass, NgFor, NgIf, NgTemplateOutlet } from '@angular/common';
 import { AngularSvgIconModule } from 'angular-svg-icon';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { Carpeta } from '../../../../../core/models/documentos/carpeta.model';
 import { MenuService } from '../../../../../core/services/menu.service';
 import { RoleService } from '../../../../../core/services/role.service';
@@ -56,6 +56,7 @@ export class SidebarNavComponent implements OnInit, OnDestroy {
   // Inyectar servicios
   public menuService = inject(MenuService);
   private roleService = inject(RoleService);
+  private router = inject(Router);
 
   private destroy$ = new Subject<void>();
 
@@ -194,6 +195,45 @@ export class SidebarNavComponent implements OnInit, OnDestroy {
    */
   onToggleDropdown(): void {
     this.toggleDropdown.emit();
+  }
+
+  isActive(route: string): boolean {
+    return this.router.isActive(route, {
+      paths: 'exact',
+      queryParams: 'ignored',
+      fragment: 'ignored',
+      matrixParams: 'ignored',
+    });
+  }
+
+  getItemClasses(item: any): string[] {
+    const active = this.isActive(item.route || '');
+    if (this.showSideBar) {
+      return [
+        'group relative flex items-center text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200',
+        'mx-1 px-5',
+        active ? 'bg-blue-50 border-l-4 border-blue-600' : '',
+      ];
+    } else {
+      return [
+        'group relative flex items-center justify-center w-full text-sm text-gray-700 transition-all duration-200',
+        active ? 'bg-blue-50' : '',
+      ];
+    }
+  }
+
+  getIconClasses(item: any): string {
+    const active = this.isActive(item.route || '');
+    if (!this.showSideBar && active) {
+      return 'text-blue-600 bg-blue-50 flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200';
+    }
+    if (!this.showSideBar) {
+      return 'text-gray-500 group-hover:text-blue-600 flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200';
+    }
+    if (active) {
+      return 'text-blue-600 flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200';
+    }
+    return 'text-gray-500 group-hover:text-gray-700 flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200';
   }
 
   ngOnDestroy(): void {
