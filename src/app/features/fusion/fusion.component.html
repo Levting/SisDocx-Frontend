@@ -273,34 +273,65 @@
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="flex items-center">
                 <div class="flex-shrink-0 h-10 w-10">
-                  <svg
+                  <ng-container
                     *ngIf="elemento.columnas['elemento'] === 'CARPETA'"
-                    class="h-10 w-10 text-yellow-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
                   >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-                    ></path>
-                  </svg>
-                  <svg
+                    <svg-icon src="assets/icons/folder.svg" class="h-10 w-10" />
+                  </ng-container>
+
+                  <ng-container
                     *ngIf="elemento.columnas['elemento'] === 'ARCHIVO'"
-                    class="h-10 w-10 text-blue-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
                   >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                    ></path>
-                  </svg>
+                    <ng-container
+                      [ngSwitch]="elemento.columnas['extension']?.toLowerCase()"
+                    >
+                      <svg-icon
+                        *ngSwitchCase="'pdf'"
+                        src="assets/icons/filePdf.svg"
+                        class="h-10 w-10"
+                      />
+                      <svg-icon
+                        *ngSwitchCase="'docx'"
+                        src="assets/icons/fileDocx.svg"
+                        class="h-10 w-10"
+                      />
+                      <svg-icon
+                        *ngSwitchCase="'doc'"
+                        src="assets/icons/fileDocx.svg"
+                        class="h-10 w-10"
+                      />
+                      <svg-icon
+                        *ngSwitchCase="'xls'"
+                        src="assets/icons/fileExcel.svg"
+                        class="h-10 w-10"
+                      />
+                      <svg-icon
+                        *ngSwitchCase="'xlsx'"
+                        src="assets/icons/fileExcel.svg"
+                        class="h-10 w-10"
+                      />
+                      <svg-icon
+                        *ngSwitchCase="'jpg'"
+                        src="assets/icons/fileImage.svg"
+                        class="h-10 w-10"
+                      />
+                      <svg-icon
+                        *ngSwitchCase="'jpeg'"
+                        src="assets/icons/fileImage.svg"
+                        class="h-10 w-10"
+                      />
+                      <svg-icon
+                        *ngSwitchCase="'png'"
+                        src="assets/icons/fileImage.svg"
+                        class="h-10 w-10"
+                      />
+                      <svg-icon
+                        *ngSwitchDefault
+                        src="assets/icons/fileNone.svg"
+                        class="h-10 w-10"
+                      />
+                    </ng-container>
+                  </ng-container>
                 </div>
                 <div class="ml-4">
                   <div class="text-sm font-medium text-gray-900">
