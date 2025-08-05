@@ -2,16 +2,7 @@ import { Routes } from '@angular/router';
 import { AuthGuard } from './core/guards/auth.guard';
 import { RoleGuard } from './core/guards/role.guard';
 import { LayoutComponent } from './layout/layout.component';
-import { InicioComponent } from './features/inicio/inicio.component';
-import { PapeleraComponent } from './features/papelera/papelera.component';
-import { FavoritosComponent } from './features/favoritos/favoritos.component';
-import { AjustesComponent } from './features/ajustes/ajustes.component';
 import { DocumentosComponent } from './features/documentos/documentos.component';
-import { CampanaMedicionComponent } from './features/campana-medicion/campana-medicion.component';
-import { FusionComponent } from './features/fusion/fusion.component';
-import { DocumentosPorAprobarComponent } from './features/documentos/documentos-admin/documentos-por-aprobar/documentos-por-aprobar.component';
-import { DocumentosPersonalComponent } from './features/documentos/documentos-personal/documentos-personal.component';
-import { DocumentosSituacionComponent } from './features/documentos-situacion/documentos-situacion.component';
 
 export const routes: Routes = [
   {
@@ -36,11 +27,11 @@ export const routes: Routes = [
         data: { roles: ['Administrador'] },
       },
       {
-        path: 'documentos-por-aprobar',
+        path: 'revisiones',
         loadComponent: () =>
           import(
-            './features/documentos/documentos-admin/documentos-por-aprobar/documentos-por-aprobar.component'
-          ).then((m) => m.DocumentosPorAprobarComponent),
+            './features/revision/revision-admin/revision-admin.component'
+          ).then((m) => m.RevisionAdminComponent),
         canActivate: [RoleGuard],
         data: { roles: ['Administrador'] },
       },
@@ -57,8 +48,8 @@ export const routes: Routes = [
         path: 'documentos-situacion',
         loadComponent: () =>
           import(
-            './features/documentos-situacion/documentos-situacion.component'
-          ).then((m) => m.DocumentosSituacionComponent),
+            './features/revision/revision-personal/revision-personal.component'
+          ).then((m) => m.RevisionPersonalComponent),
         canActivate: [RoleGuard],
         data: { roles: ['Personal'] },
       },

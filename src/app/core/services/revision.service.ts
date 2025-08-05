@@ -36,8 +36,8 @@ export class RevisionService {
     return this.waitForAuth(this.http.get<Revision[]>(url));
   }
 
-  obtenerRevisionesRechazadas(): Observable<Revision[]> {
-    const url = `${this.API_URL}/rechazadas`;
+  obtenerRevisionesAprobadasYRechazadas(): Observable<Revision[]> {
+    const url = `${this.API_URL}/aprobadas-y-rechazadas`;
     return this.waitForAuth(this.http.get<Revision[]>(url));
   }
 

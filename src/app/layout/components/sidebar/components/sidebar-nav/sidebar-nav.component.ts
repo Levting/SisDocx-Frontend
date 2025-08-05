@@ -38,7 +38,6 @@ interface MenuGroup {
     AngularSvgIconModule,
     NgTemplateOutlet,
     RouterLink,
-    RouterLinkActive,
   ],
   templateUrl: './sidebar-nav.component.html',
 })
@@ -105,15 +104,15 @@ export class SidebarNavComponent implements OnInit, OnDestroy {
             roles: ['Personal'],
           },
           {
-            label: 'Situación Revisión',
+            label: 'Situación de Revisión',
             route: '/documentos-situacion',
             icon: 'assets/icons/see.svg',
             active: false,
             roles: ['Personal'],
           },
           {
-            label: 'Por Aprobar',
-            route: '/documentos-por-aprobar',
+            label: 'Revisiones',
+            route: '/revisiones',
             icon: 'assets/icons/see.svg',
             active: false,
             roles: ['Administrador'],
@@ -153,7 +152,7 @@ export class SidebarNavComponent implements OnInit, OnDestroy {
           },
         ],
       },
-      {
+      /* {
         group: 'Ajustes',
         items: [
           {
@@ -164,7 +163,7 @@ export class SidebarNavComponent implements OnInit, OnDestroy {
             roles: ['Administrador'],
           },
         ],
-      },
+      }, */
     ];
 
     this.roleService.currentUser$

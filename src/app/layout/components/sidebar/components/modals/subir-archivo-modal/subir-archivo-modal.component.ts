@@ -42,7 +42,7 @@ export class SubirArchivoModalComponent implements OnInit, OnDestroy {
   public totalArchivos: number = 0;
   public carpetas: File[] = [];
 
-  private readonly MAX_ARCHIVO_SIZE = 30 * 1024 * 1024; // 30MB
+  private readonly MAX_ARCHIVO_SIZE = 50 * 1024 * 1024; // 50MB
   private readonly VALID_EXTENSIONS = [
     '.pdf',
     '.doc',
@@ -198,10 +198,11 @@ export class SubirArchivoModalComponent implements OnInit, OnDestroy {
       }MB`;
     }
 
-    const extension = '.' + file.name.split('.').pop()?.toLowerCase();
-    if (!this.VALID_EXTENSIONS.includes(extension)) {
-      return `El archivo ${file.name} debe tener una extensión válida (pdf, doc, docx, xls, xlsx, jpg, jpeg, png)`;
-    }
+    // Comentamos la validación de extensiones para permitir cualquier tipo de archivo
+    // const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+    // if (!this.VALID_EXTENSIONS.includes(extension)) {
+    //   return `El archivo ${file.name} debe tener una extensión válida (pdf, doc, docx, xls, xlsx, jpg, jpeg, png)`;
+    // }
 
     return null;
   }

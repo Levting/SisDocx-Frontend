@@ -4,7 +4,10 @@ import { SvgIconComponent } from 'angular-svg-icon';
 import { ElementoTabla } from '../../models/table/elemento-tabla.model';
 import { Archivo } from '../../../core/models/documentos/archivo.model';
 import { ElementoService } from '../../../core/services/elemento.service';
-import { Elemento, PaginatedResponse } from '../../../core/models/documentos/elemento.model';
+import {
+  Elemento,
+  PaginatedResponse,
+} from '../../../core/models/documentos/elemento.model';
 
 interface ElementoArbol extends ElementoTabla {
   expandido?: boolean;
@@ -142,7 +145,6 @@ export class TablaDesplegableComponent implements OnInit {
     this.seleccionados.clear();
   }
 
-
   statusColor(status: string): string {
     return (
       {
@@ -161,6 +163,33 @@ export class TablaDesplegableComponent implements OnInit {
         RECHAZADO: 'text-red-600',
       }[status] || 'text-gray-500'
     );
+  }
+
+  isEstadoPendiente(estado: string): boolean {
+    return estado === 'PENDIENTE';
+  }
+
+  mostrarObservaciones(estado: string, observaciones: string | null): boolean {
+    return (
+      !this.isEstadoPendiente(estado) &&
+      observaciones !== null &&
+      observaciones.trim() !== ''
+    );
+  }
+
+  getTituloColumnaDinamica(): string {
+    // Si no hay elementos, mostrar "Acciones" por defecto
+    if (!this.elementosRevision || this.elementosRevision.length === 0) {
+      return 'Acciones';
+    }
+
+    // Verificar si hay elementos con estado PENDIENTE
+    const hayPendientes = this.elementosRevision.some((revision) =>
+      this.isEstadoPendiente(revision.columnas['estadoRevision'])
+    );
+
+    // Si hay pendientes, mostrar "Acciones", sino "Observaciones"
+    return hayPendientes ? 'Acciones' : 'Observaciones';
   }
 
   trackById(index: number, item: any): any {
@@ -229,5 +258,4 @@ export class TablaDesplegableComponent implements OnInit {
       this.actualizarSeleccionPadre(padre._padre);
     }
   }
-
 }

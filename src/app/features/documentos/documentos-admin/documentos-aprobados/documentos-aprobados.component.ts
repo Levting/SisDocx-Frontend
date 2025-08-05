@@ -18,11 +18,12 @@ import { FormsModule } from '@angular/forms';
 import { ProvinciaService } from '../../../../core/services/provincia.service';
 import { Provincia } from '../../../../core/models/usuario/provincia.model';
 import { Subject } from 'rxjs';
+import { SvgIconComponent } from 'angular-svg-icon';
 
 @Component({
   selector: 'app-documentos-aprobados',
   standalone: true,
-  imports: [CommonModule, FileSizePipe, FormsModule],
+  imports: [CommonModule, FileSizePipe, FormsModule, SvgIconComponent],
   templateUrl: './documentos-aprobados.component.html',
 })
 export class DocumentosAprobadosComponent {

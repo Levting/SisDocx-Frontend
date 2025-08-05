@@ -18,7 +18,7 @@
       class="h-full"
     >
       <app-tabla-desplegable
-        [elementosRevision]="revisionesPorAprobar"
+        [elementosRevision]="revisionesPendientes"
         (verArchivo)="onVerArchivo($event)"
         (aprobarRevision)="onAprobarRevision($event)"
         (rechazarRevision)="onRechazarRevision($event)"
@@ -26,7 +26,7 @@
     </ng-container>
     <ng-container *ngIf="activeTab === 'todas-revisiones'" class="h-full">
       <app-tabla-desplegable
-        [elementosRevision]="revisiones"
+        [elementosRevision]="revisionesAprobadasYRechazadas"
         (verArchivo)="onVerArchivo($event)"
       />
     </ng-container>

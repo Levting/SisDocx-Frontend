@@ -13,26 +13,26 @@ import {
   take,
   tap,
 } from 'rxjs';
-import { TablaEstadoComponent } from '../../../../../../shared/components/tabla-estado/tabla-estado.component';
-import { BreadcrumbComponent } from '../../../../../../shared/components/breadcrumb/breadcrumb.component';
-import { ElementoTabla } from '../../../../../../shared/models/table/elemento-tabla.model';
-import { DocumentosPreviewModalComponent } from '../../../components/documentos-preview-modal/documentos-preview-modal.component';
-import { Elemento } from '../../../../../../core/models/documentos/elemento.model';
-import { ElementoService } from '../../../../../../core/services/elemento.service';
-import { CarpetaActualService } from '../../../../../../core/services/carpeta-actual.service';
-import { LoggerService } from '../../../../../../core/services/logger.service';
-import { TransformacionService } from '../../../../../../core/services/transformacion.service';
-import { ConfirmModalService } from '../../../../../../shared/services/confirm-modal.service';
-import { AuthService } from '../../../../../../core/services/auth.service';
-import { ApiError } from '../../../../../../core/models/errors/api-error.model';
-import { Carpeta } from '../../../../../../core/models/documentos/carpeta.model';
-import { RenombrarElementoRequest } from '../../../../../../core/models/request/elemento-request.model';
-import { DescargarElementoRequest } from '../../../../../../core/models/documentos/descargar-elemento-request.model';
-import { RevisionService } from '../../../../../../core/services/revision.service';
-import { RevisionDesicion } from '../../../../../../core/models/revision/revision-desicion.model';
-import { Revision } from '../../../../../../core/models/revision/elemento-revision.model';
-import { TableComponent } from '../../../../../../shared/components/table/table.component';
-import { ToastService } from '../../../../../../core/services/toast.service';
+import { TablaEstadoComponent } from '../../../../shared/components/tabla-estado/tabla-estado.component';
+import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
+import { ElementoTabla } from '../../../../shared/models/table/elemento-tabla.model';
+import { DocumentosPreviewModalComponent } from '../../../documentos/documentos-admin/components/documentos-preview-modal/documentos-preview-modal.component';
+import { Elemento } from '../../../../core/models/documentos/elemento.model';
+import { ElementoService } from '../../../../core/services/elemento.service';
+import { CarpetaActualService } from '../../../../core/services/carpeta-actual.service';
+import { LoggerService } from '../../../../core/services/logger.service';
+import { TransformacionService } from '../../../../core/services/transformacion.service';
+import { ConfirmModalService } from '../../../../shared/services/confirm-modal.service';
+import { AuthService } from '../../../../core/services/auth.service';
+import { ApiError } from '../../../../core/models/errors/api-error.model';
+import { Carpeta } from '../../../../core/models/documentos/carpeta.model';
+import { RenombrarElementoRequest } from '../../../../core/models/request/elemento-request.model';
+import { DescargarElementoRequest } from '../../../../core/models/documentos/descargar-elemento-request.model';
+import { RevisionService } from '../../../../core/services/revision.service';
+import { RevisionDesicion } from '../../../../core/models/revision/revision-desicion.model';
+import { Revision } from '../../../../core/models/revision/elemento-revision.model';
+import { TableComponent } from '../../../../shared/components/table/table.component';
+import { ToastService } from '../../../../core/services/toast.service';
 
 interface ColumnaConfig {
   key: string;

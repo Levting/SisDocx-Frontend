@@ -1,18 +1,18 @@
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
-import { ConfirmModalComponent } from '../../../../shared/components/confirm-modal/confirm-modal.component';
-import { RevisionService } from '../../../../core/services/revision.service';
-import { ElementoTabla } from '../../../../shared/models/table/elemento-tabla.model';
-import { TransformacionService } from '../../../../core/services/transformacion.service';
-import { TablaDesplegableComponent } from '../../../../shared/components/tabla-desplegable/tabla-desplegable.component';
-import { DocumentosPreviewModalComponent } from '../components/documentos-preview-modal/documentos-preview-modal.component';
+import { ConfirmModalComponent } from '../../../shared/components/confirm-modal/confirm-modal.component';
+import { RevisionService } from '../../../core/services/revision.service';
+import { ElementoTabla } from '../../../shared/models/table/elemento-tabla.model';
+import { TransformacionService } from '../../../core/services/transformacion.service';
+import { TablaDesplegableComponent } from '../../../shared/components/tabla-desplegable/tabla-desplegable.component';
+import { DocumentosPreviewModalComponent } from '../../documentos/documentos-admin/components/documentos-preview-modal/documentos-preview-modal.component';
 import { CommonModule } from '@angular/common';
-import { ConfirmModalService } from '../../../../shared/services/confirm-modal.service';
-import { RevisionDesicion } from '../../../../core/models/revision/revision-desicion.model';
+import { ConfirmModalService } from '../../../shared/services/confirm-modal.service';
+import { RevisionDesicion } from '../../../core/models/revision/revision-desicion.model';
 import {
   Tab,
   TabsComponent,
-} from '../../../../shared/components/tabs/tabs.component';
-import { ToastService } from '../../../../core/services/toast.service';
+} from '../../../shared/components/tabs/tabs.component';
+import { ToastService } from '../../../core/services/toast.service';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
@@ -25,13 +25,13 @@ import { Subject, takeUntil } from 'rxjs';
     CommonModule,
     TabsComponent,
   ],
-  templateUrl: './documentos-por-aprobar.component.html',
+  templateUrl: './revision-admin.component.html',
 })
-export class DocumentosPorAprobarComponent implements OnInit, OnDestroy {
+export class RevisionAdminComponent implements OnInit, OnDestroy {
   // Variables
-  public revisionesPorAprobar: ElementoTabla[] = [];
-  public revisionesRechazadas: ElementoTabla[] = [];
-  public revisiones: ElementoTabla[] = [];
+  public revisionesPendientes: ElementoTabla[] = [];
+  public revisionesAprobadasYRechazadas: ElementoTabla[] = [];
+
   public isOpenPreviewModal: boolean = false;
   public elementoAPrevisualizar: ElementoTabla | null = null;
   public observacionesRechazo: string = '';
@@ -70,27 +70,18 @@ export class DocumentosPorAprobarComponent implements OnInit, OnDestroy {
       .obtenerRevisionesPendientes()
       .pipe(takeUntil(this.destroy$))
       .subscribe((revisiones) => {
-        this.revisionesPorAprobar = revisiones.map((revision) =>
+        this.revisionesPendientes = revisiones.map((revision) =>
           this.transformacionService.transformarATablaRevision(revision)
         );
+        console.log('revisionesPendientes', this.revisionesPendientes);
       });
 
-    // Cargar las revisiones rechazadas
+    // Cargar todas las revisiones que no estan pendientes
     this.revisionService
-      .obtenerRevisionesRechazadas()
+      .obtenerRevisionesAprobadasYRechazadas()
       .pipe(takeUntil(this.destroy$))
       .subscribe((revisiones) => {
-        this.revisionesRechazadas = revisiones.map((revision) =>
-          this.transformacionService.transformarATablaRevision(revision)
-        );
-      });
-
-    // Cargar todas las revisiones
-    this.revisionService
-      .obtenerRevisiones()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((revisiones) => {
-        this.revisiones = revisiones.map((revision) =>
+        this.revisionesAprobadasYRechazadas = revisiones.map((revision) =>
           this.transformacionService.transformarATablaRevision(revision)
         );
       });
@@ -140,7 +131,7 @@ export class DocumentosPorAprobarComponent implements OnInit, OnDestroy {
               this.revisionService
                 .obtenerRevisionesPendientes()
                 .subscribe((revisiones) => {
-                  this.revisionesPorAprobar = revisiones.map((revision) =>
+                  this.revisionesPendientes = revisiones.map((revision) =>
                     this.transformacionService.transformarATablaRevision(
                       revision
                     )
@@ -184,7 +175,7 @@ export class DocumentosPorAprobarComponent implements OnInit, OnDestroy {
               this.revisionService
                 .obtenerRevisionesPendientes()
                 .subscribe((revisiones) => {
-                  this.revisionesPorAprobar = revisiones.map((revision) =>
+                  this.revisionesPendientes = revisiones.map((revision) =>
                     this.transformacionService.transformarATablaRevision(
                       revision
                     )
